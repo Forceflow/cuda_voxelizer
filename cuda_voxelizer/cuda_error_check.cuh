@@ -9,11 +9,9 @@
 #define HANDLE_CUDA_ERROR( err ) __HANDLE_ERROR( err, __FILE__, __LINE__ )
 #define CHECK_CUDA_ERROR()    __CHECK_ERROR( __FILE__, __LINE__ )
  
-inline void __HANDLE_ERROR( cudaError err, const char *file, const int line )
-{
+inline void __HANDLE_ERROR( cudaError err, const char *file, const int line ){
 #ifdef CUDA_ERROR_CHECK
-    if ( cudaSuccess != err )
-    {
+    if ( cudaSuccess != err ){
         fprintf( stderr, "cudaSafeCall() failed at %s:%i : %s\n", file, line, cudaGetErrorString( err ) );
         exit( -1 );
     }
@@ -21,12 +19,10 @@ inline void __HANDLE_ERROR( cudaError err, const char *file, const int line )
     return;
 }
  
-inline void __CHECK_ERROR( const char *file, const int line )
-{
+inline void __CHECK_ERROR( const char *file, const int line ){
 #ifdef CUDA_ERROR_CHECK
     cudaError err = cudaGetLastError();
-    if ( cudaSuccess != err )
-    {
+    if ( cudaSuccess != err ){
         fprintf( stderr, "cudaCheckError() failed at %s:%i : %s\n", file, line, cudaGetErrorString( err ) );
         exit( -1 );
     }
