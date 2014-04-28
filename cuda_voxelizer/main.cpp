@@ -1,7 +1,9 @@
-#include "voxelize.cuh"
+#include "cuda_util.h"
 #include "TriMesh.h"
 #include <string>
 #include <stdio.h>
+
+extern void voxelize();
 
 using namespace std;
 string filename = "";
@@ -44,6 +46,8 @@ int main(int argc, char *argv[]) {
 	checkCudaRequirements();
 
 	allocateHostMem(80, (void**) &triangles);
+
+	voxelize();
 
 	trimesh::TriMesh *themesh = trimesh::TriMesh::read(filename.c_str());
 	themesh->need_faces(); // unpack (possible) triangle strips so we have faces

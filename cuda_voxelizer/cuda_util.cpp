@@ -1,17 +1,11 @@
-#ifndef VOXELIZE_H_
-#define VOXELIZE_H_
+#include "cuda_util.h"
 
-#include <stdio.h>
-#include "cuda_runtime.h"
-#include "device_launch_parameters.h"
-#include "cuda_error_check.cuh"
-
-inline void allocateHostMem(size_t size, void **data){
+void allocateHostMem(size_t size, void **data){
 	HANDLE_CUDA_ERROR(cudaHostAlloc(data, size, cudaHostAllocDefault));
 }
 
 // Check if CUDA requirements are met
-inline int checkCudaRequirements(){
+int checkCudaRequirements(){
 	// Is there a cuda device?
 	int device_count = 0;
 	HANDLE_CUDA_ERROR(cudaGetDeviceCount(&device_count));
@@ -30,5 +24,3 @@ inline int checkCudaRequirements(){
 	fprintf(stdout,"Available global device memory: %llu bytes", properties.totalGlobalMem);
 	return 1;
 }
-
-#endif

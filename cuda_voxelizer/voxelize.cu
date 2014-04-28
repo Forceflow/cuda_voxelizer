@@ -1,4 +1,4 @@
-#include "voxelize.cuh"
+#include "cuda_runtime.h"
 
 // symbols for constant memory: the same for every triangle
 __constant__ float3 model_bbox_min;
@@ -11,9 +11,12 @@ __global__ void kernel()
 }
 
 // Helper function for using CUDA to add vectors in parallel.
-cudaError_t voxelize()
+void voxelize()
 {
     cudaError_t cudaStatus = cudaSuccess;
-    return cudaStatus;
+	kernel<<<1,1>>>();
+    //return cudaStatus;
+
+	
 	
 }

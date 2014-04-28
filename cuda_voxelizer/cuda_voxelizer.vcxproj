@@ -162,11 +162,12 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <CudaCompile Include="voxelize.cu" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="cuda_util.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cuda_error_check.cuh" />
-    <ClInclude Include="voxelize.cuh" />
+    <ClInclude Include="cuda_util.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
