@@ -11,7 +11,7 @@ __global__ void kernel()
 }
 
 // Helper function for using CUDA to add vectors in parallel.
-void voxelize()
+void voxelize(float** triangles, )
 {
     cudaError_t cudaStatus = cudaSuccess;
 	kernel<<<1,1>>>();

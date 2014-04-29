@@ -1,5 +1,6 @@
 #include "cuda_util.h"
 
+// Allocate host memory
 void allocateHostMem(size_t size, void **data){
 	HANDLE_CUDA_ERROR(cudaHostAlloc(data, size, cudaHostAllocDefault));
 }
@@ -21,6 +22,6 @@ int checkCudaRequirements(){
 	HANDLE_CUDA_ERROR(cudaSetDevice(0));
 	HANDLE_CUDA_ERROR(cudaGetDeviceProperties(&properties,0));
 	fprintf(stdout,"Device %d: \"%s\"\n", 0, properties.name);
-	fprintf(stdout,"Available global device memory: %llu bytes", properties.totalGlobalMem);
+	fprintf(stdout,"Available global device memory: %llu bytes \n", properties.totalGlobalMem);
 	return 1;
 }
