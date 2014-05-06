@@ -27,33 +27,6 @@ void parseProgramParameters(int argc, char* argv[]){
 	fprintf(stdout, "Grid size: %i \n", gridsize);
 }
 
-// Helper function to transfer triangles to CUDA-allocated pinned host memory
-void trianglesToMemory(const trimesh::TriMesh *mesh, float** _data){
-	// Allocate page-locked memory
-	size_t size = sizeof(float)*9*(mesh->faces.size());
-	fprintf(stdout,"Allocating %llu kb of page-locked host memory", (size_t) (size / 1024.0f));
-	allocateHostMem(size, (void**) _data);
-	// Loop over all triangles and place them in memory
-	for(size_t i = 0; i < mesh->faces.size(); i++){
-		const trimesh::point &v0 = mesh->vertices[mesh->faces[i][0]];
-		const trimesh::point &v1 = mesh->vertices[mesh->faces[i][1]];
-		const trimesh::point &v2 = mesh->vertices[mesh->faces[i][2]];
-		size_t j = i*9;
-		//memcpy((*_data)+j, &v0, 3*sizeof(float));
-		//memcpy((*_data)+j+3, &v1, 3*sizeof(float));
-		//memcpy((*_data)+j+6, &v2, 3*sizeof(float));
-		(*_data)[j]   = v0[0];
-		(*_data)[j+1] = v0[1];
-		(*_data)[j+2] = v0[2];
-		(*_data)[j+3] = v1[0];
-		(*_data)[j+4] = v1[1];
-		(*_data)[j+5] = v1[2];
-		(*_data)[j+6] = v2[0];
-		(*_data)[j+7] = v2[1];
-		(*_data)[j+8] = v2[2];
-	}
-}
-
 
 int main(int argc, char *argv[]) {
 	parseProgramParameters(argc, argv);
