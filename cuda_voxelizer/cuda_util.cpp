@@ -1,6 +1,5 @@
 #include "cuda_util.h"
 
-
 // Helper function to transfer triangles to CUDA-allocated pinned host memory
 void trianglesToMemory(const trimesh::TriMesh *mesh, float** _data){
 	// Allocate page-locked memory

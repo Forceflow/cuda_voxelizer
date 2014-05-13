@@ -7,7 +7,7 @@
 #include "cuda_error_check.cuh"
 #include "TriMesh.h"
 
-void trianglesToMemory(const trimesh::TriMesh *mesh, float** _data);
+void trianglesToMemory(const trimesh::TriMesh* mesh, float** _data);
 int checkCudaRequirements();
 
 #endif
