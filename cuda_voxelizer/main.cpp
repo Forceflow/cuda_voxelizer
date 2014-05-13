@@ -2,13 +2,20 @@
 #include "TriMesh.h"
 #include <string>
 #include <stdio.h>
+#include <glm/glm.hpp>
+#include <glm/gtx/string_cast.hpp>
+#include "util.h"
 
-extern void voxelize();
+void voxelize(voxinfo v, float* triangle_data);
 
 using namespace std;
 string filename = "";
-int gridsize = 1024;
+unsigned int gridsize = 1024;
 float* triangles;
+
+glm::vec3 trimesh_to_glm(trimesh::vec3 a){
+	return glm::vec3(a[0], a[1], a[2]);
+}
 
 void parseProgramParameters(int argc, char* argv[]){
 	if(argc<2){ // not enough arguments
@@ -42,7 +49,24 @@ int main(int argc, char *argv[]) {
 
 	trianglesToMemory(themesh, &triangles);
 
-	voxelize();
+	glm::vec3 bbox_min = trimesh_to_glm(themesh->bbox.min);
+	glm::vec3 bbox_max = trimesh_to_glm(themesh->bbox.max);
+
+
+	voxinfo v;
+
+	v.unitlength = 1.0f;
+	v.bbox_min = trimesh_to_glm(themesh->bbox.min);
+	v.bbox_max = trimesh_to_glm(themesh->bbox.max);
+	v.n_triangles = themesh->faces.size();
+	v.gridsize = gridsize;
+
+	//glm::vec3 test = glm::vec3(1,-2,4);
+	//fprintf(stdout, " Before : %s \n", glm::to_string(test).c_str()); 
+	//test = -test;
+	//fprintf(stdout, " After : %s \n", glm::to_string(test).c_str());
+
+	voxelize(v,triangles);
 	
 
 }
