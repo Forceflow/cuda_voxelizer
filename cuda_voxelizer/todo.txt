@@ -1,0 +1,12 @@
+- Finish voxelisation porting
+- Allocate voxelisation table (booleans, hoe groot in CUDA?)
+- Atomics for marking voxel? (of maakt het niet uit?)
+
+OPTIMIZATION
+- Variable size queue voor gevonden voxels? (hoe werkt dat in CUDA?)
+
+MEMORY
+- Difference between hostalloc + memcpy and hostalloc+(DMA transfers)
+- What if we're using cudaMallocManaged?
+- Texture for triangles?
+- Surface for voxelisation table?
