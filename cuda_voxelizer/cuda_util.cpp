@@ -4,8 +4,9 @@
 void trianglesToMemory(const trimesh::TriMesh *mesh, float** _data){
 	// Allocate page-locked memory
 	size_t size = sizeof(float)*9*(mesh->faces.size());
-	fprintf(stdout,"Allocating %llu kb of page-locked host memory", (size_t) (size / 1024.0f));
+	fprintf(stdout,"Allocating %llu kb of page-locked host memory \n", (size_t) (size / 1024.0f));
 	HANDLE_CUDA_ERROR(cudaHostAlloc(_data, size, cudaHostAllocDefault));
+	fprintf(stdout,"Copy %llu triangles to page-locked host memory \n", (size_t) (mesh->faces.size()));
 	// Loop over all triangles and place them in memory
 	for(size_t i = 0; i < mesh->faces.size(); i++){
 		const trimesh::point &v0 = mesh->vertices[mesh->faces[i][0]];
