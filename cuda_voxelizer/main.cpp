@@ -36,13 +36,17 @@ void parseProgramParameters(int argc, char* argv[]){
 
 
 int main(int argc, char *argv[]) {
+	fprintf(stdout, "\n## PROGRAM PARAMETERS \n");
 	parseProgramParameters(argc, argv);
+	fprintf(stdout, "\n## CUDA INIT \n");
 	checkCudaRequirements();
 
+	fprintf(stdout, "\n## MESH IMPORT \n");
 	trimesh::TriMesh *themesh = trimesh::TriMesh::read(filename.c_str());
 	themesh->need_faces(); // unpack (possible) triangle strips so we have faces
 	themesh->need_bbox(); // compute the bounding box
 
+	fprintf(stdout, "\n## MEMORY PREPARATION \n");
 	fprintf(stdout, "Number of faces: %llu, faces table takes %llu kb \n", themesh->faces.size(), (size_t) (themesh->faces.size()*sizeof(trimesh::TriMesh::Face) / 1024.0f));
 	fprintf(stdout, "Number of vertices: %llu, vertices table takes %llu kb \n", themesh->vertices.size(), (size_t) (themesh->vertices.size()*sizeof(trimesh::point) / 1024.0f));
 	fprintf(stdout, "Flat triangle table will take %llu kb \n", (size_t) (themesh->faces.size()*9*sizeof(float) / 1024.0f));
@@ -51,7 +55,6 @@ int main(int argc, char *argv[]) {
 
 	glm::vec3 bbox_min = trimesh_to_glm(themesh->bbox.min);
 	glm::vec3 bbox_max = trimesh_to_glm(themesh->bbox.max);
-
 
 	voxinfo v;
 
