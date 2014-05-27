@@ -3,7 +3,8 @@
 - Atomics for marking voxel? (of maakt het niet uit?)
 
 OPTIMIZATION
-- Variable size queue voor gevonden voxels? (hoe werkt dat in CUDA?)
+- Variable size queue voor gevonden voxels? (hoe werkt dat in CUDA?) (zie stack overflow question)
+- Paper schwarz seidel: atomic operations op 32-bits on a single bit
 
 MEMORY
 - Difference between hostalloc + memcpy and hostalloc+(DMA transfers)
