@@ -4,7 +4,7 @@
 
 OPTIMIZATION
 - Variable size queue voor gevonden voxels? (hoe werkt dat in CUDA?) (zie stack overflow question)
-- Paper schwarz seidel: atomic operations op 32-bits on a single bit
+- Paper schwarz seidel: atomic operations op 32-bits on a single bit (atomicOr, atomicAnd)
 
 THRUST
 - Implement whole thing as thrust vector sort
