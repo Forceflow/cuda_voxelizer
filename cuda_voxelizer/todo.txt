@@ -6,6 +6,10 @@ OPTIMIZATION
 - Variable size queue voor gevonden voxels? (hoe werkt dat in CUDA?) (zie stack overflow question)
 - Paper schwarz seidel: atomic operations op 32-bits on a single bit
 
+THRUST
+- Implement whole thing as thrust vector sort
+- Or do a counting step first (cfr. Voxelpipe code)
+
 MEMORY
 - Difference between hostalloc + memcpy and hostalloc+(DMA transfers)
 - What if we're using cudaMallocManaged?
