@@ -1,17 +1,24 @@
+
+
+#include "cuda.h"
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 #include "cuda_error_check.cuh"
 #include <glm/glm.hpp>
 #include "util.h"
 
+// CUDA Global Memory
+// Sanity check
+__device__ size_t triangles_seen_count;
+
 __global__ void voxelize_triangle(voxinfo info, float* triangle_data, bool* voxel_table){
 	size_t thread_id = threadIdx.x + blockIdx.x * blockDim.x;
-	//printf("Thread %i saying hi \n", thread_id);
+
+	//printf("Hi from thread %llu \n", thread_id);
 	
 	using namespace glm; // we use GLM for all the vector operations
 
 	while(thread_id < info.n_triangles){ // every thread works on specific triangles
-		//printf("Looking at triangle %i \n", thread_id);
 		size_t t = thread_id*9; // triangle contains 9 vertices
 
 		// COMPUTE COMMON TRIANGLE PROPERTIES
@@ -70,6 +77,9 @@ __global__ void voxelize_triangle(voxinfo info, float* triangle_data, bool* voxe
 		float d_xz_e1 = (-1.0f * dot(n_zx_e1, vec2(v1.z, v1.x))) + max(0.0f, info.unitlength*n_zx_e1[0]) + max(0.0f, info.unitlength*n_zx_e1[1]);
 		float d_xz_e2 = (-1.0f * dot(n_zx_e2, vec2(v2.z, v2.x))) + max(0.0f, info.unitlength*n_zx_e2[0]) + max(0.0f, info.unitlength*n_zx_e2[1]);
 
+
+		// sanity check: atomically count triangles
+		atomicAdd(&triangles_seen_count, 1);
 		thread_id += blockDim.x * gridDim.x;
 	}
 	
@@ -81,7 +91,11 @@ void voxelize(voxinfo v, float* triangle_data){
 
     //cudaError_t cudaStatus = cudaSuccess;
 
-	// copy triangle data to GPU
+	// Sanity check
+	size_t t_seen = 0;
+	HANDLE_CUDA_ERROR(cudaMemcpyToSymbol(triangles_seen_count, (void*) &(t_seen), sizeof(t_seen), 0, cudaMemcpyHostToDevice));
+
+	// Malloc triangle memory
 	HANDLE_CUDA_ERROR(cudaMalloc(&dev_triangle_data,v.n_triangles*9*sizeof(float)));
 	HANDLE_CUDA_ERROR(cudaMemcpy(dev_triangle_data, (void*) triangle_data, v.n_triangles*9*sizeof(float), cudaMemcpyDefault));
 
@@ -89,12 +103,14 @@ void voxelize(voxinfo v, float* triangle_data){
 	//HANDLE_CUDA_ERROR(cudaMalloc
 
 	// if we pass triangle_data here directly, UVA takes care of memory transfer via DMA. Disabling for now.
-	voxelize_triangle<<<256,256>>>(v,dev_triangle_data,0);
-	cudaDeviceSynchronize();
+	voxelize_triangle<<<512,512>>>(v,dev_triangle_data,0);
 	CHECK_CUDA_ERROR();
 
+	cudaDeviceSynchronize();
+	
+	// Copy sanity check back to host
+	HANDLE_CUDA_ERROR(cudaMemcpyFromSymbol((void*) &(t_seen), triangles_seen_count, sizeof(t_seen), 0, cudaMemcpyDeviceToHost));
+	printf("We've seen %llu triangles on the GPU", t_seen);
+	
     //return cudaStatus;
-
-	
-	
 }
