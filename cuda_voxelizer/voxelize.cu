@@ -1,5 +1,3 @@
-
-
 #include "cuda.h"
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
@@ -109,7 +107,7 @@ void voxelize(voxinfo v, float* triangle_data){
 	cudaDeviceSynchronize();
 	
 	// Copy sanity check back to host
-	HANDLE_CUDA_ERROR(cudaMemcpyFromSymbol((void*) &(t_seen), triangles_seen_count, sizeof(t_seen), 0, cudaMemcpyDeviceToHost));
+	HANDLE_CUDA_ERROR(cudaMemcpyFromSymbol((void*)&(t_seen),triangles_seen_count, sizeof(t_seen), 0, cudaMemcpyDeviceToHost));
 	printf("We've seen %llu triangles on the GPU", t_seen);
 	
     //return cudaStatus;
