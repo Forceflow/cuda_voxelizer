@@ -3,7 +3,6 @@
 #include <string>
 #include <stdio.h>
 #include <glm/glm.hpp>
-#include <glm/gtx/string_cast.hpp>
 #include "util.h"
 
 void voxelize(voxinfo v, float* triangle_data);
@@ -58,7 +57,7 @@ int main(int argc, char *argv[]) {
 
 	voxinfo v;
 
-	v.unitlength = 1.0f;
+	v.unit = 1.0f;
 	v.bbox_min = trimesh_to_glm(themesh->bbox.min);
 	v.bbox_max = trimesh_to_glm(themesh->bbox.max);
 	v.n_triangles = themesh->faces.size();
