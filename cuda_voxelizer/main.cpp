@@ -1,12 +1,12 @@
-#include "cuda_util.h"
-#include "TriMesh.h"
 #include <string>
 #include <stdio.h>
+#include "cuda_util.h"
+#include "TriMesh.h"
 #include <glm/glm.hpp>
 #include <glm/gtx/string_cast.hpp>
 #include "util.h"
 
-void voxelize(voxinfo v, float* triangle_data);
+extern void voxelize(voxinfo v, float* triangle_data);
 
 using namespace std;
 string filename = "";
