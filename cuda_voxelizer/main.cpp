@@ -55,6 +55,7 @@ int main(int argc, char *argv[]) {
 	checkCudaRequirements();
 
 	fprintf(stdout, "\n## MESH IMPORT \n");
+	fflush(stdout);
 	trimesh::TriMesh *themesh = trimesh::TriMesh::read(filename.c_str());
 	themesh->need_faces(); // unpack (possible) triangle strips so we have faces
 	themesh->need_bbox(); // compute the bounding box

@@ -7,10 +7,16 @@
 #include "util.h"
 
 // CUDA Global Memory variables
-__device__ size_t voxel_count = 0; // How many voxels did we count
-__device__ size_t triangles_seen_count = 0; // Sanity check
+//__device__ size_t voxel_count = 0; // How many voxels did we count
+//__device__ size_t triangles_seen_count = 0; // Sanity check
 
-__device__ void setBit(unsigned int* voxel_table, size_t index){
+__device__ __inline__ bool checkBit(unsigned int* voxel_table, size_t index){
+	size_t int_location = int(index / 32.0f);
+	unsigned int bit_pos = 31 - unsigned int(int(index) % 32); // we count bit positions RtL, but array indices LtR
+	return ((voxel_table[int_location]) & (1 << bit_pos));
+}
+
+__device__ __inline__ void setBit(unsigned int* voxel_table, size_t index){
 	size_t int_location = int (index / 32.0f);
 	unsigned int bit_pos = 31 - unsigned int(int (index) % 32); // we count bit positions RtL, but array indices LtR
 	unsigned int mask = 1 << bit_pos;
@@ -94,6 +100,9 @@ __global__ void voxelize_triangle(voxinfo info, float* triangle_data, unsigned i
 			for (int y = t_bbox_grid.min.y; y <= t_bbox_grid.max.y; y++){
 				for (int x = t_bbox_grid.min.x; x <= t_bbox_grid.max.x; x++){
 
+					size_t location = x + (y*info.gridsize) + (z*info.gridsize*info.gridsize);
+					//if (checkBit(voxel_table, location)){ continue; }
+
 					// TRIANGLE PLANE THROUGH BOX TEST
 					glm::vec3 p(x*info.unit, y*info.unit, z*info.unit);
 					float nDOTp = glm::dot(n,p);
@@ -118,7 +127,6 @@ __global__ void voxelize_triangle(voxinfo info, float* triangle_data, unsigned i
 					if ((glm::dot(n_zx_e1, p_zx) + d_xz_e1) < 0.0f){ continue; }
 					if ((glm::dot(n_zx_e2, p_zx) + d_xz_e2) < 0.0f){ continue; }
 
-					size_t location = x + (y*info.gridsize) + (z*info.gridsize*info.gridsize);
 					setBit(voxel_table, location);
 					continue;
 				}
