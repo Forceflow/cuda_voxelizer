@@ -5,7 +5,7 @@
 #define GLM_FORCE_CUDA
 #include <glm/glm.hpp>
 
-#include "cuda_error_check.cuh"
+#include "cuda_util.h"
 #include "util.h"
 
 // CUDA Global Memory

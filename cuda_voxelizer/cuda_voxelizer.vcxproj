@@ -169,7 +169,6 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="cuda_error_check.cuh" />
     <ClInclude Include="cuda_util.h" />
     <ClInclude Include="util.h" />
   </ItemGroup>
