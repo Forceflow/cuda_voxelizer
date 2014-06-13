@@ -6,8 +6,9 @@
 #include "device_launch_parameters.h"
 #include "cuda_error_check.cuh"
 #include "TriMesh.h"
+#include <glm/glm.hpp>
+#include "util.h"
 
-void trianglesToMemory(const trimesh::TriMesh* mesh, float** _data);
 int checkCudaRequirements();
 
 #endif
