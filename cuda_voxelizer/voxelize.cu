@@ -1,21 +1,20 @@
 #include "cuda.h"
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
-#include "cuda_error_check.cuh"
-#include "util.h"
 
 #define GLM_FORCE_CUDA
 #include <glm/glm.hpp>
 
-// CUDA Global Memory
-// Sanity check
-__device__ size_t triangles_seen_count;
+#include "cuda_error_check.cuh"
+#include "util.h"
 
-__global__ void voxelize_triangle(voxinfo info, float* triangle_data, bool* voxel_table){
+// CUDA Global Memory
+__device__ size_t voxel_count = 0; // How many voxels did we count
+__device__ size_t triangles_seen_count = 0; // Sanity check
+
+__global__ void voxelize_triangle(voxinfo info, float* triangle_data, int* voxel_table){
 	size_t thread_id = threadIdx.x + blockIdx.x * blockDim.x;
 	size_t stride = blockDim.x * gridDim.x;
-
-	//printf("Hi from thread %llu \n", thread_id);
 
 	// Common variables
 	glm::vec3 delta_p = glm::vec3(info.unit, info.unit, info.unit);
@@ -25,21 +24,24 @@ __global__ void voxelize_triangle(voxinfo info, float* triangle_data, bool* voxe
 		size_t t = thread_id*9; // triangle contains 9 vertices
 
 		// COMPUTE COMMON TRIANGLE PROPERTIES
-		glm::vec3 v0(triangle_data[t], triangle_data[t + 1], triangle_data[t + 2]);
-		glm::vec3 v1(triangle_data[t + 3], triangle_data[t + 4], triangle_data[t + 5]);
-		glm::vec3 v2(triangle_data[t + 6], triangle_data[t + 7], triangle_data[t + 8]);
+		glm::vec3 v0 = glm::vec3(triangle_data[t], triangle_data[t + 1], triangle_data[t + 2]) - info.bbox.min; // get v0 and move to origin
+		glm::vec3 v1 = glm::vec3(triangle_data[t + 3], triangle_data[t + 4], triangle_data[t + 5]) - info.bbox.min; // get v1 and move to origin
+		glm::vec3 v2 = glm::vec3(triangle_data[t + 6], triangle_data[t + 7], triangle_data[t + 8]) - info.bbox.min; // get v2 and move to origin
 		glm::vec3 e0 = v1 - v0;
 		glm::vec3 e1 = v2 - v1;
 		glm::vec3 e2 = v0 - v2;
 		glm::vec3 n = glm::normalize(glm::cross(e0, e1));
 
-		//COMPUTE TRIANGLE BBOX
-
+		//COMPUTE TRIANGLE BBOX IN GRID
+		AABox<glm::vec3> t_bbox_world(glm::min(v0, glm::min(v1, v2)), glm::max(v0, glm::max(v1, v2)));
+		AABox<glm::ivec3> t_bbox_grid;
+		t_bbox_grid.min = glm::clamp(t_bbox_world.min / info.unit, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(info.gridsize, info.gridsize, info.gridsize));
+		t_bbox_grid.max = glm::clamp(t_bbox_world.max / info.unit, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(info.gridsize, info.gridsize, info.gridsize));
 
 		// PREPARE PLANE TEST PROPERTIES
-		if (n.x > 0) { c.x = info.unit;}
-		if (n.y > 0) { c.y = info.unit;}
-		if (n.z > 0) { c.z = info.unit;}
+		if (n.x > 0.0f) { c.x = info.unit;}
+		if (n.y > 0.0f) { c.y = info.unit;}
+		if (n.z > 0.0f) { c.z = info.unit;}
 		float d1 = glm::dot(n, (c - v0));
 		float d2 = glm::dot(n, ((delta_p - c) - v0));
 
@@ -82,50 +84,39 @@ __global__ void voxelize_triangle(voxinfo info, float* triangle_data, bool* voxe
 		float d_xz_e2 = (-1.0f * glm::dot(n_zx_e2, glm::vec2(v2.z, v2.x))) + glm::max(0.0f, info.unit*n_zx_e2[0]) + glm::max(0.0f, info.unit*n_zx_e2[1]);
 
 		// test possible grid boxes for overlap
-		//for (int x = t_bbox_grid.min[0]; x <= t_bbox_grid.max[0]; x++){
-		//	for (int y = t_bbox_grid.min[1]; y <= t_bbox_grid.max[1]; y++){
-		//		for (int z = t_bbox_grid.min[2]; z <= t_bbox_grid.max[2]; z++){
+		for (int z = t_bbox_grid.min.z; z <= t_bbox_grid.max.z; z++){
+			for (int y = t_bbox_grid.min.y; y <= t_bbox_grid.max.y; y++){
+				for (int x = t_bbox_grid.min.x; x <= t_bbox_grid.max.x; x++){
 
-//					uint64_t index = mortonEncode_LUT(z, y, x);
-//
-//					if (voxels[index - morton_start] == FULL_VOXEL){ continue; } // already marked, continue
-//
-//					// TRIANGLE PLANE THROUGH BOX TEST
-//					vec3 p = vec3(x*unitlength, y*unitlength, z*unitlength);
-//					float nDOTp = n DOT p;
-//					if ((nDOTp + d1) * (nDOTp + d2) > 0.0f){ continue; }
-//
-//					// PROJECTION TESTS
-//					// XY
-//					vec2 p_xy = vec2(p[X], p[Y]);
-//					if (((n_xy_e0 DOT p_xy) + d_xy_e0) < 0.0f){ continue; }
-//					if (((n_xy_e1 DOT p_xy) + d_xy_e1) < 0.0f){ continue; }
-//					if (((n_xy_e2 DOT p_xy) + d_xy_e2) < 0.0f){ continue; }
-//
-//					// YZ
-//					vec2 p_yz = vec2(p[Y], p[Z]);
-//					if (((n_yz_e0 DOT p_yz) + d_yz_e0) < 0.0f){ continue; }
-//					if (((n_yz_e1 DOT p_yz) + d_yz_e1) < 0.0f){ continue; }
-//					if (((n_yz_e2 DOT p_yz) + d_yz_e2) < 0.0f){ continue; }
-//
-//					// XZ	
-//					vec2 p_zx = vec2(p[Z], p[X]);
-//					if (((n_zx_e0 DOT p_zx) + d_xz_e0) < 0.0f){ continue; }
-//					if (((n_zx_e1 DOT p_zx) + d_xz_e1) < 0.0f){ continue; }
-//					if (((n_zx_e2 DOT p_zx) + d_xz_e2) < 0.0f){ continue; }
-//
-//#ifdef BINARY_VOXELIZATION
-//					voxels[index - morton_start] = FULL_VOXEL;
-//					if (use_data){ data.push_back(index); }
-//#else
-//					voxels[index - morton_start] = FULL_VOXEL;
-//					data.push_back(VoxelData(index, t.normal, average3Vec(t.v0_color, t.v1_color, t.v2_color))); // we ignore data limits for colored voxelization
-//#endif
-//					nfilled++;
-//					continue;
-//				}
-//			}
-//		}
+					// TRIANGLE PLANE THROUGH BOX TEST
+					glm::vec3 p(x*info.unit, y*info.unit, z*info.unit);
+					float nDOTp = glm::dot(n,p);
+					if ((nDOTp + d1) * (nDOTp + d2) > 0.0f){ continue; }
+
+					// PROJECTION TESTS
+					// XY
+					glm::vec2 p_xy(p.x, p.y);
+					if ((glm::dot(n_xy_e0, p_xy) + d_xy_e0) < 0.0f){ continue; }
+					if ((glm::dot(n_xy_e1, p_xy) + d_xy_e1) < 0.0f){ continue; }
+					if ((glm::dot(n_xy_e2, p_xy) + d_xy_e2) < 0.0f){ continue; }
+
+					// YZ
+					glm::vec2 p_yz(p.y, p.z);
+					if ((glm::dot(n_yz_e0, p_yz) + d_yz_e0) < 0.0f){ continue; }
+					if ((glm::dot(n_yz_e1, p_yz) + d_yz_e1) < 0.0f){ continue; }
+					if ((glm::dot(n_yz_e2, p_yz) + d_yz_e2) < 0.0f){ continue; }
+
+					// XZ	
+					glm::vec2 p_zx(p.z, p.x);
+					if ((glm::dot(n_zx_e0, p_zx) + d_xz_e0) < 0.0f){ continue; }
+					if ((glm::dot(n_zx_e1, p_zx) + d_xz_e1) < 0.0f){ continue; }
+					if ((glm::dot(n_zx_e2, p_zx) + d_xz_e2) < 0.0f){ continue; }
+
+					atomicAdd(&voxel_count, 1);
+					continue;
+				}
+			}
+		}
 
 		// sanity check: atomically count triangles
 		atomicAdd(&triangles_seen_count, 1);
@@ -138,11 +129,13 @@ void voxelize(voxinfo v, float* triangle_data){
 	float* dev_triangle_data; // DEVICE pointer to triangle data
 	bool* dev_voxelisation_table; // DEVICE pointer to voxelisation table
 
-    //cudaError_t cudaStatus = cudaSuccess;
+	// capture the start time
+	cudaEvent_t     start, stop;
+	HANDLE_CUDA_ERROR(cudaEventCreate(&start));
+	HANDLE_CUDA_ERROR(cudaEventCreate(&stop));
+	HANDLE_CUDA_ERROR(cudaEventRecord(start, 0));
 
-	// Sanity check
-	size_t t_seen = 0;
-	HANDLE_CUDA_ERROR(cudaMemcpyToSymbol(triangles_seen_count, (void*) &(t_seen), sizeof(t_seen), 0, cudaMemcpyHostToDevice));
+    //cudaError_t cudaStatus = cudaSuccess
 
 	// Malloc triangle memory
 	HANDLE_CUDA_ERROR(cudaMalloc(&dev_triangle_data,v.n_triangles*9*sizeof(float)));
@@ -158,8 +151,22 @@ void voxelize(voxinfo v, float* triangle_data){
 	cudaDeviceSynchronize();
 	
 	// Copy sanity check back to host
+	size_t t_seen, v_count;
 	HANDLE_CUDA_ERROR(cudaMemcpyFromSymbol((void*)&(t_seen),triangles_seen_count, sizeof(t_seen), 0, cudaMemcpyDeviceToHost));
-	printf("We've seen %llu triangles on the GPU", t_seen);
+	HANDLE_CUDA_ERROR(cudaMemcpyFromSymbol((void*)&(v_count), voxel_count, sizeof(v_count), 0, cudaMemcpyDeviceToHost));
+	printf("We've seen %llu triangles on the GPU \n", t_seen);
+	printf("We've found %llu voxels on the GPU \n", v_count);
+
+	// get stop time, and display the timing results
+	HANDLE_CUDA_ERROR(cudaEventRecord(stop, 0));
+	HANDLE_CUDA_ERROR(cudaEventSynchronize(stop));
+	float   elapsedTime;
+	HANDLE_CUDA_ERROR(cudaEventElapsedTime(&elapsedTime,
+		start, stop));
+	printf("Time to generate:  %3.1f ms\n", elapsedTime);
+
+	HANDLE_CUDA_ERROR(cudaEventDestroy(start));
+	HANDLE_CUDA_ERROR(cudaEventDestroy(stop));
 	
     //return cudaStatus;
 }
