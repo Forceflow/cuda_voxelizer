@@ -10,7 +10,7 @@ extern void voxelize(voxinfo v, float* triangle_data);
 
 using namespace std;
 string filename = "";
-unsigned int gridsize = 1024;
+unsigned int gridsize = 2048;
 float* triangles;
 
 glm::vec3 trimesh_to_glm(trimesh::vec3 a){
@@ -76,18 +76,9 @@ int main(int argc, char *argv[]) {
 	fprintf(stdout, "Cubed mesh bbox = %s to %s \n", glm::to_string(v.bbox.min).c_str(), glm::to_string(v.bbox.max).c_str());
 	fprintf(stdout, "Unit length = %f \n", v.unit);
 	fprintf(stdout, "Grid size = %u \n", v.gridsize);
-	size_t n_bytes_needed = (gridsize*gridsize*gridsize) / 8.0f;
+	size_t n_bytes_needed = ((size_t)gridsize*gridsize*gridsize) / 8.0f;
 	fprintf(stdout, "Need %llu kb for voxel table \n", size_t (n_bytes_needed / 1024.0f));
 
-
-	//glm::vec3 test = glm::vec3(1,-2,4);
-	//fprintf(stdout, " Before : %s \n", glm::to_string(test).c_str()); 
-	//test = -test;
-	//fprintf(stdout, " After : %s \n", glm::to_string(test).c_str());
-
 	fprintf(stdout, "\n## GPU Voxelization \n");
-
 	voxelize(v,triangles);
-	
-
 }

@@ -158,7 +158,7 @@ void voxelize(voxinfo v, float* triangle_data){
 	HANDLE_CUDA_ERROR(cudaMemcpy(dev_triangle_data, (void*) triangle_data, v.n_triangles*9*sizeof(float), cudaMemcpyDefault));
 
 	// Malloc voxelisation table
-	size_t vtable_size = (v.gridsize * v.gridsize * v.gridsize) / 8.0f;
+	size_t vtable_size = ((size_t) v.gridsize * v.gridsize * v.gridsize) / 8.0f;
 	HANDLE_CUDA_ERROR(cudaMalloc(&dev_voxel_table, vtable_size));
 	HANDLE_CUDA_ERROR(cudaMemset(dev_voxel_table, 0, vtable_size));
 
