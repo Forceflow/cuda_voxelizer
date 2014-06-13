@@ -1,3 +1,6 @@
+#ifndef CUDA_ERROR_CHECK_H_
+#define CUDA_ERROR_CHECK_H_
+
 #include "cuda_runtime.h"
 #include <stdio.h>
 #include <cstdlib>
@@ -39,3 +42,5 @@ inline void __CHECK_ERROR( const char *file, const int line ){
 #endif
     return;
 }
+
+#endif
