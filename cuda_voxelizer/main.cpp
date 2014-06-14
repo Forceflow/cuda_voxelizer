@@ -10,7 +10,7 @@ extern void voxelize(voxinfo v, float* triangle_data);
 
 using namespace std;
 string filename = "";
-unsigned int gridsize = 2048;
+unsigned int gridsize = 1024;
 float* triangles;
 
 glm::vec3 trimesh_to_glm(trimesh::vec3 a){
