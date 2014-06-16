@@ -45,8 +45,8 @@ __device__ __inline__ bool checkBit(unsigned int* voxel_table, size_t index){
 }
 
 __device__ __inline__ void setBit(unsigned int* voxel_table, size_t index){
-	size_t int_location = int (index / 32.0f);
-	unsigned int bit_pos = 31 - unsigned int(int (index) % 32); // we count bit positions RtL, but array indices LtR
+	size_t int_location = int(index / 32.0f);
+	unsigned int bit_pos = 31 - unsigned int(int(index) % 32); // we count bit positions RtL, but array indices LtR
 	unsigned int mask = 1 << bit_pos;
 	atomicOr(&(voxel_table[int_location]), mask);
 }
@@ -60,8 +60,8 @@ __global__ void voxelize_triangle(voxinfo info, float* triangle_data, unsigned i
 	glm::vec3 delta_p = glm::vec3(info.unit, info.unit, info.unit);
 	glm::vec3 c(0.0f, 0.0f, 0.0f); // critical point
 
-	while(thread_id < info.n_triangles){ // every thread works on specific triangles in its stride
-		size_t t = thread_id*9; // triangle contains 9 vertices
+	while (thread_id < info.n_triangles){ // every thread works on specific triangles in its stride
+		size_t t = thread_id * 9; // triangle contains 9 vertices
 
 		// COMPUTE COMMON TRIANGLE PROPERTIES
 		glm::vec3 v0 = glm::vec3(triangle_data[t], triangle_data[t + 1], triangle_data[t + 2]) - info.bbox.min; // get v0 and move to origin
@@ -79,9 +79,9 @@ __global__ void voxelize_triangle(voxinfo info, float* triangle_data, unsigned i
 		t_bbox_grid.max = glm::clamp(t_bbox_world.max / info.unit, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(info.gridsize, info.gridsize, info.gridsize));
 
 		// PREPARE PLANE TEST PROPERTIES
-		if (n.x > 0.0f) { c.x = info.unit;}
-		if (n.y > 0.0f) { c.y = info.unit;}
-		if (n.z > 0.0f) { c.z = info.unit;}
+		if (n.x > 0.0f) { c.x = info.unit; }
+		if (n.y > 0.0f) { c.y = info.unit; }
+		if (n.z > 0.0f) { c.z = info.unit; }
 		float d1 = glm::dot(n, (c - v0));
 		float d2 = glm::dot(n, ((delta_p - c) - v0));
 
@@ -132,7 +132,7 @@ __global__ void voxelize_triangle(voxinfo info, float* triangle_data, unsigned i
 
 					// TRIANGLE PLANE THROUGH BOX TEST
 					glm::vec3 p(x*info.unit, y*info.unit, z*info.unit);
-					float nDOTp = glm::dot(n,p);
+					float nDOTp = glm::dot(n, p);
 					if ((nDOTp + d1) * (nDOTp + d2) > 0.0f){ continue; }
 
 					// PROJECTION TESTS
@@ -164,16 +164,16 @@ __global__ void voxelize_triangle(voxinfo info, float* triangle_data, unsigned i
 		// atomicAdd(&triangles_seen_count, 1);
 		thread_id += stride;
 	}
-	
+
 }
 
-void voxelize(voxinfo v, float* triangle_data, unsigned int){
+void voxelize(voxinfo v, float* triangle_data, unsigned int* vtable){
 	float* dev_triangle_data; // DEVICE pointer to triangle data
-	unsigned int* dev_voxel_table; // DEVICE pointer to voxel_data
+	unsigned int* dev_vtable; // DEVICE pointer to voxel_data
 	float   elapsedTime;
 
 	// Create timers, set start time
-	cudaEvent_t     start_total, stop_total, start_vox, stop_vox;
+	cudaEvent_t start_total, stop_total, start_vox, stop_vox;
 	HANDLE_CUDA_ERROR(cudaEventCreate(&start_total));
 	HANDLE_CUDA_ERROR(cudaEventCreate(&stop_total));
 	HANDLE_CUDA_ERROR(cudaEventCreate(&start_vox));
@@ -181,17 +181,17 @@ void voxelize(voxinfo v, float* triangle_data, unsigned int){
 	HANDLE_CUDA_ERROR(cudaEventRecord(start_total, 0));
 
 	// Malloc triangle memory
-	HANDLE_CUDA_ERROR(cudaMalloc(&dev_triangle_data,v.n_triangles*9*sizeof(float)));
-	HANDLE_CUDA_ERROR(cudaMemcpy(dev_triangle_data, (void*) triangle_data, v.n_triangles*9*sizeof(float), cudaMemcpyDefault));
+	HANDLE_CUDA_ERROR(cudaMalloc(&dev_triangle_data, v.n_triangles * 9 * sizeof(float)));
+	HANDLE_CUDA_ERROR(cudaMemcpy(dev_triangle_data, (void*)triangle_data, v.n_triangles * 9 * sizeof(float), cudaMemcpyDefault));
 
 	// Malloc voxelisation table
-	size_t vtable_size = ((size_t) v.gridsize * v.gridsize * v.gridsize) / 8.0f;
-	HANDLE_CUDA_ERROR(cudaMalloc(&dev_voxel_table, vtable_size));
-	HANDLE_CUDA_ERROR(cudaMemset(dev_voxel_table, 0, vtable_size));
+	size_t vtable_size = ((size_t)v.gridsize * v.gridsize * v.gridsize) / 8.0f;
+	HANDLE_CUDA_ERROR(cudaMalloc(&dev_vtable, vtable_size));
+	HANDLE_CUDA_ERROR(cudaMemset(dev_vtable, 0, vtable_size));
 
 	HANDLE_CUDA_ERROR(cudaEventRecord(start_vox, 0));
 	// if we pass triangle_data here directly, UVA takes care of memory transfer via DMA. Disabling for now.
-	voxelize_triangle<<<256,256>>>(v,dev_triangle_data,dev_voxel_table);
+	voxelize_triangle << <256, 256 >> >(v, dev_triangle_data, dev_vtable);
 	CHECK_CUDA_ERROR();
 	cudaDeviceSynchronize();
 	HANDLE_CUDA_ERROR(cudaEventRecord(stop_vox, 0));
@@ -207,6 +207,7 @@ void voxelize(voxinfo v, float* triangle_data, unsigned int){
 	//printf("We've found %llu voxels on the GPU \n", v_count);
 
 	// Copy voxelisation table back to host
+	HANDLE_CUDA_ERROR(cudaMemcpy(dev_vtable, (void*)vtable, vtable_size, cudaMemcpyDefault));
 
 	// get stop time, and display the timing results
 	HANDLE_CUDA_ERROR(cudaEventRecord(stop_total, 0));
@@ -219,6 +220,10 @@ void voxelize(voxinfo v, float* triangle_data, unsigned int){
 	HANDLE_CUDA_ERROR(cudaEventDestroy(stop_total));
 	HANDLE_CUDA_ERROR(cudaEventDestroy(start_vox));
 	HANDLE_CUDA_ERROR(cudaEventDestroy(stop_vox));
-	
-    //return cudaStatus;
+
+	// Free memory
+	HANDLE_CUDA_ERROR(cudaFree(dev_triangle_data));
+	HANDLE_CUDA_ERROR(cudaFree(dev_vtable));
+
+	//return cudaStatus;
 }

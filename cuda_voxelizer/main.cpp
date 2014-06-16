@@ -6,12 +6,13 @@
 #include <glm/gtx/string_cast.hpp>
 #include "util.h"
 
-extern void voxelize(voxinfo v, float* triangle_data);
+extern void voxelize(voxinfo v, float* triangle_data, unsigned int* vtable);
 
 using namespace std;
 string filename = "";
 unsigned int gridsize = 1024;
 float* triangles;
+unsigned int* vtable;
 
 glm::vec3 trimesh_to_glm(trimesh::vec3 a){
 	return glm::vec3(a[0], a[1], a[2]);
@@ -76,9 +77,11 @@ int main(int argc, char *argv[]) {
 	fprintf(stdout, "Cubed mesh bbox = %s to %s \n", glm::to_string(v.bbox.min).c_str(), glm::to_string(v.bbox.max).c_str());
 	fprintf(stdout, "Unit length = %f \n", v.unit);
 	fprintf(stdout, "Grid size = %u \n", v.gridsize);
-	size_t n_bytes_needed = ((size_t)gridsize*gridsize*gridsize) / 8.0f;
-	fprintf(stdout, "Need %llu kb for voxel table \n", size_t (n_bytes_needed / 1024.0f));
+	size_t vtable_size = ((size_t)gridsize*gridsize*gridsize) / 8.0f;
+	fprintf(stdout, "Need %llu kb for voxel table \n", size_t(vtable_size / 1024.0f));
+
+	HANDLE_CUDA_ERROR(cudaHostAlloc((void **)&vtable, vtable_size, cudaHostAllocDefault));
 
 	fprintf(stdout, "\n## GPU Voxelization \n");
-	voxelize(v,triangles);
+	voxelize(v,triangles, vtable);
 }
