@@ -10,6 +10,34 @@
 //__device__ size_t voxel_count = 0; // How many voxels did we count
 //__device__ size_t triangles_seen_count = 0; // Sanity check
 
+// Possible optimization: buffer bitsets (for now: too much overhead)
+struct bufferedBitSetter{
+	unsigned int* voxel_table;
+	size_t current_int_location;
+	unsigned int current_mask;
+
+	__device__ __inline__ bufferedBitSetter(unsigned int* voxel_table, size_t index) :
+		voxel_table(voxel_table), current_mask(0) {
+		current_int_location = int(index / 32.0f);
+	}
+
+	__device__ __inline__ void setBit(size_t index){
+		size_t new_int_location = int(index / 32.0f);
+		if (current_int_location != new_int_location){
+			flush();
+			current_int_location = new_int_location;
+		}
+		unsigned int bit_pos = 31 - unsigned int(int(index) % 32);
+		current_mask = current_mask | (1 << bit_pos);
+	}
+
+	__device__ __inline__ void flush(){
+		if (current_mask != 0){
+			atomicOr(&(voxel_table[current_int_location]), current_mask);
+		}
+	}
+};
+
 __device__ __inline__ bool checkBit(unsigned int* voxel_table, size_t index){
 	size_t int_location = int(index / 32.0f);
 	unsigned int bit_pos = 31 - unsigned int(int(index) % 32); // we count bit positions RtL, but array indices LtR
@@ -99,7 +127,6 @@ __global__ void voxelize_triangle(voxinfo info, float* triangle_data, unsigned i
 		for (int z = t_bbox_grid.min.z; z <= t_bbox_grid.max.z; z++){
 			for (int y = t_bbox_grid.min.y; y <= t_bbox_grid.max.y; y++){
 				for (int x = t_bbox_grid.min.x; x <= t_bbox_grid.max.x; x++){
-
 					size_t location = x + (y*info.gridsize) + (z*info.gridsize*info.gridsize);
 					//if (checkBit(voxel_table, location)){ continue; }
 
@@ -140,7 +167,7 @@ __global__ void voxelize_triangle(voxinfo info, float* triangle_data, unsigned i
 	
 }
 
-void voxelize(voxinfo v, float* triangle_data){
+void voxelize(voxinfo v, float* triangle_data, unsigned int){
 	float* dev_triangle_data; // DEVICE pointer to triangle data
 	unsigned int* dev_voxel_table; // DEVICE pointer to voxel_data
 	float   elapsedTime;
@@ -178,6 +205,8 @@ void voxelize(voxinfo v, float* triangle_data){
 	//HANDLE_CUDA_ERROR(cudaMemcpyFromSymbol((void*)&(v_count), voxel_count, sizeof(v_count), 0, cudaMemcpyDeviceToHost));
 	//printf("We've seen %llu triangles on the GPU \n", t_seen);
 	//printf("We've found %llu voxels on the GPU \n", v_count);
+
+	// Copy voxelisation table back to host
 
 	// get stop time, and display the timing results
 	HANDLE_CUDA_ERROR(cudaEventRecord(stop_total, 0));
