@@ -1,7 +1,8 @@
-- Finish copying vtable back to CPU / writeout
+### VOXELISATION
+- Finish writeout to binvox
 
 OPTIMIZATIONS
-- 
+- buffered bitset (no speedup)
 
 WILL THIS GO FASTER
 - Don't copy triangles over, copy faces table and vertex table (less memory transfer, more work/triangle on GPU)
@@ -12,9 +13,17 @@ WILL THIS GO FASTER
 
 VOXEL TABLE
 - Variable size queue voor gevonden voxels? (hoe werkt dat in CUDA?) (zie stack overflow question)
-- Paper schwarz seidel: atomic operations op 32-bits on a single bit (atomicOr, atomicAnd)
 - Implementeren als hashmap+ telkens memory bij alloceren bij element toevoegen aan lijst, spinlock
 
 THRUST
 - Implement whole thing as thrust vector sort
 - Or do a counting step first (cfr. Voxelpipe code)
+
+### OCTREE BUILDING
+- Counting step, write offsets, parallel scan (lopende som) = length+offsets
+- Allocate and write morton codes into it
+- Allocate and initialize nodes
+
+(higher levels: strip morton codes)
+
+(parallel scan / exclusive scan : CUDPP / Thrust)

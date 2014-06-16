@@ -224,6 +224,4 @@ void voxelize(voxinfo v, float* triangle_data, unsigned int* vtable){
 	// Free memory
 	HANDLE_CUDA_ERROR(cudaFree(dev_triangle_data));
 	HANDLE_CUDA_ERROR(cudaFree(dev_vtable));
-
-	//return cudaStatus;
 }
