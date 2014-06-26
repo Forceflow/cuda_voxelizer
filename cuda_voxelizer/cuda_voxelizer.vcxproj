@@ -165,10 +165,12 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <CudaCompile Include="voxelize.cu" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="binvox_io.cpp" />
     <ClCompile Include="cuda_util.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="binvox_io.h" />
     <ClInclude Include="cuda_util.h" />
     <ClInclude Include="util.h" />
   </ItemGroup>
