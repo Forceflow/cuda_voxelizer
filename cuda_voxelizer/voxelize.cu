@@ -7,8 +7,8 @@
 #include "util.h"
 
 // CUDA Global Memory variables
-//__device__ size_t voxel_count = 0; // How many voxels did we count
-//__device__ size_t triangles_seen_count = 0; // Sanity check
+__device__ size_t voxel_count = 0; // How many voxels did we count
+__device__ size_t triangles_seen_count = 0; // Sanity check
 
 // Possible optimization: buffer bitsets (for now: too much overhead)
 struct bufferedBitSetter{
@@ -154,6 +154,7 @@ __global__ void voxelize_triangle(voxinfo info, float* triangle_data, unsigned i
 					if ((glm::dot(n_zx_e1, p_zx) + d_xz_e1) < 0.0f){ continue; }
 					if ((glm::dot(n_zx_e2, p_zx) + d_xz_e2) < 0.0f){ continue; }
 
+					atomicAdd(&voxel_count, 1);
 					setBit(voxel_table, location);
 					continue;
 				}
@@ -161,7 +162,7 @@ __global__ void voxelize_triangle(voxinfo info, float* triangle_data, unsigned i
 		}
 
 		// sanity check: atomically count triangles
-		// atomicAdd(&triangles_seen_count, 1);
+		atomicAdd(&triangles_seen_count, 1);
 		thread_id += stride;
 	}
 
@@ -200,14 +201,14 @@ void voxelize(voxinfo v, float* triangle_data, unsigned int* vtable){
 	printf("Voxelisation GPU time:  %3.1f ms\n", elapsedTime);
 
 	// SANITY CHECKS
-	//size_t t_seen, v_count;
-	//HANDLE_CUDA_ERROR(cudaMemcpyFromSymbol((void*)&(t_seen),triangles_seen_count, sizeof(t_seen), 0, cudaMemcpyDeviceToHost));
-	//HANDLE_CUDA_ERROR(cudaMemcpyFromSymbol((void*)&(v_count), voxel_count, sizeof(v_count), 0, cudaMemcpyDeviceToHost));
-	//printf("We've seen %llu triangles on the GPU \n", t_seen);
-	//printf("We've found %llu voxels on the GPU \n", v_count);
+	size_t t_seen, v_count;
+	HANDLE_CUDA_ERROR(cudaMemcpyFromSymbol((void*)&(t_seen),triangles_seen_count, sizeof(t_seen), 0, cudaMemcpyDeviceToHost));
+	HANDLE_CUDA_ERROR(cudaMemcpyFromSymbol((void*)&(v_count), voxel_count, sizeof(v_count), 0, cudaMemcpyDeviceToHost));
+	printf("We've seen %llu triangles on the GPU \n", t_seen);
+	printf("We've found %llu voxels on the GPU \n", v_count);
 
 	// Copy voxelisation table back to host
-	HANDLE_CUDA_ERROR(cudaMemcpy(dev_vtable, (void*)vtable, vtable_size, cudaMemcpyDefault));
+	HANDLE_CUDA_ERROR(cudaMemcpy((void*) vtable, dev_vtable, vtable_size, cudaMemcpyDefault));
 
 	// get stop time, and display the timing results
 	HANDLE_CUDA_ERROR(cudaEventRecord(stop_total, 0));

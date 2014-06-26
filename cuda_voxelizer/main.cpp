@@ -1,5 +1,6 @@
 #include <string>
 #include <stdio.h>
+#include "binvox_io.h"
 #include "cuda_util.h"
 #include "TriMesh.h"
 #include <glm/glm.hpp>
@@ -10,12 +11,37 @@ extern void voxelize(voxinfo v, float* triangle_data, unsigned int* vtable);
 
 using namespace std;
 string filename = "";
-unsigned int gridsize = 1024;
+unsigned int gridsize = 32;
 float* triangles;
 unsigned int* vtable;
 
 glm::vec3 trimesh_to_glm(trimesh::vec3 a){
 	return glm::vec3(a[0], a[1], a[2]);
+}
+
+void printBits(size_t const size, void const * const ptr)
+{
+	unsigned char *b = (unsigned char*)ptr;
+	unsigned char byte;
+	int i, j;
+
+	for (i = size - 1; i >= 0; i--)
+	{
+		for (j = 7; j >= 0; j--)
+		{
+			byte = b[i] & (1 << j);
+			byte >>= j;
+			if (byte){
+				printf("X");
+			}
+			else {
+				printf(".");
+			}
+			
+			//printf("%u", byte);
+		}
+	}
+	puts("");
 }
 
 // Helper function to transfer triangles to CUDA-allocated pinned host memory
@@ -83,5 +109,14 @@ int main(int argc, char *argv[]) {
 	HANDLE_CUDA_ERROR(cudaHostAlloc((void **)&vtable, vtable_size, cudaHostAllocDefault));
 
 	fprintf(stdout, "\n## GPU Voxelization \n");
-	voxelize(v,triangles, vtable);
+	voxelize(v, triangles, vtable);
+
+	if (gridsize <= 64)
+	{
+		for (size_t i = (vtable_size / 4.0f)-1; i > 0; i--){
+			printBits(sizeof(int), &(vtable[i]));
+		}
+	}
+
+	write_binvox(vtable, gridsize, "test.binvox");
 }
