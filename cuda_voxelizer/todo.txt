@@ -1,5 +1,5 @@
 ### VOXELISATION
-- Finish writeout to binvox
+- Cleanup writeout to binvox, use original file name, append gridsize (see ooc_svo_builder)
 
 OPTIMIZATIONS
 - buffered bitset (no speedup)
@@ -25,5 +25,4 @@ THRUST
 - Allocate and initialize nodes
 
 (higher levels: strip morton codes)
-
 (parallel scan / exclusive scan : CUDPP / Thrust)
