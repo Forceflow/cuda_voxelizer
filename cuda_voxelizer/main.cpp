@@ -11,7 +11,7 @@ extern void voxelize(voxinfo v, float* triangle_data, unsigned int* vtable);
 
 using namespace std;
 string filename = "";
-unsigned int gridsize = 32;
+unsigned int gridsize = 512;
 float* triangles;
 unsigned int* vtable;
 

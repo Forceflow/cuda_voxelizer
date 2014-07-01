@@ -39,14 +39,14 @@ struct bufferedBitSetter{
 };
 
 __device__ __inline__ bool checkBit(unsigned int* voxel_table, size_t index){
-	size_t int_location = int(index / 32.0f);
-	unsigned int bit_pos = 31 - unsigned int(int(index) % 32); // we count bit positions RtL, but array indices LtR
+	size_t int_location = index / size_t(32);
+	unsigned int bit_pos = size_t(31) - (index % size_t(32)); // we count bit positions RtL, but array indices LtR
 	return ((voxel_table[int_location]) & (1 << bit_pos));
 }
 
 __device__ __inline__ void setBit(unsigned int* voxel_table, size_t index){
-	size_t int_location = int(index / 32.0f);
-	unsigned int bit_pos = 31 - unsigned int(int(index) % 32); // we count bit positions RtL, but array indices LtR
+	size_t int_location = index / size_t(32);
+	unsigned int bit_pos = size_t(31) - (index % size_t(32)); // we count bit positions RtL, but array indices LtR
 	unsigned int mask = 1 << bit_pos;
 	atomicOr(&(voxel_table[int_location]), mask);
 }
