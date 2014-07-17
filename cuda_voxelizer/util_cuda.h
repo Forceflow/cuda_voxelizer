@@ -7,6 +7,9 @@
 #include <stdio.h>
 #include <cstdlib>
 
+// Function to check cuda requirements
+int checkCudaRequirements();
+
 // cuda error checking wrapping functions
 // Based on CUDA by example book, and http://choorucode.com/2011/03/02/how-to-do-error-checking-in-cuda/
 
@@ -44,7 +47,5 @@ inline void __CHECK_ERROR(const char *file, const int line){
 #endif
 	return;
 }
-
-int checkCudaRequirements();
 
 #endif
