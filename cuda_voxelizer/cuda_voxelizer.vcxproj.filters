@@ -4,17 +4,18 @@
     <CudaCompile Include="voxelize.cu" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="cuda_util.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="binvox_io.cpp" />
+    <ClCompile Include="util_cuda.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="cuda_util.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
     <ClInclude Include="binvox_io.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="util.h">
+    <ClInclude Include="util_common.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="util_cuda.h">
       <Filter>Headers</Filter>
     </ClInclude>
   </ItemGroup>

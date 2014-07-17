@@ -1,16 +1,17 @@
 #include <string>
 #include <stdio.h>
 #include "binvox_io.h"
-#include "cuda_util.h"
+#include "util_cuda.h"
 #include "TriMesh.h"
 #include <glm/glm.hpp>
 #include <glm/gtx/string_cast.hpp>
-#include "util.h"
+#include "util_common.h"
 
 extern void voxelize(voxinfo v, float* triangle_data, unsigned int* vtable);
 
 using namespace std;
 string filename = "";
+string filename_base = "";
 unsigned int gridsize = 512;
 float* triangles;
 unsigned int* vtable;
@@ -19,16 +20,13 @@ glm::vec3 trimesh_to_glm(trimesh::vec3 a){
 	return glm::vec3(a[0], a[1], a[2]);
 }
 
-void printBits(size_t const size, void const * const ptr)
-{
+void printBits(size_t const size, void const * const ptr){
 	unsigned char *b = (unsigned char*)ptr;
 	unsigned char byte;
 	int i, j;
 
-	for (i = size - 1; i >= 0; i--)
-	{
-		for (j = 7; j >= 0; j--)
-		{
+	for (i = size - 1; i >= 0; i--){
+		for (j = 7; j >= 0; j--){
 			byte = b[i] & (1 << j);
 			byte >>= j;
 			if (byte){
@@ -37,7 +35,7 @@ void printBits(size_t const size, void const * const ptr)
 			else {
 				printf(".");
 			}
-			
+
 			//printf("%u", byte);
 		}
 	}
@@ -64,7 +62,8 @@ void parseProgramParameters(int argc, char* argv[]){
 	} 
 	for (int i = 1; i < argc; i++) {
 		if (string(argv[i]) == "-f") {
-			filename = argv[i + 1]; 
+			filename = argv[i + 1];
+			filename_base = filename.substr(0, filename.find_last_of("."));
 			i++;
 		} else if (string(argv[i]) == "-s") {
 			gridsize = atoi(argv[i + 1]);
@@ -111,12 +110,11 @@ int main(int argc, char *argv[]) {
 	fprintf(stdout, "\n## GPU Voxelization \n");
 	voxelize(v, triangles, vtable);
 
-	if (gridsize <= 64)
-	{
-		for (size_t i = (vtable_size / 4.0f)-1; i > 0; i--){
-			printBits(sizeof(int), &(vtable[i]));
-		}
-	}
+	// Sanity check
+	//if (gridsize <= 64){
+	//	for (size_t i = (vtable_size / 4.0f)-1; i > 0; i--){printBits(sizeof(int), &(vtable[i]));}
+	//}
 
-	write_binvox(vtable, gridsize, "test.binvox");
+	string filename_output = filename_base + string("_") + to_string(gridsize) + string(".binvox");
+	write_binvox(vtable, gridsize, filename_output);
 }

@@ -6,7 +6,6 @@
 #include <glm/glm.hpp>
 #include <stdio.h>
 #include <cstdlib>
-#include "util.h"
 
 // cuda error checking wrapping functions
 // Based on CUDA by example book, and http://choorucode.com/2011/03/02/how-to-do-error-checking-in-cuda/

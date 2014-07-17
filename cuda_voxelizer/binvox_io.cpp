@@ -19,30 +19,14 @@ char checkVoxel(size_t x, size_t y, size_t z, size_t gridsize, const unsigned in
 
 void write_binvox(const unsigned int* vtable, size_t gridsize, std::string filename){
 
-	//size_t max_index = (gridsize*gridsize*gridsize) / 32.0f;
-	//fprintf(stdout, "Max vtable index: %llu \n", max_index);
-	//fprintf(stdout, "Last element in vtable: %i \n", vtable[max_index-1]);
-	//size_t voxel_count = 0;
-	//for (size_t x = 0; x < gridsize; x++){
-	//	for (size_t z = 0; z < gridsize; z++){
-	//		for (size_t y = 0; y < gridsize; y++){
-	//			if (checkVoxel(x, y, z, gridsize, vtable) == 1){
-	//				voxel_count++;
-	//			}
-	//		}
-	//	}
-	//}
-
-	//fprintf(stdout, "I think there are %llu voxels in the vtable \n", voxel_count);
-
 	// Open file
+	fprintf(stdout, "Writing data to %s \n", filename.c_str());
 	ofstream output(filename.c_str(), ios::out | ios::binary);
 	
 	// Write ASCII header
 	output << "#binvox 1" << endl;
 	output << "dim " << gridsize << " " << gridsize << " " << gridsize << "" << endl;
 	output << "data" << endl;
-
 
 	// Write first voxel
 	char currentvalue = checkVoxel(0, 0, 0, gridsize, vtable);

@@ -166,13 +166,13 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="binvox_io.cpp" />
-    <ClCompile Include="cuda_util.cpp" />
+    <ClCompile Include="util_cuda.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="binvox_io.h" />
-    <ClInclude Include="cuda_util.h" />
-    <ClInclude Include="util.h" />
+    <ClInclude Include="util_cuda.h" />
+    <ClInclude Include="util_common.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="todo.txt" />
