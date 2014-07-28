@@ -12,6 +12,8 @@ int checkCudaRequirements(){
 		fprintf(stdout, "Found %i cuda devices, yay! \n", device_count);
 	}
 
+	// Is the cuda device of a sufficiently high enough compute capability?
+
 	// We'll be using first device by default
 	cudaDeviceProp properties;
 	HANDLE_CUDA_ERROR(cudaSetDevice(0));
