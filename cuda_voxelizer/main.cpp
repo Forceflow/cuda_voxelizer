@@ -10,11 +10,18 @@
 extern void voxelize(voxinfo v, float* triangle_data, unsigned int* vtable);
 
 using namespace std;
+
+// Default options
 string filename = "";
 string filename_base = "";
-unsigned int gridsize = 512;
+unsigned int gridsize = 64;
+
+// Program data
 float* triangles;
 unsigned int* vtable;
+
+// Limitations
+size_t GPU_global_mem;
 
 glm::vec3 trimesh_to_glm(trimesh::vec3 a){
 	return glm::vec3(a[0], a[1], a[2]);
@@ -107,7 +114,7 @@ int main(int argc, char *argv[]) {
 
 	HANDLE_CUDA_ERROR(cudaHostAlloc((void **)&vtable, vtable_size, cudaHostAllocDefault));
 
-	fprintf(stdout, "\n## GPU Voxelization \n");
+	fprintf(stdout, "\n## GPU VOXELISATION \n");
 	voxelize(v, triangles, vtable);
 
 	// Sanity check
@@ -116,5 +123,7 @@ int main(int argc, char *argv[]) {
 	//}
 
 	string filename_output = filename_base + string("_") + to_string(gridsize) + string(".binvox");
+	fprintf(stdout, "\n## OUTPUT TO BINVOX FILE \n");
+	fprintf(stdout, "Filename: %s \n", filename_output.c_str());
 	write_binvox(vtable, gridsize, filename_output);
 }
