@@ -73,10 +73,12 @@
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>C:\libs\trimesh2\include;C:\libs\glm;$(IncludePath)</IncludePath>
     <LibraryPath>C:\libs\trimesh2\lib.Win64;$(LibraryPath)</LibraryPath>
+    <CustomBuildAfterTargets>xcopy /y "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).exe" "E:\jeroenb\Binaries\$(ProjectName).exe"</CustomBuildAfterTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>C:\libs\trimesh2\include;C:\libs\glm;$(IncludePath)</IncludePath>
     <LibraryPath>C:\libs\trimesh2\lib.Win64;$(LibraryPath)</LibraryPath>
+    <CustomBuildAfterTargets>xcopy /y "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).exe" "E:\jeroenb\Binaries\$(ProjectName).exe"</CustomBuildAfterTargets>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -107,7 +109,9 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     </Link>
     <PostBuildEvent>
       <Command>echo copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"
-copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
+copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"
+echo copy /y "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).exe" "E:\jeroenb\Binaries\$(ProjectName).exe"
+copy /y "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).exe" "E:\jeroenb\Binaries\$(ProjectName).exe"</Command>
     </PostBuildEvent>
     <CudaCompile>
       <TargetMachinePlatform>64</TargetMachinePlatform>
@@ -153,7 +157,9 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     </Link>
     <PostBuildEvent>
       <Command>echo copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"
-copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
+copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"
+echo copy /y "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).exe" "E:\jeroenb\Binaries\$(ProjectName).exe"
+copy /y "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).exe" "E:\jeroenb\Binaries\$(ProjectName).exe"</Command>
     </PostBuildEvent>
     <CudaCompile>
       <TargetMachinePlatform>64</TargetMachinePlatform>
