@@ -1,5 +1,5 @@
-#ifndef UTIL_H_
-#define UTIL_H_
+#ifndef UTIL_COMMON_H_
+#define UTIL_COMMON_H_
 
 #include "cuda.h"
 #include "cuda_runtime.h"

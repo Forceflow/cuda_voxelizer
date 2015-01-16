@@ -6,7 +6,12 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="binvox_io.cpp" />
-    <ClCompile Include="util_cuda.cpp" />
+    <ClCompile Include="util_cuda.cpp">
+      <Filter>util</Filter>
+    </ClCompile>
+    <ClCompile Include="util.cpp">
+      <Filter>util</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="binvox_io.h">
@@ -18,6 +23,9 @@
     <ClInclude Include="util_cuda.h">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="util.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="todo.txt" />
@@ -25,6 +33,9 @@
   <ItemGroup>
     <Filter Include="Headers">
       <UniqueIdentifier>{a2e537a9-9e17-41e8-a392-f7ab084dbd64}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="util">
+      <UniqueIdentifier>{a0232da8-2097-49f4-9412-0e4223c7ba4d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>
