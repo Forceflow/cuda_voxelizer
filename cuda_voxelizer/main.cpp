@@ -7,14 +7,14 @@
 #include <glm/gtx/string_cast.hpp>
 #include "util_common.h"
 
-extern void voxelize(voxinfo v, float* triangle_data, unsigned int* vtable);
+extern void voxelize(voxinfo v, float* triangle_data, unsigned int* vtable, bool morton_code);
 
 using namespace std;
 
 // Default options
 string filename = "";
 string filename_base = "";
-unsigned int gridsize = 64;
+unsigned int gridsize = 256;
 
 // Program data
 float* triangles;
