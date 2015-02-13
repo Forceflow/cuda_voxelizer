@@ -10,6 +10,27 @@
 //__device__ size_t voxel_count = 0; // How many voxels did we count
 //__device__ size_t triangles_seen_count = 0; // Sanity check
 
+__constant__ uint32_t morton256_x[256];
+__constant__ uint32_t morton256_y[256];
+__constant__ uint32_t morton256_z[256];
+
+// Encode morton code using LUT table
+__device__ inline uint64_t mortonEncode_LUT(unsigned int x, unsigned int y, unsigned int z){
+	uint64_t answer = 0;
+	answer = morton256_z[(z >> 16) & 0xFF] |
+		morton256_y[(y >> 16) & 0xFF] |
+		morton256_x[(x >> 16) & 0xFF];
+	answer = answer << 48 |
+		morton256_z[(z >> 8) & 0xFF] |
+		morton256_y[(y >> 8) & 0xFF] |
+		morton256_x[(x >> 8) & 0xFF];
+	answer = answer << 24 |
+		morton256_z[(z)& 0xFF] |
+		morton256_y[(y)& 0xFF] |
+		morton256_x[(x)& 0xFF];
+	return answer;
+}
+
 // Possible optimization: buffer bitsets (for now: too much overhead)
 struct bufferedBitSetter{
 	unsigned int* voxel_table;
@@ -52,7 +73,7 @@ __device__ __inline__ void setBit(unsigned int* voxel_table, size_t index){
 }
 
 // Main triangle voxelization method
-__global__ void voxelize_triangle(voxinfo info, float* triangle_data, unsigned int* voxel_table){
+__global__ void voxelize_triangle(voxinfo info, float* triangle_data, unsigned int* voxel_table, bool morton_order){
 	size_t thread_id = threadIdx.x + blockIdx.x * blockDim.x;
 	size_t stride = blockDim.x * gridDim.x;
 
@@ -127,9 +148,7 @@ __global__ void voxelize_triangle(voxinfo info, float* triangle_data, unsigned i
 		for (int z = t_bbox_grid.min.z; z <= t_bbox_grid.max.z; z++){
 			for (int y = t_bbox_grid.min.y; y <= t_bbox_grid.max.y; y++){
 				for (int x = t_bbox_grid.min.x; x <= t_bbox_grid.max.x; x++){
-					size_t location = x + (y*info.gridsize) + (z*info.gridsize*info.gridsize);
 					//if (checkBit(voxel_table, location)){ continue; }
-
 					// TRIANGLE PLANE THROUGH BOX TEST
 					glm::vec3 p(x*info.unit, y*info.unit, z*info.unit);
 					float nDOTp = glm::dot(n, p);
@@ -155,20 +174,23 @@ __global__ void voxelize_triangle(voxinfo info, float* triangle_data, unsigned i
 					if ((glm::dot(n_zx_e2, p_zx) + d_xz_e2) < 0.0f){ continue; }
 
 					//atomicAdd(&voxel_count, 1);
-					setBit(voxel_table, location);
+					if (morton_order){
+						setBit(voxel_table, mortonEncode_LUT(x, y, z));
+					} else {
+						size_t location = x + (y*info.gridsize) + (z*info.gridsize*info.gridsize);
+						setBit(voxel_table, location);
+					}
 					continue;
 				}
 			}
 		}
-
 		// sanity check: atomically count triangles
 		//atomicAdd(&triangles_seen_count, 1);
 		thread_id += stride;
 	}
-
 }
 
-void voxelize(voxinfo v, float* triangle_data, unsigned int* vtable){
+void voxelize(voxinfo v, float* triangle_data, unsigned int* vtable, bool morton_code){
 	float* dev_triangle_data; // DEVICE pointer to triangle data
 	unsigned int* dev_vtable; // DEVICE pointer to voxel_data
 	float   elapsedTime;
@@ -190,9 +212,17 @@ void voxelize(voxinfo v, float* triangle_data, unsigned int* vtable){
 	HANDLE_CUDA_ERROR(cudaMalloc(&dev_vtable, vtable_size));
 	HANDLE_CUDA_ERROR(cudaMemset(dev_vtable, 0, vtable_size));
 
+	// Copy morton LUTs
+	if (morton_code){
+		HANDLE_CUDA_ERROR(cudaMemcpyToSymbol(morton256_x, host_morton256_x, 256 * sizeof(uint32_t)));
+		HANDLE_CUDA_ERROR(cudaMemcpyToSymbol(morton256_y, host_morton256_y, 256 * sizeof(uint32_t)));
+		HANDLE_CUDA_ERROR(cudaMemcpyToSymbol(morton256_z, host_morton256_z, 256 * sizeof(uint32_t)));
+	}
+
 	HANDLE_CUDA_ERROR(cudaEventRecord(start_vox, 0));
+
 	// if we pass triangle_data here directly, UVA takes care of memory transfer via DMA. Disabling for now.
-	voxelize_triangle << <256, 256 >> >(v, dev_triangle_data, dev_vtable);
+	voxelize_triangle << <256, 256 >> >(v, dev_triangle_data, dev_vtable, morton_code);
 	CHECK_CUDA_ERROR();
 	cudaDeviceSynchronize();
 	HANDLE_CUDA_ERROR(cudaEventRecord(stop_vox, 0));

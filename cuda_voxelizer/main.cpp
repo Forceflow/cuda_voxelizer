@@ -115,7 +115,7 @@ int main(int argc, char *argv[]) {
 	HANDLE_CUDA_ERROR(cudaHostAlloc((void **)&vtable, vtable_size, cudaHostAllocDefault));
 
 	fprintf(stdout, "\n## GPU VOXELISATION \n");
-	voxelize(v, triangles, vtable);
+	voxelize(v, triangles, vtable, true);
 
 	// Sanity check
 	//if (gridsize <= 64){
