@@ -14,7 +14,7 @@ using namespace std;
 // Default options
 string filename = "";
 string filename_base = "";
-unsigned int gridsize = 256;
+unsigned int gridsize = 1024;
 
 // Program data
 float* triangles;
@@ -38,11 +38,9 @@ void printBits(size_t const size, void const * const ptr){
 			byte >>= j;
 			if (byte){
 				printf("X");
-			}
-			else {
+			} else {
 				printf(".");
 			}
-
 			//printf("%u", byte);
 		}
 	}

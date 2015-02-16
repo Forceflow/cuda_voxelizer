@@ -96,8 +96,8 @@ __global__ void voxelize_triangle(voxinfo info, float* triangle_data, unsigned i
 		//COMPUTE TRIANGLE BBOX IN GRID
 		AABox<glm::vec3> t_bbox_world(glm::min(v0, glm::min(v1, v2)), glm::max(v0, glm::max(v1, v2)));
 		AABox<glm::ivec3> t_bbox_grid;
-		t_bbox_grid.min = glm::clamp(t_bbox_world.min / info.unit, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(info.gridsize, info.gridsize, info.gridsize));
-		t_bbox_grid.max = glm::clamp(t_bbox_world.max / info.unit, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(info.gridsize, info.gridsize, info.gridsize));
+		t_bbox_grid.min = glm::clamp(t_bbox_world.min / info.unit, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(info.gridsize-1, info.gridsize-1, info.gridsize-1));
+		t_bbox_grid.max = glm::clamp(t_bbox_world.max / info.unit, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(info.gridsize-1, info.gridsize-1, info.gridsize-1));
 
 		// PREPARE PLANE TEST PROPERTIES
 		if (n.x > 0.0f) { c.x = info.unit; }
@@ -174,8 +174,9 @@ __global__ void voxelize_triangle(voxinfo info, float* triangle_data, unsigned i
 					if ((glm::dot(n_zx_e2, p_zx) + d_xz_e2) < 0.0f){ continue; }
 
 					//atomicAdd(&voxel_count, 1);
-					if (morton_order){
-						setBit(voxel_table, mortonEncode_LUT(x, y, z));
+				if (morton_order){
+						size_t location = mortonEncode_LUT(x, y, z);
+						setBit(voxel_table, location);
 					} else {
 						size_t location = x + (y*info.gridsize) + (z*info.gridsize*info.gridsize);
 						setBit(voxel_table, location);
@@ -203,28 +204,27 @@ void voxelize(voxinfo v, float* triangle_data, unsigned int* vtable, bool morton
 	HANDLE_CUDA_ERROR(cudaEventCreate(&stop_vox));
 	HANDLE_CUDA_ERROR(cudaEventRecord(start_total, 0));
 
-	// Malloc triangle memory
-	HANDLE_CUDA_ERROR(cudaMalloc(&dev_triangle_data, v.n_triangles * 9 * sizeof(float)));
-	HANDLE_CUDA_ERROR(cudaMemcpy(dev_triangle_data, (void*)triangle_data, v.n_triangles * 9 * sizeof(float), cudaMemcpyDefault));
-
-	// Malloc voxelisation table
-	size_t vtable_size = ((size_t)v.gridsize * v.gridsize * v.gridsize) / 8.0f;
-	HANDLE_CUDA_ERROR(cudaMalloc(&dev_vtable, vtable_size));
-	HANDLE_CUDA_ERROR(cudaMemset(dev_vtable, 0, vtable_size));
-
-	// Copy morton LUTs
 	if (morton_code){
 		HANDLE_CUDA_ERROR(cudaMemcpyToSymbol(morton256_x, host_morton256_x, 256 * sizeof(uint32_t)));
 		HANDLE_CUDA_ERROR(cudaMemcpyToSymbol(morton256_y, host_morton256_y, 256 * sizeof(uint32_t)));
 		HANDLE_CUDA_ERROR(cudaMemcpyToSymbol(morton256_z, host_morton256_z, 256 * sizeof(uint32_t)));
 	}
 
+	// Malloc triangle memory
+	HANDLE_CUDA_ERROR(cudaMalloc(&dev_triangle_data, v.n_triangles * 9 * sizeof(float)));
+	HANDLE_CUDA_ERROR(cudaMemcpy(dev_triangle_data, (void*)triangle_data, v.n_triangles * 9 * sizeof(float), cudaMemcpyDefault));
+
+	// Malloc voxelisation table
+	size_t vtable_size = ((size_t)v.gridsize * v.gridsize * v.gridsize) / (size_t) 8.0;
+	HANDLE_CUDA_ERROR(cudaMalloc(&dev_vtable, vtable_size));
+	HANDLE_CUDA_ERROR(cudaMemset(dev_vtable, 0, vtable_size));
 	HANDLE_CUDA_ERROR(cudaEventRecord(start_vox, 0));
 
 	// if we pass triangle_data here directly, UVA takes care of memory transfer via DMA. Disabling for now.
 	voxelize_triangle << <256, 256 >> >(v, dev_triangle_data, dev_vtable, morton_code);
 	CHECK_CUDA_ERROR();
 	cudaDeviceSynchronize();
+
 	HANDLE_CUDA_ERROR(cudaEventRecord(stop_vox, 0));
 	HANDLE_CUDA_ERROR(cudaEventSynchronize(stop_vox));
 	HANDLE_CUDA_ERROR(cudaEventElapsedTime(&elapsedTime, start_vox, stop_vox));
