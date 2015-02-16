@@ -174,7 +174,7 @@ __global__ void voxelize_triangle(voxinfo info, float* triangle_data, unsigned i
 					if ((glm::dot(n_zx_e2, p_zx) + d_xz_e2) < 0.0f){ continue; }
 
 					//atomicAdd(&voxel_count, 1);
-				if (morton_order){
+					if (morton_order){
 						size_t location = mortonEncode_LUT(x, y, z);
 						setBit(voxel_table, location);
 					} else {
