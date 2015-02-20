@@ -2,6 +2,7 @@
 - Cleanup writeout to binvox, use original file name, append gridsize (see ooc_svo_builder)
 
 OPTIMIZATIONS
+- model bbox can be computed in GPU pass
 - buffered bitset (no speedup)
 
 WILL THIS GO FASTER

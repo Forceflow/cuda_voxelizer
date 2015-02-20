@@ -14,7 +14,7 @@ using namespace std;
 // Default options
 string filename = "";
 string filename_base = "";
-unsigned int gridsize = 1024;
+unsigned int gridsize = 512;
 
 // Program data
 float* triangles;
