@@ -1,11 +1,19 @@
-#include "binvox_io.h"
+#include "util_io.h"
 
 using namespace std;
 
-void write_binvox(const unsigned int* vtable, size_t gridsize, std::string filename){
+void write_binary(const void* data, size_t bytes, std::string base_filename){
+	string filename_output = base_filename + string(".bin");
+	fprintf(stdout, "Writing data in binary format to %s \n", filename_output.c_str());
+	ofstream output(filename_output.c_str(), ios::out | ios::binary);
+	output.write((char*)data, bytes);
+}
+
+void write_binvox(const unsigned int* vtable, size_t gridsize, std::string base_filename){
 	// Open file
-	fprintf(stdout, "Writing data to %s \n", filename.c_str());
-	ofstream output(filename.c_str(), ios::out | ios::binary);
+	string filename_output = base_filename + string("_") + to_string(gridsize) + string(".binvox");
+	fprintf(stdout, "Writing data in binvox format to %s \n", filename_output.c_str());
+	ofstream output(filename_output.c_str(), ios::out | ios::binary);
 	
 	// Write ASCII header
 	output << "#binvox 1" << endl;

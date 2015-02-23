@@ -5,18 +5,15 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="binvox_io.cpp" />
     <ClCompile Include="util_cuda.cpp">
       <Filter>util</Filter>
     </ClCompile>
     <ClCompile Include="util.cpp">
       <Filter>util</Filter>
     </ClCompile>
+    <ClCompile Include="util_io.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="binvox_io.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
     <ClInclude Include="util_common.h">
       <Filter>Headers</Filter>
     </ClInclude>
@@ -24,6 +21,9 @@
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="util.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="util_io.h">
       <Filter>Headers</Filter>
     </ClInclude>
   </ItemGroup>

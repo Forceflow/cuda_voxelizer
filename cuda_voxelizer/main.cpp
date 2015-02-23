@@ -1,6 +1,6 @@
 #include <string>
 #include <stdio.h>
-#include "binvox_io.h"
+#include "util_io.h"
 #include "util_cuda.h"
 #include "TriMesh.h"
 #include <glm/glm.hpp>
@@ -14,6 +14,7 @@ using namespace std;
 // Default options
 string filename = "";
 string filename_base = "";
+bool morton = false;
 unsigned int gridsize = 512;
 
 // Program data
@@ -73,10 +74,13 @@ void parseProgramParameters(int argc, char* argv[]){
 		} else if (string(argv[i]) == "-s") {
 			gridsize = atoi(argv[i + 1]);
 			i++;
+		} else if (string(argv[i]) == "-m") {
+			morton = true;
 		}
 	}
 	fprintf(stdout, "Filename: %s \n", filename.c_str());
 	fprintf(stdout, "Grid size: %i \n", gridsize);
+	fprintf(stdout, "Morton: %b \n", morton);
 }
 
 int main(int argc, char *argv[]) {
@@ -113,15 +117,17 @@ int main(int argc, char *argv[]) {
 	HANDLE_CUDA_ERROR(cudaHostAlloc((void **)&vtable, vtable_size, cudaHostAllocDefault));
 
 	fprintf(stdout, "\n## GPU VOXELISATION \n");
-	voxelize(v, triangles, vtable, true);
+	voxelize(v, triangles, vtable, morton);
 
 	// Sanity check
 	//if (gridsize <= 64){
 	//	for (size_t i = (vtable_size / 4.0f)-1; i > 0; i--){printBits(sizeof(int), &(vtable[i]));}
 	//}
-
-	string filename_output = filename_base + string("_") + to_string(gridsize) + string(".binvox");
-	fprintf(stdout, "\n## OUTPUT TO BINVOX FILE \n");
-	fprintf(stdout, "Filename: %s \n", filename_output.c_str());
-	write_binvox(vtable, gridsize, filename_output);
+	if (morton){
+		fprintf(stdout, "\n## OUTPUT TO BINARY FILE \n");
+		write_binary(vtable, vtable_size, filename);
+	} else {
+		fprintf(stdout, "\n## OUTPUT TO BINVOX FILE \n");
+		write_binvox(vtable, gridsize, filename);
+	}
 }

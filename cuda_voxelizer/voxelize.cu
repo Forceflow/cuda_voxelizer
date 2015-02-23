@@ -204,6 +204,7 @@ void voxelize(voxinfo v, float* triangle_data, unsigned int* vtable, bool morton
 	HANDLE_CUDA_ERROR(cudaEventCreate(&stop_vox));
 	HANDLE_CUDA_ERROR(cudaEventRecord(start_total, 0));
 
+	// Copy morton LUT if we're enciding to morton
 	if (morton_code){
 		HANDLE_CUDA_ERROR(cudaMemcpyToSymbol(morton256_x, host_morton256_x, 256 * sizeof(uint32_t)));
 		HANDLE_CUDA_ERROR(cudaMemcpyToSymbol(morton256_y, host_morton256_y, 256 * sizeof(uint32_t)));

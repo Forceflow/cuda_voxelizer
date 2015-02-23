@@ -171,13 +171,13 @@ copy /y "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).exe" "E:\jero
     <CudaCompile Include="voxelize.cu" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="binvox_io.cpp" />
+    <ClCompile Include="util_io.cpp" />
     <ClCompile Include="util.cpp" />
     <ClCompile Include="util_cuda.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="binvox_io.h" />
+    <ClInclude Include="util_io.h" />
     <ClInclude Include="util.h" />
     <ClInclude Include="util_cuda.h" />
     <ClInclude Include="util_common.h" />
