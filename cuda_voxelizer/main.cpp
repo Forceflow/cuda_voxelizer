@@ -80,7 +80,7 @@ void parseProgramParameters(int argc, char* argv[]){
 	}
 	fprintf(stdout, "Filename: %s \n", filename.c_str());
 	fprintf(stdout, "Grid size: %i \n", gridsize);
-	fprintf(stdout, "Morton: %b \n", morton);
+	fprintf(stdout, "Morton: %d \n", morton);
 }
 
 int main(int argc, char *argv[]) {
