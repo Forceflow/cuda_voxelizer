@@ -28,6 +28,7 @@ struct voxinfo{
 	}
 };
 
+// create mesh bbox cube
 template <typename T>
 __device__ __host__ inline AABox<T> createMeshBBCube(AABox<T> box){
 	AABox<T> answer(box.min, box.max);
