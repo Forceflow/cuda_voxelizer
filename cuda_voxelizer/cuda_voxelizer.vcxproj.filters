@@ -11,7 +11,9 @@
     <ClCompile Include="util.cpp">
       <Filter>util</Filter>
     </ClCompile>
-    <ClCompile Include="util_io.cpp" />
+    <ClCompile Include="util_io.cpp">
+      <Filter>util</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="util_common.h">
