@@ -4,7 +4,7 @@ using namespace std;
 
 void write_binary(const void* data, size_t bytes, std::string base_filename){
 	string filename_output = base_filename + string(".bin");
-	fprintf(stdout, "Writing data in binary format to %s \n", filename_output.c_str());
+	fprintf(stdout, "Writing data in binary format to %s (%llu kb) \n", filename_output.c_str(), size_t(bytes / 1024.0f));
 	ofstream output(filename_output.c_str(), ios::out | ios::binary);
 	output.write((char*)data, bytes);
 }
