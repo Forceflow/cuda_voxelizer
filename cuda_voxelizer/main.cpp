@@ -1,3 +1,5 @@
+//#define NDEBUG
+
 #include <string>
 #include <stdio.h>
 #include "util_io.h"
