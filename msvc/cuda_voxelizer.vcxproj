@@ -170,22 +170,22 @@ copy /y "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).exe" "E:\jero
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <CudaCompile Include="voxelize.cu" />
+    <CudaCompile Include="../src/voxelize.cu" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="util_io.cpp" />
-    <ClCompile Include="util.cpp" />
-    <ClCompile Include="util_cuda.cpp" />
-    <ClCompile Include="main.cpp" />
+    <ClCompile Include="../src/util_io.cpp" />
+    <ClCompile Include="../src/util.cpp" />
+    <ClCompile Include="../src/util_cuda.cpp" />
+    <ClCompile Include="../src/main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="util_io.h" />
-    <ClInclude Include="util.h" />
-    <ClInclude Include="util_cuda.h" />
-    <ClInclude Include="util_common.h" />
+    <ClInclude Include="../src/util_io.h" />
+    <ClInclude Include="../src/util.h" />
+    <ClInclude Include="../src/util_cuda.h" />
+    <ClInclude Include="../src/util_common.h" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="todo.txt" />
+    <Text Include="../src/todo.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
