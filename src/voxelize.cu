@@ -206,14 +206,14 @@ void voxelize(voxinfo v, float* triangle_data, unsigned int* vtable, bool morton
 	HANDLE_CUDA_ERROR(cudaEventCreate(&stop_vox));
 	HANDLE_CUDA_ERROR(cudaEventRecord(start_total, 0));
 
-	// Copy morton LUT if we're enciding to morton
+	// Copy morton LUT if we're encoding to morton
 	if (morton_code){
 		HANDLE_CUDA_ERROR(cudaMemcpyToSymbol(morton256_x, host_morton256_x, 256 * sizeof(uint32_t)));
 		HANDLE_CUDA_ERROR(cudaMemcpyToSymbol(morton256_y, host_morton256_y, 256 * sizeof(uint32_t)));
 		HANDLE_CUDA_ERROR(cudaMemcpyToSymbol(morton256_z, host_morton256_z, 256 * sizeof(uint32_t)));
 	}
 
-	// Malloc triangle memory
+	// Malloc triangle memory and copy triangle data
 	HANDLE_CUDA_ERROR(cudaMalloc(&dev_triangle_data, v.n_triangles * 9 * sizeof(float)));
 	HANDLE_CUDA_ERROR(cudaMemcpy(dev_triangle_data, (void*)triangle_data, v.n_triangles * 9 * sizeof(float), cudaMemcpyDefault));
 

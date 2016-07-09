@@ -1,3 +1,6 @@
+#if defined(WIN32) || defined(_WIN32) || defined(WIN64) || defined(_WIN64)
+#define WINDOWS_LEAN_AND_MEAN
+#endif
 //#define NDEBUG
 
 // Standard
@@ -14,7 +17,6 @@
 #include "util_io.h"
 #include "util_cuda.h"
 #include "util_common.h"
-
 
 extern void voxelize(voxinfo v, float* triangle_data, unsigned int* vtable, bool morton_code);
 
@@ -111,7 +113,7 @@ int main(int argc, char *argv[]) {
 
 	size_t size = sizeof(float) * 9 * (themesh->faces.size());
 	fprintf(stdout, "Allocating %llu kb of page-locked host memory \n", (size_t)(size / 1024.0f));
-	HANDLE_CUDA_ERROR(cudaHostAlloc((void**) &triangles, size, cudaHostAllocDefault));
+	HANDLE_CUDA_ERROR(cudaHostAlloc((void**) &triangles, size, cudaHostAllocDefault)); // pinned memory to easily copy from
 	fprintf(stdout, "Copy %llu triangles to page-locked host memory \n", (size_t)(themesh->faces.size()));
 	trianglesToMemory(themesh, triangles);
 
