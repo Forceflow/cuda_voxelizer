@@ -1,7 +1,9 @@
 cuda_voxelizer
 ==============
 
-CUDA voxelizer
+Experimental CUDA voxelizer. Outputs data to .binvox file format (default) or a morton-ordered grid (using the switch -m). For model importing, this tool uses [Trimesh2](https://github.com/Forceflow/trimesh2), so all usual file formats are supported (.ply, .obj, ...).
+
+In order for this tool to work, you need a CUDA-compatible video card, with at least compute model 2.0 supported. Any Nvidia card less than 5 years old will probably do.
 
 Usage:
 
