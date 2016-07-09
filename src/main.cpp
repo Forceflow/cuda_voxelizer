@@ -1,13 +1,20 @@
 //#define NDEBUG
 
+// Standard
 #include <string>
 #include <stdio.h>
-#include "util_io.h"
-#include "util_cuda.h"
-#include "TriMesh.h"
+
+// GLM for maths
 #include <glm/glm.hpp>
 #include <glm/gtx/string_cast.hpp>
+
+// Trimesh for model importing
+#include "TriMesh.h"
+
+#include "util_io.h"
+#include "util_cuda.h"
 #include "util_common.h"
+
 
 extern void voxelize(voxinfo v, float* triangle_data, unsigned int* vtable, bool morton_code);
 
