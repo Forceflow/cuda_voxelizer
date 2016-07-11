@@ -1,5 +1,4 @@
-#ifndef CUDA_UTIL_H_
-#define CUDA_UTIL_H_
+#pragma once
 
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
@@ -47,5 +46,3 @@ inline void __CHECK_ERROR(const char *file, const int line){
 #endif
 	return;
 }
-
-#endif

@@ -178,7 +178,6 @@ copy /y "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).exe" "E:\jero
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="../src/util_io.cpp" />
-    <ClCompile Include="../src/util.cpp" />
     <ClCompile Include="../src/util_cuda.cpp" />
     <ClCompile Include="../src/main.cpp" />
   </ItemGroup>

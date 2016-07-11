@@ -1,6 +1,4 @@
-#ifndef UTIL_COMMON_H_
-#define UTIL_COMMON_H_
-
+#pragma once
 #include "cuda.h"
 #include "cuda_runtime.h"
 #include <stdint.h>
@@ -153,5 +151,3 @@ static const uint32_t host_morton256_z[256] = {
 	0x00924004, 0x00924020, 0x00924024, 0x00924100, 0x00924104, 0x00924120, 0x00924124, 0x00924800,
 	0x00924804, 0x00924820, 0x00924824, 0x00924900, 0x00924904, 0x00924920, 0x00924924
 };
-
-#endif

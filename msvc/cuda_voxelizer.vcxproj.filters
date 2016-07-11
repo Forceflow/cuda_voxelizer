@@ -5,7 +5,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="../src/util_io.cpp" />
-    <ClCompile Include="../src/util.cpp" />
     <ClCompile Include="../src/util_cuda.cpp" />
     <ClCompile Include="../src/main.cpp" />
   </ItemGroup>

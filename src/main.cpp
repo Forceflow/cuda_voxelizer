@@ -35,10 +35,6 @@ unsigned int* vtable;
 // Limitations
 size_t GPU_global_mem;
 
-glm::vec3 trimesh_to_glm(trimesh::vec3 a){
-	return glm::vec3(a[0], a[1], a[2]);
-}
-
 void printBits(size_t const size, void const * const ptr){
 	unsigned char *b = (unsigned char*)ptr;
 	unsigned char byte;
