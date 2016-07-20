@@ -14,6 +14,9 @@
 // Trimesh for model importing
 #include "TriMesh.h"
 
+#define TINYOBJLOADER_IMPLEMENTATION // define this in only *one* .cc
+#include "tiny_obj_loader.h"
+
 #include "util_io.h"
 #include "util_cuda.h"
 #include "util_common.h"
@@ -66,6 +69,43 @@ void trianglesToMemory(const trimesh::TriMesh *mesh, float* triangles){
 		memcpy((triangles) + j, &v0, 3 * sizeof(float));
 		memcpy((triangles) + j + 3, &v1, 3 * sizeof(float));
 		memcpy((triangles) + j + 6, &v2, 3 * sizeof(float));
+	}
+}
+
+void readObj(const std::string filename){
+	std::vector<tinyobj::shape_t> shapes;
+	std::vector<tinyobj::material_t> materials;
+	std::string err;
+	bool ret = tinyobj::LoadObj(shapes, materials, err, filename.c_str());
+
+	if (!err.empty()) { // `err` may contain warning message.
+		std::cerr << err << std::endl;
+	}
+
+	if (!ret) {
+		exit(1);
+	}
+
+	std::cout << "# of shapes    : " << shapes.size() << std::endl;
+	std::cout << "# of materials : " << materials.size() << std::endl;
+
+	for (size_t i = 0; i < shapes.size(); i++) {
+		printf("shape[%ld].name = %s\n", i, shapes[i].name.c_str());
+		printf("Size of shape[%ld].indices: %ld\n", i, shapes[i].mesh.indices.size());
+		printf("Size of shape[%ld].material_ids: %ld\n", i, shapes[i].mesh.material_ids.size());
+		assert((shapes[i].mesh.indices.size() % 3) == 0);
+		for (size_t f = 0; f < shapes[i].mesh.indices.size() / 3; f++) {
+			printf("  idx[%ld] = %d, %d, %d. mat_id = %d\n", f, shapes[i].mesh.indices[3 * f + 0], shapes[i].mesh.indices[3 * f + 1], shapes[i].mesh.indices[3 * f + 2], shapes[i].mesh.material_ids[f]);
+		}
+
+		printf("shape[%ld].vertices: %ld\n", i, shapes[i].mesh.positions.size());
+		assert((shapes[i].mesh.positions.size() % 3) == 0);
+		/*for (size_t v = 0; v < shapes[i].mesh.positions.size() / 3; v++) {
+		printf("  v[%ld] = (%f, %f, %f)\n", v,
+		shapes[i].mesh.positions[3 * v + 0],
+		shapes[i].mesh.positions[3 * v + 1],
+		shapes[i].mesh.positions[3 * v + 2]);
+		}*/
 	}
 }
 
