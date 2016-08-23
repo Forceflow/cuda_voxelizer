@@ -3,7 +3,7 @@
 #endif
 //#define NDEBUG
 
-// Standard
+// Standard libs
 #include <string>
 #include <stdio.h>
 
@@ -14,6 +14,7 @@
 // Trimesh for model importing
 #include "TriMesh.h"
 
+// TiniObj for alternative model importing
 #define TINYOBJLOADER_IMPLEMENTATION // define this in only *one* .cc
 #include "tiny_obj_loader.h"
 
@@ -72,6 +73,7 @@ void trianglesToMemory(const trimesh::TriMesh *mesh, float* triangles){
 	}
 }
 
+// tinyobj loader path
 void readObj(const std::string filename){
 	std::vector<tinyobj::shape_t> shapes;
 	std::vector<tinyobj::material_t> materials;
@@ -111,6 +113,7 @@ void readObj(const std::string filename){
 
 void parseProgramParameters(int argc, char* argv[]){
 	if(argc<2){ // not enough arguments
+		fprintf(stdout, "Not enough program parameters - I need at least a filename specified using -f \n");
 		exit(0);
 	} 
 	for (int i = 1; i < argc; i++) {
@@ -127,7 +130,7 @@ void parseProgramParameters(int argc, char* argv[]){
 	}
 	fprintf(stdout, "Filename: %s \n", filename.c_str());
 	fprintf(stdout, "Grid size: %i \n", gridsize);
-	fprintf(stdout, "Morton: %d \n", morton);
+	fprintf(stdout, "Morton encoded: %d \n", morton);
 }
 
 int main(int argc, char *argv[]) {
@@ -139,13 +142,13 @@ int main(int argc, char *argv[]) {
 	fprintf(stdout, "\n## MESH IMPORT \n");
 	fflush(stdout);
 	trimesh::TriMesh *themesh = trimesh::TriMesh::read(filename.c_str());
-	themesh->need_faces(); // unpack (possible) triangle strips so we have faces
-	themesh->need_bbox(); // compute the bounding box
+	themesh->need_faces(); // Trimesh: Unpack (possible) triangle strips so we have faces
+	themesh->need_bbox(); // Trimesh: Compute the bounding box
 
 	fprintf(stdout, "\n## MEMORY PREPARATION \n");
 	fprintf(stdout, "Number of faces: %llu, faces table takes %llu kb \n", themesh->faces.size(), (size_t) (themesh->faces.size()*sizeof(trimesh::TriMesh::Face) / 1024.0f));
 	fprintf(stdout, "Number of vertices: %llu, vertices table takes %llu kb \n", themesh->vertices.size(), (size_t) (themesh->vertices.size()*sizeof(trimesh::point) / 1024.0f));
-	AABox<glm::vec3> bbox_mesh(trimesh_to_glm(themesh->bbox.min), trimesh_to_glm(themesh->bbox.max));
+	AABox<glm::vec3> bbox_mesh(trimesh_to_glm(themesh->bbox.min), trimesh_to_glm(themesh->bbox.max)); // build bbox around mesh
 
 	size_t size = sizeof(float) * 9 * (themesh->faces.size());
 	fprintf(stdout, "Allocating %llu kb of page-locked host memory \n", (size_t)(size / 1024.0f));

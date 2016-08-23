@@ -1,3 +1,5 @@
+optimize, output to magicavoxel? Png? interact with polyvox?
+
 ### VOXELISATION
 - Cleanup writeout to binvox, use original file name, append gridsize (see ooc_svo_builder)
 

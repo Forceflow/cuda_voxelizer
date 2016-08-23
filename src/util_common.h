@@ -24,6 +24,10 @@ struct voxinfo{
 		: gridsize(gridsize), bbox(bbox), n_triangles(n_triangles){
 		unit = (bbox.max.x - bbox.min.x) / float (gridsize);
 	}
+
+	void print(){
+		//
+	}
 };
 
 // create mesh bbox cube
