@@ -194,8 +194,6 @@ __global__ void voxelize_triangle(voxinfo info, float* triangle_data, unsigned i
 }
 
 void voxelize(voxinfo v, float* triangle_data, unsigned int* vtable, bool morton_code){
-	float* dev_triangle_data; // DEVICE pointer to triangle data
-	unsigned int* dev_vtable; // DEVICE pointer to voxel_data
 	float   elapsedTime;
 
 	// Create timers, set start time
@@ -213,18 +211,10 @@ void voxelize(voxinfo v, float* triangle_data, unsigned int* vtable, bool morton
 		HANDLE_CUDA_ERROR(cudaMemcpyToSymbol(morton256_z, host_morton256_z, 256 * sizeof(uint32_t)));
 	}
 
-	// Malloc triangle memory and copy triangle data
-	HANDLE_CUDA_ERROR(cudaMalloc(&dev_triangle_data, v.n_triangles * 9 * sizeof(float)));
-	HANDLE_CUDA_ERROR(cudaMemcpy(dev_triangle_data, (void*)triangle_data, v.n_triangles * 9 * sizeof(float), cudaMemcpyDefault));
-
-	// Malloc voxelisation table
-	size_t vtable_size = ((size_t)v.gridsize * v.gridsize * v.gridsize) / (size_t) 8.0;
-	HANDLE_CUDA_ERROR(cudaMalloc(&dev_vtable, vtable_size));
-	HANDLE_CUDA_ERROR(cudaMemset(dev_vtable, 0, vtable_size));
 	HANDLE_CUDA_ERROR(cudaEventRecord(start_vox, 0));
 
 	// if we pass triangle_data here directly, UVA takes care of memory transfer via DMA. Disabling for now.
-	voxelize_triangle << <256, 256 >> >(v, dev_triangle_data, dev_vtable, morton_code);
+	voxelize_triangle << <256, 256 >> >(v, triangle_data, vtable, morton_code);
 	CHECK_CUDA_ERROR();
 	cudaDeviceSynchronize();
 
@@ -240,9 +230,6 @@ void voxelize(voxinfo v, float* triangle_data, unsigned int* vtable, bool morton
 	//printf("We've seen %llu triangles on the GPU \n", t_seen);
 	//printf("We've found %llu voxels on the GPU \n", v_count);
 
-	// Copy voxelisation table back to host
-	HANDLE_CUDA_ERROR(cudaMemcpy((void*) vtable, dev_vtable, vtable_size, cudaMemcpyDefault));
-
 	// get stop time, and display the timing results
 	HANDLE_CUDA_ERROR(cudaEventRecord(stop_total, 0));
 	HANDLE_CUDA_ERROR(cudaEventSynchronize(stop_total));
@@ -254,8 +241,4 @@ void voxelize(voxinfo v, float* triangle_data, unsigned int* vtable, bool morton
 	HANDLE_CUDA_ERROR(cudaEventDestroy(stop_total));
 	HANDLE_CUDA_ERROR(cudaEventDestroy(start_vox));
 	HANDLE_CUDA_ERROR(cudaEventDestroy(stop_vox));
-
-	// Free memory
-	HANDLE_CUDA_ERROR(cudaFree(dev_triangle_data));
-	HANDLE_CUDA_ERROR(cudaFree(dev_vtable));
 }

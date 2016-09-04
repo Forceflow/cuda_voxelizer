@@ -59,7 +59,7 @@ void printBits(size_t const size, void const * const ptr){
 	puts("");
 }
 
-// Helper function to transfer triangles to CUDA-allocated pinned host memory
+// Helper function to transfer triangles to automatically managed CUDA memory
 void trianglesToMemory(const trimesh::TriMesh *mesh, float* triangles){
 	// Loop over all triangles and place them in memory
 	for (size_t i = 0; i < mesh->faces.size(); i++){
@@ -151,9 +151,9 @@ int main(int argc, char *argv[]) {
 	AABox<glm::vec3> bbox_mesh(trimesh_to_glm(themesh->bbox.min), trimesh_to_glm(themesh->bbox.max)); // build bbox around mesh
 
 	size_t size = sizeof(float) * 9 * (themesh->faces.size());
-	fprintf(stdout, "Allocating %llu kb of page-locked host memory \n", (size_t)(size / 1024.0f));
-	HANDLE_CUDA_ERROR(cudaHostAlloc((void**) &triangles, size, cudaHostAllocDefault)); // pinned memory to easily copy from
-	fprintf(stdout, "Copy %llu triangles to page-locked host memory \n", (size_t)(themesh->faces.size()));
+	fprintf(stdout, "Allocating %llu kb of CUDA-managed memory \n", (size_t)(size / 1024.0f));
+	HANDLE_CUDA_ERROR(cudaMallocManaged((void**) &triangles, size)); // managed memory
+	fprintf(stdout, "Copy %llu triangles to CUDA-managed memory \n", (size_t)(themesh->faces.size()));
 	trianglesToMemory(themesh, triangles);
 
 	fprintf(stdout, "\n## VOXELISATION SETUP \n");
@@ -164,7 +164,7 @@ int main(int argc, char *argv[]) {
 	size_t vtable_size = ((size_t)gridsize*gridsize*gridsize) / 8.0f;
 	fprintf(stdout, "Need %llu kb for voxel table \n", size_t(vtable_size / 1024.0f));
 
-	HANDLE_CUDA_ERROR(cudaHostAlloc((void **)&vtable, vtable_size, cudaHostAllocDefault));
+	HANDLE_CUDA_ERROR(cudaMallocManaged((void **)&vtable, vtable_size));
 
 	fprintf(stdout, "\n## GPU VOXELISATION \n");
 	voxelize(v, triangles, vtable, morton);
