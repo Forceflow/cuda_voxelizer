@@ -1,5 +1,4 @@
 
-switch to automatically allocated GPU memory - see if perf suffers
 optimize, output to magicavoxel? Png? interact with polyvox?
 
 ### VOXELISATION
