@@ -30,7 +30,7 @@ using namespace std;
 string filename = "";
 string filename_base = "";
 bool morton = false;
-unsigned int gridsize = 512;
+unsigned int gridsize = 256;
 
 // Program data
 float* triangles;
