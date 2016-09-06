@@ -1,3 +1,9 @@
+Readme:
+- Requirements (cuda card, ...)
+- Usage (visualize with viewvox..)
+- Performance (using schwarz algorithm, against binvox)
+- Build it yourself (requirements)
+
 
 - optimize, output to magicavoxel? Png? interact with polyvox?
 - is magicbits faster (less memory lookup)
