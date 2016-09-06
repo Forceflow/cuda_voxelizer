@@ -26,10 +26,10 @@ struct voxinfo{
 	}
 
 	void print(){
-		fprintf(stdout, "Bounding Box: (%f, %f, %f) to (%f, %f, %f) /n", bbox.min.x, bbox.min.y, bbox.min.z, bbox.max.x, bbox.max.y, bbox.max.z);
-		fprintf(stdout, "Grid size: %i /n", gridsize);
-		fprintf(stdout, "Triangles: %ull /n", n_triangles);
-		fprintf(stdout, "Unit length: %f /n", unit);
+		fprintf(stdout, "Bounding Box: (%f, %f, %f) to (%f, %f, %f) \n", bbox.min.x, bbox.min.y, bbox.min.z, bbox.max.x, bbox.max.y, bbox.max.z);
+		fprintf(stdout, "Grid size: %i \n", gridsize);
+		fprintf(stdout, "Triangles: %ull \n", n_triangles);
+		fprintf(stdout, "Unit length: %f \n", unit);
 	}
 };
 
