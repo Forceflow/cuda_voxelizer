@@ -1,5 +1,6 @@
 
-optimize, output to magicavoxel? Png? interact with polyvox?
+- optimize, output to magicavoxel? Png? interact with polyvox?
+- is magicbits faster (less memory lookup)
 
 ### VOXELISATION
 - Cleanup writeout to binvox, use original file name, append gridsize (see ooc_svo_builder)

@@ -15,8 +15,8 @@
 #include "TriMesh.h"
 
 // TiniObj for alternative model importing
-#define TINYOBJLOADER_IMPLEMENTATION // define this in only *one* .cc
-#include "tiny_obj_loader.h"
+// #define TINYOBJLOADER_IMPLEMENTATION // define this in only *one* .cc
+// #include "tiny_obj_loader.h"
 
 #include "util_io.h"
 #include "util_cuda.h"
@@ -25,6 +25,8 @@
 extern void voxelize(voxinfo v, float* triangle_data, unsigned int* vtable, bool morton_code);
 
 using namespace std;
+
+string version_number = "v0.1";
 
 // Default options
 string filename = "";
@@ -38,6 +40,18 @@ unsigned int* vtable;
 
 // Limitations
 size_t GPU_global_mem;
+
+void printHeader(){
+	std::cout << "CUDA Voxelizer " << version_number << " by Jeroen Baert" << std::endl; 
+	std::cout << "github.com/Forceflow/cuda_voxelizer - jeroen.baert@cs.kuleuven.be" << std::endl;
+}
+
+void printHelp(){
+	std::cout << "Program options: " << std::endl;
+	std::cout << " -f (path to model file: .ply, .obj, .3ds)" << std::endl;
+	std::cout << " -s (voxelization grid size, power of 2: 8 -> 512, 1024, ... (default: 256)" << std::endl << std::endl;
+	std::cout << "Example: cuda_voxelizer -f /home/jeroen/bunny.ply -s 512" << std::endl;
+}
 
 void printBits(size_t const size, void const * const ptr){
 	unsigned char *b = (unsigned char*)ptr;
@@ -73,7 +87,7 @@ void trianglesToMemory(const trimesh::TriMesh *mesh, float* triangles){
 	}
 }
 
-// tinyobj loader path
+// tinyobj loader path (not available yet)
 void readObj(const std::string filename){
 	std::vector<tinyobj::shape_t> shapes;
 	std::vector<tinyobj::material_t> materials;
@@ -113,7 +127,8 @@ void readObj(const std::string filename){
 
 void parseProgramParameters(int argc, char* argv[]){
 	if(argc<2){ // not enough arguments
-		fprintf(stdout, "Not enough program parameters - I need at least a filename specified using -f \n");
+		fprintf(stdout, "Not enough program parameters. \n \n");
+		printHelp();
 		exit(0);
 	} 
 	for (int i = 1; i < argc; i++) {
@@ -134,6 +149,7 @@ void parseProgramParameters(int argc, char* argv[]){
 }
 
 int main(int argc, char *argv[]) {
+	printHeader();
 	fprintf(stdout, "\n## PROGRAM PARAMETERS \n");
 	parseProgramParameters(argc, argv);
 	fprintf(stdout, "\n## CUDA INIT \n");
@@ -158,9 +174,7 @@ int main(int argc, char *argv[]) {
 
 	fprintf(stdout, "\n## VOXELISATION SETUP \n");
 	voxinfo v(createMeshBBCube<glm::vec3>(bbox_mesh), gridsize, themesh->faces.size());
-	fprintf(stdout, "Cubed mesh bbox = %s to %s \n", glm::to_string(v.bbox.min).c_str(), glm::to_string(v.bbox.max).c_str());
-	fprintf(stdout, "Unit length = %f \n", v.unit);
-	fprintf(stdout, "Grid size = %u \n", v.gridsize);
+	v.print();
 	size_t vtable_size = ((size_t)gridsize*gridsize*gridsize) / 8.0f;
 	fprintf(stdout, "Need %llu kb for voxel table \n", size_t(vtable_size / 1024.0f));
 
