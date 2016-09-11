@@ -46,8 +46,9 @@ void printHeader(){
 
 void printHelp(){
 	cout << "Program options: " << endl;
-	cout << " -f (path to model file: .ply, .obj, .3ds)" << endl;
-	cout << " -s (voxelization grid size, power of 2: 8 -> 512, 1024, ... (default: 256)" << endl << std::endl;
+	cout << " -f <path to model file: .ply, .obj, .3ds>" << endl;
+	cout << " -s <voxelization grid size, power of 2: 8 -> 512, 1024, ... (default: 256)>" << endl << std::endl;
+	cout << " -o <output format: binvox or morton (default: binvox)>" << endl << std::endl;
 	cout << "Example: cuda_voxelizer -f /home/jeroen/bunny.ply -s 512" << endl;
 }
 
