@@ -2,6 +2,7 @@
 Experimental CUDA voxelizer, to convert polygon meshes to annotated voxel grids. 
  * Outputs data to [.binvox file format](http://www.patrickmin.com/binvox/binvox.html) (default) or a morton-ordered grid. More output formats (magicavoxel, minecraft schematic) are in development.
  * Requires a CUDA-compatible video card. Compute Capability 2.0 or higher (Nvidia Fermi or better).
+
 ## Usage
 Program options:
  * `-f <path to model file>`: **(required)** A path to a polygon model file. Supported input formats: .ply, .off, .obj, .3DS, .SM and RAY.
