@@ -213,7 +213,6 @@ void voxelize(voxinfo v, float* triangle_data, unsigned int* vtable, bool morton
 
 	HANDLE_CUDA_ERROR(cudaEventRecord(start_vox, 0));
 
-	// if we pass triangle_data here directly, UVA takes care of memory transfer via DMA. Disabling for now.
 	voxelize_triangle << <256, 256 >> >(v, triangle_data, vtable, morton_code);
 	CHECK_CUDA_ERROR();
 	cudaDeviceSynchronize();
