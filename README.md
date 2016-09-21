@@ -14,9 +14,26 @@ For example: `cuda_voxelizer -f bunny.ply -s 256` generates you a 256 x 256 x 25
 ![viewvox example](https://raw.githubusercontent.com/Forceflow/cuda_voxelizer/master/img/viewvox.JPG)
 
 ## Building
-### Dependencies
+The project has the following build dependencies:
  * [Cuda 7.5 Toolkit](https://developer.nvidia.com/cuda-toolkit) for CUDA.
  * [Trimesh2](https://github.com/Forceflow/trimesh2) for model importing.
  * [GLM](http://glm.g-truc.net/0.9.8/index.html) for vector math.
 
-A Visual studio 
+A Visual Studio 2013 project solution is provided in the `msvc`folder. CUDA support for Visual Studio 2015 CE is still lacking at the time of writing, though manual compilation might work.
+
+## Details
+`cuda_voxelizer` implements an optimized version of the method described in M. Schwarz and HP Seidel's 2010 paper [*Fast Parallel Surface and Solid Voxelization on GPU's*](http://research.michael-schwarz.com/publ/2010/vox/). The morton-encoded table was based on my 2013 HPG paper [*Out-Of-Core construction of Sparse Voxel Octrees*](http://graphics.cs.kuleuven.be/publications/BLD14OCCSVO/)  and the work in [*libmorton*](https://github.com/Forceflow/libmorton).
+
+`cuda_voxelizer` is built with a focus on performance. Usage of the routine as a per-frame voxelization step for real-time applications is viable. More performance metrics are on the todo list, but on a GTX 1060 these are the voxelization timings for the Stanford Bunny Model (1,55 MB, 70k triangles), including GPU memory transfers.
+
+| Grid size | Time    |
+|-----------|---------|
+| 128^3     | 4.2 ms  |
+| 256^3     | 6.2 ms  |
+| 512^3     | 13.4 ms |
+| 1024^3    | 38.6 ms  |
+
+## Todo
+ * There's still lots of room for optimization in optimal grid/block size launch parameters
+ * Output to more popular voxel formats like MagicaVoxel, Minecraft
+ * Implement capture of normals / color / texture data
