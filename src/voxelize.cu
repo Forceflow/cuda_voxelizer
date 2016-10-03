@@ -211,12 +211,19 @@ void voxelize(voxinfo v, float* triangle_data, unsigned int* vtable, bool morton
 		HANDLE_CUDA_ERROR(cudaMemcpyToSymbol(morton256_z, host_morton256_z, 256 * sizeof(uint32_t)));
 	}
 
+	// Estimate best block and grid size using CUDA Occupancy Calculator
+	int blockSize;   // The launch configurator returned block size 
+	int minGridSize; // The minimum grid size needed to achieve the  maximum occupancy for a full device launch 
+	int gridSize;    // The actual grid size needed, based on input size 
+	cudaOccupancyMaxPotentialBlockSize(&minGridSize, &blockSize, voxelize_triangle, 0, 0);
+	// Round up according to array size 
+	gridSize = (v.n_triangles + blockSize - 1) / blockSize;
+
 	HANDLE_CUDA_ERROR(cudaEventRecord(start_vox, 0));
-
-	voxelize_triangle << <256, 256 >> >(v, triangle_data, vtable, morton_code);
+	voxelize_triangle << <gridSize, blockSize >> >(v, triangle_data, vtable, morton_code);
 	CHECK_CUDA_ERROR();
-	cudaDeviceSynchronize();
 
+	cudaDeviceSynchronize();
 	HANDLE_CUDA_ERROR(cudaEventRecord(stop_vox, 0));
 	HANDLE_CUDA_ERROR(cudaEventSynchronize(stop_vox));
 	HANDLE_CUDA_ERROR(cudaEventElapsedTime(&elapsedTime, start_vox, stop_vox));
