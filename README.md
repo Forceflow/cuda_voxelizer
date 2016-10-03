@@ -34,6 +34,8 @@ A Visual Studio 2013 project solution is provided in the `msvc`folder. CUDA supp
 | 1024^3    | 38.6 ms  |
 
 ## Todo
- * There's still lots of room for optimization in optimal grid/block size launch parameters
  * Output to more popular voxel formats like MagicaVoxel, Minecraft
+ * Optimize grid/block size launch parameters
+ * Implement partitioning for larger models
+ * Do a pre-pass to categorize triangles
  * Implement capture of normals / color / texture data
