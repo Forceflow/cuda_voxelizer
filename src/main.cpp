@@ -22,7 +22,7 @@ extern void voxelize(voxinfo v, float* triangle_data, unsigned int* vtable, bool
 
 using namespace std;
 
-string version_number = "v0.1";
+string version_number = "v0.2";
 enum OutputFormat { output_binvox, output_morton};
 char *OutputFormats[] = { "binvox file", "morton encoded blob" };
 
@@ -50,25 +50,6 @@ void printHelp(){
 	cout << " -s <voxelization grid size, power of 2: 8 -> 512, 1024, ... (default: 256)>" << endl << std::endl;
 	cout << " -o <output format: binvox or morton (default: binvox)>" << endl << std::endl;
 	cout << "Example: cuda_voxelizer -f /home/jeroen/bunny.ply -s 512" << endl;
-}
-
-void printBits(size_t const size, void const * const ptr){
-	unsigned char *b = (unsigned char*)ptr;
-	unsigned char byte;
-	int i, j;
-	for (i = size - 1; i >= 0; i--){
-		for (j = 7; j >= 0; j--){
-			byte = b[i] & (1 << j);
-			byte >>= j;
-			if (byte){
-				printf("X");
-			} else {
-				printf(".");
-			}
-			//printf("%u", byte);
-		}
-	}
-	puts("");
 }
 
 // Helper function to transfer triangles to automatically managed CUDA memory
@@ -177,7 +158,6 @@ int main(int argc, char *argv[]) {
 	fprintf(stdout, "\n## MEMORY PREPARATION \n");
 	fprintf(stdout, "Number of faces: %llu, faces table takes %llu kB \n", themesh->faces.size(), (size_t) (themesh->faces.size()*sizeof(trimesh::TriMesh::Face) / 1024.0f));
 	fprintf(stdout, "Number of vertices: %llu, vertices table takes %llu kB \n", themesh->vertices.size(), (size_t) (themesh->vertices.size()*sizeof(trimesh::point) / 1024.0f));
-	AABox<glm::vec3> bbox_mesh(trimesh_to_glm(themesh->bbox.min), trimesh_to_glm(themesh->bbox.max)); // build bbox around mesh
 
 	size_t size = sizeof(float) * 9 * (themesh->faces.size());
 	fprintf(stdout, "Allocating %llu kB of CUDA-managed memory \n", (size_t)(size / 1024.0f));
@@ -186,6 +166,7 @@ int main(int argc, char *argv[]) {
 	trianglesToMemory(themesh, triangles);
 
 	fprintf(stdout, "\n## VOXELISATION SETUP \n");
+	AABox<glm::vec3> bbox_mesh(trimesh_to_glm(themesh->bbox.min), trimesh_to_glm(themesh->bbox.max)); // compute bbox around mesh
 	voxinfo v(createMeshBBCube<glm::vec3>(bbox_mesh), gridsize, themesh->faces.size());
 	v.print();
 	size_t vtable_size = ((size_t)gridsize*gridsize*gridsize) / 8.0f;
@@ -195,11 +176,6 @@ int main(int argc, char *argv[]) {
 
 	fprintf(stdout, "\n## GPU VOXELISATION \n");
 	voxelize(v, triangles, vtable, (outputformat == output_morton));
-
-	// Sanity check
-	//if (gridsize <= 64){
-	//	for (size_t i = (vtable_size / 4.0f)-1; i > 0; i--){printBits(sizeof(int), &(vtable[i]));}
-	//}
 
 	if (outputformat == output_morton){
 		fprintf(stdout, "\n## OUTPUT TO BINARY FILE \n");

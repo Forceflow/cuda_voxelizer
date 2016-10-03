@@ -158,3 +158,23 @@ static const uint32_t host_morton256_z[256] = {
 	0x00924004, 0x00924020, 0x00924024, 0x00924100, 0x00924104, 0x00924120, 0x00924124, 0x00924800,
 	0x00924804, 0x00924820, 0x00924824, 0x00924900, 0x00924904, 0x00924920, 0x00924924
 };
+
+__host__ __device__ void inline printBits(size_t const size, void const * const ptr){
+	unsigned char *b = (unsigned char*)ptr;
+	unsigned char byte;
+	int i, j;
+	for (i = size - 1; i >= 0; i--){
+		for (j = 7; j >= 0; j--){
+			byte = b[i] & (1 << j);
+			byte >>= j;
+			if (byte){
+				printf("X");
+			}
+			else {
+				printf(".");
+			}
+			//printf("%u", byte);
+		}
+	}
+	puts("");
+}
