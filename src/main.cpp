@@ -158,7 +158,6 @@ int main(int argc, char *argv[]) {
 	fprintf(stdout, "\n## MEMORY PREPARATION \n");
 	fprintf(stdout, "Number of faces: %llu, faces table takes %llu kB \n", themesh->faces.size(), (size_t) (themesh->faces.size()*sizeof(trimesh::TriMesh::Face) / 1024.0f));
 	fprintf(stdout, "Number of vertices: %llu, vertices table takes %llu kB \n", themesh->vertices.size(), (size_t) (themesh->vertices.size()*sizeof(trimesh::point) / 1024.0f));
-
 	size_t size = sizeof(float) * 9 * (themesh->faces.size());
 	fprintf(stdout, "Allocating %llu kB of CUDA-managed memory \n", (size_t)(size / 1024.0f));
 	HANDLE_CUDA_ERROR(cudaMallocManaged((void**) &triangles, size)); // managed memory
@@ -171,7 +170,6 @@ int main(int argc, char *argv[]) {
 	v.print();
 	size_t vtable_size = ((size_t)gridsize*gridsize*gridsize) / 8.0f;
 	fprintf(stdout, "Allocating %llu kB of CUDA-managed memory for voxel table \n", size_t(vtable_size / 1024.0f));
-
 	HANDLE_CUDA_ERROR(cudaMallocManaged((void **)&vtable, vtable_size));
 
 	fprintf(stdout, "\n## GPU VOXELISATION \n");
