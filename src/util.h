@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Trimesh.h"
+#include "TriMesh.h"
 #include <glm/glm.hpp>
 
 inline glm::vec3 trimesh_to_glm(trimesh::vec3 a){
