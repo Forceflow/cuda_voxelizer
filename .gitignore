@@ -6,6 +6,9 @@
 *.user
 *.sln.docstates
 
+# Thirdparty libraries
+thirdparty
+
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/

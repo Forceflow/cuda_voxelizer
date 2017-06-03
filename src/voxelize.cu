@@ -4,6 +4,7 @@
 
 #define GLM_FORCE_CUDA
 #include <glm/glm.hpp>
+#include <iostream>
 #include "util_cuda.h"
 #include "util_common.h"
 
@@ -49,7 +50,7 @@ struct bufferedBitSetter{
 			flush();
 			current_int_location = new_int_location;
 		}
-		unsigned int bit_pos = 31 - unsigned int(int(index) % 32);
+		unsigned int bit_pos = 31 - (unsigned int)(int(index) % 32);
 		current_mask = current_mask | (1 << bit_pos);
 	}
 
@@ -193,7 +194,7 @@ __global__ void voxelize_triangle(voxinfo info, float* triangle_data, unsigned i
 	}
 }
 
-void voxelize(voxinfo v, float* triangle_data, unsigned int* vtable, bool morton_code){
+void voxelize(const voxinfo& v, float* triangle_data, unsigned int* vtable, bool morton_code){
 	float   elapsedTime;
 
 	// Create timers, set start time
