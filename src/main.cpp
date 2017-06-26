@@ -18,7 +18,7 @@
 #include "util_common.h"
 
 // Forward declaration of CUDA calls
-extern void voxelize(voxinfo v, float* triangle_data, unsigned int* vtable, bool morton_code);
+extern void voxelize(const voxinfo & v, float* triangle_data, unsigned int* vtable, bool morton_code);
 
 using namespace std;
 

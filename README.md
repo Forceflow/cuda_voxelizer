@@ -19,7 +19,7 @@ The project has the following build dependencies:
  * [Trimesh2](https://github.com/Forceflow/trimesh2) for model importing.
  * [GLM](http://glm.g-truc.net/0.9.8/index.html) for vector math.
 
-A Visual Studio 2013 project solution is provided in the `msvc`folder. CUDA support for Visual Studio 2015 CE is still lacking at the time of writing, though manual compilation might work.
+A Visual Studio 2015 project solution is provided in the `msvc`folder. CUDA support for Visual Studio 2017 CE is still lacking at the time of writing, though manual compilation might work. [Philipp-M](https://github.com/Philipp-M) was kind enough to write CMake support as well.
 
 ## Details
 `cuda_voxelizer` implements an optimized version of the method described in M. Schwarz and HP Seidel's 2010 paper [*Fast Parallel Surface and Solid Voxelization on GPU's*](http://research.michael-schwarz.com/publ/2010/vox/). The morton-encoded table was based on my 2013 HPG paper [*Out-Of-Core construction of Sparse Voxel Octrees*](http://graphics.cs.kuleuven.be/publications/BLD14OCCSVO/)  and the work in [*libmorton*](https://github.com/Forceflow/libmorton).
