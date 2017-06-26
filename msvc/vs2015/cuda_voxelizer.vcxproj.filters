@@ -5,15 +5,33 @@
     <CudaCompile Include="../../src/bounding_box.cu" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="../../src/util_io.cpp" />
-    <ClCompile Include="../../src/util_cuda.cpp" />
     <ClCompile Include="../../src/main.cpp" />
+    <ClCompile Include="../../src/util_io.cpp">
+      <Filter>util</Filter>
+    </ClCompile>
+    <ClCompile Include="../../src/util_cuda.cpp">
+      <Filter>util</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="../../src/util_io.h" />
-    <ClInclude Include="../../src/util.h" />
-    <ClInclude Include="../../src/util_cuda.h" />
-    <ClInclude Include="../../src/util_common.h" />
+    <ClInclude Include="../../src/util_cuda.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="../../src/util_common.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="../../src/util_io.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="../../src/util.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\lib\helper_cuda.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\lib\helper_string.h">
+      <Filter>util</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="../../src/todo.txt" />

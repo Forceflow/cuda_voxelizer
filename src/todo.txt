@@ -1,6 +1,6 @@
 Readme.md
 - Performance (using schwarz algorithm, against binvox)
-
+- Switch to cuda libs for helper
 
 - estimate block/grid size
 - optimize, output to magicavoxel? Png? interact with polyvox?
