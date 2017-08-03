@@ -178,3 +178,6 @@ FakesAssemblies/
 *.opendb
 *.db
 *.deps
+
+#VS folders
+.vs/
