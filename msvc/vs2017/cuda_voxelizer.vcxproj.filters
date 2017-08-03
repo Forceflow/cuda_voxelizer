@@ -1,0 +1,47 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CudaCompile Include="../../src/voxelize.cu" />
+    <CudaCompile Include="../../src/bounding_box.cu" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="../../src/main.cpp" />
+    <ClCompile Include="../../src/util_io.cpp">
+      <Filter>util</Filter>
+    </ClCompile>
+    <ClCompile Include="../../src/util_cuda.cpp">
+      <Filter>util</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="../../src/util_cuda.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="../../src/util_common.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="../../src/util_io.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="../../src/util.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\lib\helper_cuda.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\lib\helper_string.h">
+      <Filter>util</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="../../src/todo.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Headers">
+      <UniqueIdentifier>{a2e537a9-9e17-41e8-a392-f7ab084dbd64}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="util">
+      <UniqueIdentifier>{a0232da8-2097-49f4-9412-0e4223c7ba4d}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
