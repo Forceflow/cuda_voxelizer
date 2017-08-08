@@ -15,11 +15,11 @@ For example: `cuda_voxelizer -f bunny.ply -s 256` generates you a 256 x 256 x 25
 
 ## Building
 The project has the following build dependencies:
- * [Cuda 7.5 Toolkit](https://developer.nvidia.com/cuda-toolkit) for CUDA.
- * [Trimesh2](https://github.com/Forceflow/trimesh2) for model importing.
- * [GLM](http://glm.g-truc.net/0.9.8/index.html) for vector math.
+ * [Cuda 7.5 Toolkit (or higher)](https://developer.nvidia.com/cuda-toolkit) for CUDA.
+ * [Trimesh2](https://github.com/Forceflow/trimesh2) for model importing. Latest version recommended.
+ * [GLM](http://glm.g-truc.net/0.9.8/index.html) for vector math. Any recent version will do.
 
-A Visual Studio 2015 project solution is provided in the `msvc`folder. CUDA support for Visual Studio 2017 CE is still lacking at the time of writing, though manual compilation might work. [Philipp-M](https://github.com/Philipp-M) was kind enough to write CMake support as well.
+A Visual Studio 2017 project solution is provided in the `msvc`folder. It is configured for CUDA 9.0 RC, but you can edit the project file to make it work with lower CUDA versions. [Philipp-M](https://github.com/Philipp-M) was kind enough to write CMake support as well.
 
 ## Details
 `cuda_voxelizer` implements an optimized version of the method described in M. Schwarz and HP Seidel's 2010 paper [*Fast Parallel Surface and Solid Voxelization on GPU's*](http://research.michael-schwarz.com/publ/2010/vox/). The morton-encoded table was based on my 2013 HPG paper [*Out-Of-Core construction of Sparse Voxel Octrees*](http://graphics.cs.kuleuven.be/publications/BLD14OCCSVO/)  and the work in [*libmorton*](https://github.com/Forceflow/libmorton).
