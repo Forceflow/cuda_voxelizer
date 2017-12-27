@@ -2,6 +2,8 @@
 Experimental CUDA voxelizer, to convert polygon meshes to annotated voxel grids. 
  * Outputs data to [.binvox file format](http://www.patrickmin.com/binvox/binvox.html) (default) or a morton-ordered grid. More output formats (magicavoxel, minecraft schematic) are in development.
  * Requires a CUDA-compatible video card. Compute Capability 2.0 or higher (Nvidia Fermi or better).
+ 
+ **Note:** The latest CUDA version (9.1) does not support the compiler changes introduced by the latest Visual Studio 2017 update (15.5). Follow [these instructions](https://devtalk.nvidia.com/default/topic/1027209/cuda-setup-and-installation/cuda-9-0-does-not-work-with-the-latest-vs-2017-update/) to fix the issue.
 
 ## Usage
 Program options:
