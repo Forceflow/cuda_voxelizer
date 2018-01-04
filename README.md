@@ -35,6 +35,9 @@ A Visual Studio 2017 project solution is provided in the `msvc`folder. It is con
 | 512^3     | 13.4 ms |
 | 1024^3    | 38.6 ms  |
 
+## Notes
+ * If you want a good customizable CPU-based voxelizer, I can recommend [VoxSurf](https://github.com/sylefeb/VoxSurf).
+
 ## Todo
  * Output to more popular voxel formats like MagicaVoxel, Minecraft
  * Optimize grid/block size launch parameters
