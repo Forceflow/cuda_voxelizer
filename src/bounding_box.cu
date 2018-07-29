@@ -7,6 +7,8 @@
 #include "util_cuda.h"
 #include "util_common.h"
 
-__global__ void voxelize(size_t n_triangles, float* triangle_data){
+__global__ void bbox_compute(size_t n_triangles, float* triangle_data){
+	size_t thread_id = threadIdx.x + blockIdx.x * blockDim.x;
+	size_t stride = blockDim.x * gridDim.x;
 	// determine max and min vector : this is a reduction problem
 }
