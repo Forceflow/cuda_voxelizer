@@ -4,7 +4,7 @@
   <PropertyGroup Label="UserMacros">
     <TRIMESH_DIR>C:\libs\trimesh2\</TRIMESH_DIR>
     <GLM_DIR>C:\libs\glm\</GLM_DIR>
-    <BINARY_OUTPUT_DIR>D:\jeroenb\Binaries\</BINARY_OUTPUT_DIR>
+    <BINARY_OUTPUT_DIR>D:\dev\Binaries\</BINARY_OUTPUT_DIR>
   </PropertyGroup>
   <PropertyGroup>
     <IncludePath>$(GLM_DIR);$(TRIMESH_DIR)\include\;$(IncludePath)</IncludePath>
