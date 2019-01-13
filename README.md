@@ -2,13 +2,14 @@
 Experimental CUDA voxelizer, to convert polygon meshes to annotated voxel grids. 
  * Outputs data to [.binvox file format](http://www.patrickmin.com/binvox/binvox.html) (default) or a morton-ordered grid. More output formats (magicavoxel, minecraft schematic) are in development.
  * Requires a CUDA-compatible video card. Compute Capability 2.0 or higher (Nvidia Fermi or better).
- * Current project targets CUDA 9.2
+ * Current project targets CUDA 10.0
 
 ## Usage
 Program options:
  * `-f <path to model file>`: **(required)** A path to a polygon model file. Supported input formats: .ply, .off, .obj, .3DS, .SM and RAY.
  * `-s <voxel grid length>`: A power of 2, for the length of the cubical voxel grid. Default: 256, resulting in a 256 x 256 x 256 voxelization grid.  Cuda_voxelizer will automatically select the tightest bounding box around the model. 
  * `-o <output format>`:, The output format for voxelized models, currently *binvox* or *morton*. Default: *binvox*. The *morton* format is a tightly packed, morton-order representation. 
+  * `-m : Use Managed CUDA Memory (the Unified memory path introduced in CUDA 8.0). Currently not default, because of [this bug](https://devtalk.nvidia.com/default/topic/1031803/cuda-programming-and-performance/using-unified-memory-causes-system-crash/) in recent CUDA versions.
 
 For example: `cuda_voxelizer -f bunny.ply -s 256` generates you a 256 x 256 x 256 bunny voxel model which will be stored in `bunny_256.binvox`. You can visualize this file using [viewvox](http://www.patrickmin.com/viewvox/).
 
@@ -20,7 +21,7 @@ The project has the following build dependencies:
  * [Trimesh2](https://github.com/Forceflow/trimesh2) for model importing. Latest version recommended.
  * [GLM](http://glm.g-truc.net/0.9.8/index.html) for vector math. Any recent version will do.
 
-A Visual Studio 2017 project solution is provided in the `msvc`folder. It is configured for CUDA 9.0 RC, but you can edit the project file to make it work with lower CUDA versions. [Philipp-M](https://github.com/Philipp-M) was kind enough to write CMake support as well.
+A Visual Studio 2017 project solution is provided in the `msvc`folder. It is configured for CUDA 10.0, but you can edit the project file to make it work with lower CUDA versions. [Philipp-M](https://github.com/Philipp-M) was kind enough to write CMake support as well.
 
 ## Details
 `cuda_voxelizer` implements an optimized version of the method described in M. Schwarz and HP Seidel's 2010 paper [*Fast Parallel Surface and Solid Voxelization on GPU's*](http://research.michael-schwarz.com/publ/2010/vox/). The morton-encoded table was based on my 2013 HPG paper [*Out-Of-Core construction of Sparse Voxel Octrees*](http://graphics.cs.kuleuven.be/publications/BLD14OCCSVO/)  and the work in [*libmorton*](https://github.com/Forceflow/libmorton).
@@ -39,8 +40,10 @@ A Visual Studio 2017 project solution is provided in the `msvc`folder. It is con
  * Another hackable voxel viewer is Fabian Giesen's excellent [stb_voxel_render.h](https://github.com/nothings/stb/blob/master/stb_voxel_render.h)
 
 ## Todo
+ * Parallelize / CUDA-ify bounding box estimation
  * Output to more popular voxel formats like MagicaVoxel, Minecraft
  * Optimize grid/block size launch parameters
  * Implement partitioning for larger models
  * Do a pre-pass to categorize triangles
  * Implement capture of normals / color / texture data
+
