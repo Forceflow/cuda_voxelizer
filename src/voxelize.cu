@@ -194,9 +194,14 @@ __global__ void voxelize_triangle(voxinfo info, float* triangle_data, unsigned i
 	}
 }
 
-void voxelize(const voxinfo& v, float* triangle_data, unsigned int* vtable, bool morton_code){
+void voxelize(const voxinfo& v, float* triangle_data, unsigned int* vtable, bool useMallocManaged, bool morton_code) {
 	float   elapsedTime;
 
+	// These are only used when we're not using UNIFIED memory
+	float* dev_triangle_data; // DEVICE pointer to triangle data
+	unsigned int* dev_vtable; // DEVICE pointer to voxel_data
+	size_t vtable_size; // vtable size
+	
 	// Create timers, set start time
 	cudaEvent_t start_total, stop_total, start_vox, stop_vox;
 	HANDLE_CUDA_ERROR(cudaEventCreate(&start_total));
@@ -220,8 +225,22 @@ void voxelize(const voxinfo& v, float* triangle_data, unsigned int* vtable, bool
 	// Round up according to array size 
 	gridSize = (v.n_triangles + blockSize - 1) / blockSize;
 
-	HANDLE_CUDA_ERROR(cudaEventRecord(start_vox, 0));
-	voxelize_triangle << <gridSize, blockSize >> >(v, triangle_data, vtable, morton_code);
+	if (!useMallocManaged) { // We're not using UNIFIED memory
+		// Malloc triangle memory and copy triangle data
+		HANDLE_CUDA_ERROR(cudaMalloc(&dev_triangle_data, v.n_triangles * 9 * sizeof(float)));
+		HANDLE_CUDA_ERROR(cudaMemcpy(dev_triangle_data, (void*)triangle_data, v.n_triangles * 9 * sizeof(float), cudaMemcpyDefault));
+		// Malloc voxelisation table
+		vtable_size = ((size_t)v.gridsize * v.gridsize * v.gridsize) / (size_t) 8.0;
+		HANDLE_CUDA_ERROR(cudaMalloc(&dev_vtable, vtable_size));
+		HANDLE_CUDA_ERROR(cudaMemset(dev_vtable, 0, vtable_size));
+		// Start voxelization
+		HANDLE_CUDA_ERROR(cudaEventRecord(start_vox, 0));
+		voxelize_triangle << <gridSize, blockSize >> > (v, dev_triangle_data, dev_vtable, morton_code);
+	}
+	else { // UNIFIED MEMORY 
+		HANDLE_CUDA_ERROR(cudaEventRecord(start_vox, 0)); 
+		voxelize_triangle << <gridSize, blockSize >> > (v, triangle_data, vtable, morton_code);
+	}
 	CHECK_CUDA_ERROR();
 
 	cudaDeviceSynchronize();
@@ -229,6 +248,13 @@ void voxelize(const voxinfo& v, float* triangle_data, unsigned int* vtable, bool
 	HANDLE_CUDA_ERROR(cudaEventSynchronize(stop_vox));
 	HANDLE_CUDA_ERROR(cudaEventElapsedTime(&elapsedTime, start_vox, stop_vox));
 	printf("Voxelisation GPU time:  %3.1f ms\n", elapsedTime);
+
+	// If we're not using UNIFIED memory, copy the voxel table back and free all
+	if (!useMallocManaged){
+		HANDLE_CUDA_ERROR(cudaMemcpy((void*)vtable, dev_vtable, vtable_size, cudaMemcpyDefault));
+		HANDLE_CUDA_ERROR(cudaFree(dev_triangle_data));
+		HANDLE_CUDA_ERROR(cudaFree(dev_vtable));
+	}
 
 	// SANITY CHECKS
 	//size_t t_seen, v_count;

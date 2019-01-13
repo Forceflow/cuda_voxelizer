@@ -18,7 +18,7 @@
 #include "util_common.h"
 
 // Forward declaration of CUDA calls
-extern void voxelize(const voxinfo & v, float* triangle_data, unsigned int* vtable, bool morton_code);
+extern void voxelize(const voxinfo & v, float* triangle_data, unsigned int* vtable, bool useMallocManaged, bool morton_code);
 
 using namespace std;
 
@@ -31,10 +31,14 @@ string filename = "";
 string filename_base = "";
 OutputFormat outputformat = output_binvox;
 unsigned int gridsize = 256;
+bool useMallocManaged = false;
 
 // Program data
+// When we use managed memory, these are globally available pointers (HOST and DEVICE)
+// When not, these are HOST-only pointers
 float* triangles;
 unsigned int* vtable;
+
 
 // Limitations
 size_t GPU_global_mem;
@@ -132,10 +136,14 @@ void parseProgramParameters(int argc, char* argv[]){
 				exit(0);
 			}
 		}
+		else if (string(argv[i]) == "-m") {
+			useMallocManaged = true;
+		}
 	}
 	fprintf(stdout, "Filename: %s \n", filename.c_str());
 	fprintf(stdout, "Grid size: %i \n", gridsize);
 	fprintf(stdout, "Output format: %s \n", OutputFormats[outputformat]);
+	fprintf(stdout, "Using CUDA Unified memory alloc: %s \n", useMallocManaged ? "Yes" : "No");
 }
 
 int main(int argc, char *argv[]) {
@@ -159,9 +167,18 @@ int main(int argc, char *argv[]) {
 	fprintf(stdout, "Number of faces: %llu, faces table takes %llu kB \n", themesh->faces.size(), (size_t) (themesh->faces.size()*sizeof(trimesh::TriMesh::Face) / 1024.0f));
 	fprintf(stdout, "Number of vertices: %llu, vertices table takes %llu kB \n", themesh->vertices.size(), (size_t) (themesh->vertices.size()*sizeof(trimesh::point) / 1024.0f));
 	size_t size = sizeof(float) * 9 * (themesh->faces.size());
-	fprintf(stdout, "Allocating %llu kB of CUDA-managed memory \n", (size_t)(size / 1024.0f));
-	HANDLE_CUDA_ERROR(cudaMallocManaged((void**) &triangles, size)); // managed memory
-	fprintf(stdout, "Copy %llu triangles to CUDA-managed memory \n", (size_t)(themesh->faces.size()));
+	if (useMallocManaged) {
+		// MANAGED MEMORY ALLOC
+		fprintf(stdout, "Allocating %llu kB of CUDA-managed UNIFIED memory \n", (size_t)(size / 1024.0f));
+		HANDLE_CUDA_ERROR(cudaMallocManaged((void**)&triangles, size)); // managed memory
+		fprintf(stdout, "Copy %llu triangles to CUDA-managed UNIFIED memory \n", (size_t)(themesh->faces.size()));
+	}
+	else {
+		// OLD-STYLE CUDA MEMORY MALLOC
+		fprintf(stdout, "Allocating %llu kb of page-locked HOST memory \n", (size_t)(size / 1024.0f));
+		HANDLE_CUDA_ERROR(cudaHostAlloc((void**)&triangles, size, cudaHostAllocDefault)); // pinned memory to easily copy from
+		fprintf(stdout, "Copy %llu triangles to page-locked HOST memory \n", (size_t)(themesh->faces.size()));
+	}
 	trianglesToMemory(themesh, triangles);
 
 	fprintf(stdout, "\n## VOXELISATION SETUP \n");
@@ -169,11 +186,18 @@ int main(int argc, char *argv[]) {
 	voxinfo v(createMeshBBCube<glm::vec3>(bbox_mesh), gridsize, themesh->faces.size());
 	v.print();
 	size_t vtable_size = ((size_t)gridsize*gridsize*gridsize) / 8.0f;
-	fprintf(stdout, "Allocating %llu kB of CUDA-managed memory for voxel table \n", size_t(vtable_size / 1024.0f));
-	HANDLE_CUDA_ERROR(cudaMallocManaged((void **)&vtable, vtable_size));
 
+	if (useMallocManaged) {
+		fprintf(stdout, "Allocating %llu kB of CUDA-managed UNIFIED memory for voxel table \n", size_t(vtable_size / 1024.0f));
+		HANDLE_CUDA_ERROR(cudaMallocManaged((void **)&vtable, vtable_size));
+	}
+	else{
+		// ALLOCATE MEMORY ON HOST
+		fprintf(stdout, "Allocating %llu kB of page-locked HOST memory for voxel table \n", size_t(vtable_size / 1024.0f));
+		HANDLE_CUDA_ERROR(cudaHostAlloc((void **)&vtable, vtable_size, cudaHostAllocDefault));
+	}
 	fprintf(stdout, "\n## GPU VOXELISATION \n");
-	voxelize(v, triangles, vtable, (outputformat == output_morton));
+	voxelize(v, triangles, vtable, useMallocManaged, (outputformat == output_morton));
 
 	if (outputformat == output_morton){
 		fprintf(stdout, "\n## OUTPUT TO BINARY FILE \n");
