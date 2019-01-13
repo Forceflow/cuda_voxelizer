@@ -9,7 +9,7 @@ Program options:
  * `-f <path to model file>`: **(required)** A path to a polygon model file. Supported input formats: .ply, .off, .obj, .3DS, .SM and RAY.
  * `-s <voxel grid length>`: A power of 2, for the length of the cubical voxel grid. Default: 256, resulting in a 256 x 256 x 256 voxelization grid.  Cuda_voxelizer will automatically select the tightest bounding box around the model. 
  * `-o <output format>`:, The output format for voxelized models, currently *binvox* or *morton*. Default: *binvox*. The *morton* format is a tightly packed, morton-order representation. 
-  * `-m : Use Managed CUDA Memory (the Unified memory path introduced in CUDA 8.0). Currently not default, because of [this bug](https://devtalk.nvidia.com/default/topic/1031803/cuda-programming-and-performance/using-unified-memory-causes-system-crash/) in recent CUDA versions.
+  * `-m` : Use Managed CUDA Memory (the Unified memory path introduced in CUDA 8.0). Currently not default, because of [this bug](https://devtalk.nvidia.com/default/topic/1031803/cuda-programming-and-performance/using-unified-memory-causes-system-crash/) in recent CUDA versions.
 
 For example: `cuda_voxelizer -f bunny.ply -s 256` generates you a 256 x 256 x 256 bunny voxel model which will be stored in `bunny_256.binvox`. You can visualize this file using [viewvox](http://www.patrickmin.com/viewvox/).
 
