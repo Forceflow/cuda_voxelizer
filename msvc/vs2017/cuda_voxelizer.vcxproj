@@ -192,8 +192,8 @@ copy /y "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).exe" "$(BINAR
     <ClInclude Include="../../src/util.h" />
     <ClInclude Include="../../src/util_cuda.h" />
     <ClInclude Include="../../src/util_common.h" />
-    <ClInclude Include="..\..\src\lib\helper_cuda.h" />
-    <ClInclude Include="..\..\src\lib\helper_string.h" />
+    <ClInclude Include="..\..\src\libs\helper_cuda.h" />
+    <ClInclude Include="..\..\src\libs\helper_string.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="../../src/todo.txt" />

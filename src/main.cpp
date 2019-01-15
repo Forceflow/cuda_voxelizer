@@ -170,13 +170,13 @@ int main(int argc, char *argv[]) {
 	if (useMallocManaged) {
 		// MANAGED MEMORY ALLOC
 		fprintf(stdout, "Allocating %llu kB of CUDA-managed UNIFIED memory \n", (size_t)(size / 1024.0f));
-		HANDLE_CUDA_ERROR(cudaMallocManaged((void**)&triangles, size)); // managed memory
+		checkCudaErrors(cudaMallocManaged((void**)&triangles, size)); // managed memory
 		fprintf(stdout, "Copy %llu triangles to CUDA-managed UNIFIED memory \n", (size_t)(themesh->faces.size()));
 	}
 	else {
 		// OLD-STYLE CUDA MEMORY MALLOC
 		fprintf(stdout, "Allocating %llu kb of page-locked HOST memory \n", (size_t)(size / 1024.0f));
-		HANDLE_CUDA_ERROR(cudaHostAlloc((void**)&triangles, size, cudaHostAllocDefault)); // pinned memory to easily copy from
+		checkCudaErrors(cudaHostAlloc((void**)&triangles, size, cudaHostAllocDefault)); // pinned memory to easily copy from
 		fprintf(stdout, "Copy %llu triangles to page-locked HOST memory \n", (size_t)(themesh->faces.size()));
 	}
 	trianglesToMemory(themesh, triangles);
@@ -189,12 +189,12 @@ int main(int argc, char *argv[]) {
 
 	if (useMallocManaged) {
 		fprintf(stdout, "Allocating %llu kB of CUDA-managed UNIFIED memory for voxel table \n", size_t(vtable_size / 1024.0f));
-		HANDLE_CUDA_ERROR(cudaMallocManaged((void **)&vtable, vtable_size));
+		checkCudaErrors(cudaMallocManaged((void **)&vtable, vtable_size));
 	}
 	else{
 		// ALLOCATE MEMORY ON HOST
 		fprintf(stdout, "Allocating %llu kB of page-locked HOST memory for voxel table \n", size_t(vtable_size / 1024.0f));
-		HANDLE_CUDA_ERROR(cudaHostAlloc((void **)&vtable, vtable_size, cudaHostAllocDefault));
+		checkCudaErrors(cudaHostAlloc((void **)&vtable, vtable_size, cudaHostAllocDefault));
 	}
 	fprintf(stdout, "\n## GPU VOXELISATION \n");
 	voxelize(v, triangles, vtable, useMallocManaged, (outputformat == output_morton));

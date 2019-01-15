@@ -204,17 +204,17 @@ void voxelize(const voxinfo& v, float* triangle_data, unsigned int* vtable, bool
 	
 	// Create timers, set start time
 	cudaEvent_t start_total, stop_total, start_vox, stop_vox;
-	HANDLE_CUDA_ERROR(cudaEventCreate(&start_total));
-	HANDLE_CUDA_ERROR(cudaEventCreate(&stop_total));
-	HANDLE_CUDA_ERROR(cudaEventCreate(&start_vox));
-	HANDLE_CUDA_ERROR(cudaEventCreate(&stop_vox));
-	HANDLE_CUDA_ERROR(cudaEventRecord(start_total, 0));
+	checkCudaErrors(cudaEventCreate(&start_total));
+	checkCudaErrors(cudaEventCreate(&stop_total));
+	checkCudaErrors(cudaEventCreate(&start_vox));
+	checkCudaErrors(cudaEventCreate(&stop_vox));
+	checkCudaErrors(cudaEventRecord(start_total, 0));
 
 	// Copy morton LUT if we're encoding to morton
 	if (morton_code){
-		HANDLE_CUDA_ERROR(cudaMemcpyToSymbol(morton256_x, host_morton256_x, 256 * sizeof(uint32_t)));
-		HANDLE_CUDA_ERROR(cudaMemcpyToSymbol(morton256_y, host_morton256_y, 256 * sizeof(uint32_t)));
-		HANDLE_CUDA_ERROR(cudaMemcpyToSymbol(morton256_z, host_morton256_z, 256 * sizeof(uint32_t)));
+		checkCudaErrors(cudaMemcpyToSymbol(morton256_x, host_morton256_x, 256 * sizeof(uint32_t)));
+		checkCudaErrors(cudaMemcpyToSymbol(morton256_y, host_morton256_y, 256 * sizeof(uint32_t)));
+		checkCudaErrors(cudaMemcpyToSymbol(morton256_z, host_morton256_z, 256 * sizeof(uint32_t)));
 	}
 
 	// Estimate best block and grid size using CUDA Occupancy Calculator
@@ -227,33 +227,32 @@ void voxelize(const voxinfo& v, float* triangle_data, unsigned int* vtable, bool
 
 	if (!useMallocManaged) { // We're not using UNIFIED memory
 		// Malloc triangle memory and copy triangle data
-		HANDLE_CUDA_ERROR(cudaMalloc(&dev_triangle_data, v.n_triangles * 9 * sizeof(float)));
-		HANDLE_CUDA_ERROR(cudaMemcpy(dev_triangle_data, (void*)triangle_data, v.n_triangles * 9 * sizeof(float), cudaMemcpyDefault));
+		checkCudaErrors(cudaMalloc(&dev_triangle_data, v.n_triangles * 9 * sizeof(float)));
+		checkCudaErrors(cudaMemcpy(dev_triangle_data, (void*)triangle_data, v.n_triangles * 9 * sizeof(float), cudaMemcpyDefault));
 		// Malloc voxelisation table
 		vtable_size = ((size_t)v.gridsize * v.gridsize * v.gridsize) / (size_t) 8.0;
-		HANDLE_CUDA_ERROR(cudaMalloc(&dev_vtable, vtable_size));
-		HANDLE_CUDA_ERROR(cudaMemset(dev_vtable, 0, vtable_size));
+		checkCudaErrors(cudaMalloc(&dev_vtable, vtable_size));
+		checkCudaErrors(cudaMemset(dev_vtable, 0, vtable_size));
 		// Start voxelization
-		HANDLE_CUDA_ERROR(cudaEventRecord(start_vox, 0));
+		checkCudaErrors(cudaEventRecord(start_vox, 0));
 		voxelize_triangle << <gridSize, blockSize >> > (v, dev_triangle_data, dev_vtable, morton_code);
 	}
 	else { // UNIFIED MEMORY 
-		HANDLE_CUDA_ERROR(cudaEventRecord(start_vox, 0)); 
+		checkCudaErrors(cudaEventRecord(start_vox, 0));
 		voxelize_triangle << <gridSize, blockSize >> > (v, triangle_data, vtable, morton_code);
 	}
-	CHECK_CUDA_ERROR();
 
 	cudaDeviceSynchronize();
-	HANDLE_CUDA_ERROR(cudaEventRecord(stop_vox, 0));
-	HANDLE_CUDA_ERROR(cudaEventSynchronize(stop_vox));
-	HANDLE_CUDA_ERROR(cudaEventElapsedTime(&elapsedTime, start_vox, stop_vox));
+	checkCudaErrors(cudaEventRecord(stop_vox, 0));
+	checkCudaErrors(cudaEventSynchronize(stop_vox));
+	checkCudaErrors(cudaEventElapsedTime(&elapsedTime, start_vox, stop_vox));
 	printf("Voxelisation GPU time:  %3.1f ms\n", elapsedTime);
 
 	// If we're not using UNIFIED memory, copy the voxel table back and free all
 	if (!useMallocManaged){
-		HANDLE_CUDA_ERROR(cudaMemcpy((void*)vtable, dev_vtable, vtable_size, cudaMemcpyDefault));
-		HANDLE_CUDA_ERROR(cudaFree(dev_triangle_data));
-		HANDLE_CUDA_ERROR(cudaFree(dev_vtable));
+		checkCudaErrors(cudaMemcpy((void*)vtable, dev_vtable, vtable_size, cudaMemcpyDefault));
+		checkCudaErrors(cudaFree(dev_triangle_data));
+		checkCudaErrors(cudaFree(dev_vtable));
 	}
 
 	// SANITY CHECKS
@@ -264,14 +263,14 @@ void voxelize(const voxinfo& v, float* triangle_data, unsigned int* vtable, bool
 	//printf("We've found %llu voxels on the GPU \n", v_count);
 
 	// get stop time, and display the timing results
-	HANDLE_CUDA_ERROR(cudaEventRecord(stop_total, 0));
-	HANDLE_CUDA_ERROR(cudaEventSynchronize(stop_total));
-	HANDLE_CUDA_ERROR(cudaEventElapsedTime(&elapsedTime, start_total, stop_total));
+	checkCudaErrors(cudaEventRecord(stop_total, 0));
+	checkCudaErrors(cudaEventSynchronize(stop_total));
+	checkCudaErrors(cudaEventElapsedTime(&elapsedTime, start_total, stop_total));
 	printf("Total GPU time (including memory transfers):  %3.1f ms\n", elapsedTime);
 
 	// Destroy timers
-	HANDLE_CUDA_ERROR(cudaEventDestroy(start_total));
-	HANDLE_CUDA_ERROR(cudaEventDestroy(stop_total));
-	HANDLE_CUDA_ERROR(cudaEventDestroy(start_vox));
-	HANDLE_CUDA_ERROR(cudaEventDestroy(stop_vox));
+	checkCudaErrors(cudaEventDestroy(start_total));
+	checkCudaErrors(cudaEventDestroy(stop_total));
+	checkCudaErrors(cudaEventDestroy(start_vox));
+	checkCudaErrors(cudaEventDestroy(stop_vox));
 }
