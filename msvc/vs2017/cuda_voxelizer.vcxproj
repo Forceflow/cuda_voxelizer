@@ -124,7 +124,7 @@ copy /y "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).exe" "$(BINAR
     </PostBuildEvent>
     <CudaCompile>
       <TargetMachinePlatform>64</TargetMachinePlatform>
-      <CodeGeneration>compute_20,sm_20</CodeGeneration>
+      <CodeGeneration>compute_30,sm_30</CodeGeneration>
       <PtxAsOptionV>true</PtxAsOptionV>
       <AdditionalOptions>--source-in-ptx %(AdditionalOptions)</AdditionalOptions>
     </CudaCompile>
