@@ -16,6 +16,8 @@
 #include "util_io.h"
 #include "util_cuda.h"
 #include "util_common.h"
+#include "thrust/device_vector.h"
+#include "thrust/host_vector.h"
 
 // Forward declaration of CUDA calls
 extern void voxelize(const voxinfo & v, float* triangle_data, unsigned int* vtable, bool useMallocManaged, bool morton_code);
@@ -37,7 +39,8 @@ bool useMallocManaged = false;
 // When we use managed memory, these are globally available pointers (HOST and DEVICE)
 // When not, these are HOST-only pointers
 unsigned int* vtable;
-
+thrust::host_vector<float> trianglethrust_host;
+thrust::device_vector<float> trianglethrust_device;
 
 // Limitations
 size_t GPU_global_mem;
@@ -55,24 +58,30 @@ void printHelp(){
 	cout << "Example: cuda_voxelizer -f /home/jeroen/bunny.ply -s 512" << endl;
 }
 
-// Helper function to transfer triangles to automatically managed CUDA memory
-// At the end of this function triangles* will point to device-accessible memory containing the triangles
-void trianglesToGPUMemory(const trimesh::TriMesh *mesh, float** triangles){
-	size_t size = sizeof(float) * 9 * (mesh->faces.size());
+// METHOD 1: Helper function to transfer triangles to automatically managed CUDA memory
+void trianglesToGPU_managed(const trimesh::TriMesh *mesh, float** triangles) {
+	size_t n_floats = sizeof(float) * 9 * (mesh->faces.size());
+	fprintf(stdout, "Allocating %llu kB of CUDA-managed UNIFIED memory \n", (size_t)(n_floats / 1024.0f));
+	checkCudaErrors(cudaMallocManaged((void**) triangles, n_floats)); // managed memory
+	fprintf(stdout, "Copy %llu triangles to CUDA-managed UNIFIED memory \n", (size_t)(mesh->faces.size()));
+	for (size_t i = 0; i < mesh->faces.size(); i++) {
+		const trimesh::point &v0 = mesh->vertices[mesh->faces[i][0]];
+		const trimesh::point &v1 = mesh->vertices[mesh->faces[i][1]];
+		const trimesh::point &v2 = mesh->vertices[mesh->faces[i][2]];
+		size_t j = i * 9;
+		memcpy((triangles)+j, &v0, 3 * sizeof(float));
+		memcpy((triangles)+j + 3, &v1, 3 * sizeof(float));
+		memcpy((triangles)+j + 6, &v2, 3 * sizeof(float));
+	}
+}
+
+// METHOD 2: Helper function to transfer triangles to old-style, self-managed CUDA memory
+void trianglesToGPU(const trimesh::TriMesh *mesh, float** triangles){
+	size_t n_floats = sizeof(float) * 9 * (mesh->faces.size());
 	float* triangle_pointer;
-	if (useMallocManaged) {// MANAGED MEMORY ALLOC
-		fprintf(stdout, "Allocating %llu kB of CUDA-managed UNIFIED memory \n", (size_t)(size / 1024.0f));
-		checkCudaErrors(cudaMallocManaged((void**)&triangle_pointer, size)); // managed memory
-		fprintf(stdout, "Copy %llu triangles to CUDA-managed UNIFIED memory \n", (size_t)(mesh->faces.size()));
-	}
-	else { // OLD-STYLE CUDA MEMORY MALLOC
-		fprintf(stdout, "Allocating %llu kb of page-locked HOST memory \n", (size_t)(size / 1024.0f));
-		checkCudaErrors(cudaHostAlloc((void**)&triangle_pointer, size, cudaHostAllocDefault)); // pinned memory to easily copy from
-		fprintf(stdout, "Copy %llu triangles to page-locked HOST memory \n", (size_t)(mesh->faces.size()));
-	}
-	// Loop over all triangles and place them in the created memory
-	// In case of MANAGED MEMORY: This is a (possible) transfer to GPU memory
-	// In case of OLD_STYLE MEMORY: This is a copy to HOST pinned memory
+	fprintf(stdout, "Allocating %llu kb of page-locked HOST memory \n", (size_t)(n_floats / 1024.0f));
+	checkCudaErrors(cudaHostAlloc((void**)&triangle_pointer, n_floats, cudaHostAllocDefault)); // pinned memory to easily copy from
+	fprintf(stdout, "Copy %llu triangles to page-locked HOST memory \n", (size_t)(mesh->faces.size()));
 	for (size_t i = 0; i < mesh->faces.size(); i++){
 		const trimesh::point &v0 = mesh->vertices[mesh->faces[i][0]];
 		const trimesh::point &v1 = mesh->vertices[mesh->faces[i][1]];
@@ -82,56 +91,34 @@ void trianglesToGPUMemory(const trimesh::TriMesh *mesh, float** triangles){
 		memcpy((triangle_pointer) + j + 3, &v1, 3 * sizeof(float));
 		memcpy((triangle_pointer) + j + 6, &v2, 3 * sizeof(float));
 	}
-	// In case of MANAGED MEMORY: the pointer is universal, so accessible everywhere
-	if (useMallocManaged) {
-		*triangles = triangle_pointer;
-	}
-	// In case of OLD_STYLE MEMORY: we have to copy from HOST pinned memory to device to get our device pointer
-	else {
-		// Malloc triangle memory on GPU and copy triangle data
-		fprintf(stdout, "Copy %llu triangles from HOST to DEVICE memory \n", (size_t)(mesh->faces.size()));
-		checkCudaErrors(cudaMalloc((void **) triangles, size));
-		checkCudaErrors(cudaMemcpy((void *) *triangles, (void*) triangle_pointer, size, cudaMemcpyDefault));
-	}
+	fprintf(stdout, "Allocating %llu kb of DEVICE memory \n", (size_t)(n_floats / 1024.0f));
+	checkCudaErrors(cudaMalloc((void **) triangles, n_floats));
+	fprintf(stdout, "Copy %llu triangles from page-locked HOST memory to DEVICE memory \n", (size_t)(mesh->faces.size()));
+	checkCudaErrors(cudaMemcpy((void *) *triangles, (void*) triangle_pointer, n_floats, cudaMemcpyDefault));
 }
 
-// tinyobj loader path (not available yet)
-//void readObj(const std::string filename){
-//	std::vector<tinyobj::shape_t> shapes;
-//	std::vector<tinyobj::material_t> materials;
-//	std::string err;
-//	bool ret = tinyobj::LoadObj(shapes, materials, err, filename.c_str());
-//
-//	if (!err.empty()) { // `err` may contain warning message.
-//		std::cerr << err << std::endl;
-//	}
-//
-//	if (!ret) {
-//		exit(1);
-//	}
-//
-//	std::cout << "# of shapes    : " << shapes.size() << std::endl;
-//	std::cout << "# of materials : " << materials.size() << std::endl;
-//
-//	for (size_t i = 0; i < shapes.size(); i++) {
-//		printf("shape[%ld].name = %s\n", i, shapes[i].name.c_str());
-//		printf("Size of shape[%ld].indices: %ld\n", i, shapes[i].mesh.indices.size());
-//		printf("Size of shape[%ld].material_ids: %ld\n", i, shapes[i].mesh.material_ids.size());
-//		assert((shapes[i].mesh.indices.size() % 3) == 0);
-//		for (size_t f = 0; f < shapes[i].mesh.indices.size() / 3; f++) {
-//			printf("  idx[%ld] = %d, %d, %d. mat_id = %d\n", f, shapes[i].mesh.indices[3 * f + 0], shapes[i].mesh.indices[3 * f + 1], shapes[i].mesh.indices[3 * f + 2], shapes[i].mesh.material_ids[f]);
-//		}
-//
-//		printf("shape[%ld].vertices: %ld\n", i, shapes[i].mesh.positions.size());
-//		assert((shapes[i].mesh.positions.size() % 3) == 0);
-//		/*for (size_t v = 0; v < shapes[i].mesh.positions.size() / 3; v++) {
-//		printf("  v[%ld] = (%f, %f, %f)\n", v,
-//		shapes[i].mesh.positions[3 * v + 0],
-//		shapes[i].mesh.positions[3 * v + 1],
-//		shapes[i].mesh.positions[3 * v + 2]);
-//		}*/
-//	}
-//}
+// METHOD 3: Use a thrust vector
+void trianglesToGPU_thrust(const trimesh::TriMesh *mesh, float** triangles) {
+	// Fill host vector
+	thrust::host_vector<float> trianglethrust_host;
+	for (size_t i = 0; i < mesh->faces.size(); i++) {
+		const trimesh::point &v0 = mesh->vertices[mesh->faces[i][0]];
+		const trimesh::point &v1 = mesh->vertices[mesh->faces[i][1]];
+		const trimesh::point &v2 = mesh->vertices[mesh->faces[i][2]];
+		size_t j = i * 9;
+		trianglethrust_host.push_back(v0[0]);
+		trianglethrust_host.push_back(v0[1]);
+		trianglethrust_host.push_back(v0[2]);
+		trianglethrust_host.push_back(v1[0]);
+		trianglethrust_host.push_back(v1[1]);
+		trianglethrust_host.push_back(v1[2]);
+		trianglethrust_host.push_back(v2[0]);
+		trianglethrust_host.push_back(v2[1]);
+		trianglethrust_host.push_back(v2[2]);
+	}
+	trianglethrust_device = trianglethrust_host;
+	*triangles = (float*)thrust::raw_pointer_cast(&(trianglethrust_device[0]));
+}
 
 void parseProgramParameters(int argc, char* argv[]){
 	if(argc<2){ // not enough arguments
@@ -188,12 +175,29 @@ int main(int argc, char *argv[]) {
 	themesh->need_faces(); // Trimesh: Unpack (possible) triangle strips so we have faces
 	themesh->need_bbox(); // Trimesh: Compute the bounding box
 
-	fprintf(stdout, "\n## MEMORY PREPARATION \n");
+	fprintf(stdout, "\n## TRIANGLES TO GPU TRANSFER \n");
 	fprintf(stdout, "Number of faces: %llu, faces table takes %llu kB \n", themesh->faces.size(), (size_t) (themesh->faces.size()*sizeof(trimesh::TriMesh::Face) / 1024.0f));
 	fprintf(stdout, "Number of vertices: %llu, vertices table takes %llu kB \n", themesh->vertices.size(), (size_t) (themesh->vertices.size()*sizeof(trimesh::point) / 1024.0f));
 	size_t size = sizeof(float) * 9 * (themesh->faces.size());
 	float* triangles;
-	trianglesToGPUMemory(themesh, &triangles);
+
+	//cudaEvent_t tGPUtime_start, tGPUtime_stop;
+	//checkCudaErrors(cudaEventCreate(&tGPUtime_start));
+	//checkCudaErrors(cudaEventCreate(&tGPUtime_stop));
+	//checkCudaErrors(cudaEventRecord(tGPUtime_start, 0));
+	
+	if(useMallocManaged){ 
+		trianglesToGPU_managed(themesh, &triangles);
+	}
+	else {
+		trianglesToGPU_thrust(themesh, &triangles);
+	}
+
+	//float elapsedTime;
+	//checkCudaErrors(cudaEventRecord(tGPUtime_stop, 0));
+	//checkCudaErrors(cudaEventSynchronize(tGPUtime_stop));
+	//checkCudaErrors(cudaEventElapsedTime(&elapsedTime, tGPUtime_start, tGPUtime_stop));
+	//printf("Triangle to GPU:  %3.1f ms\n", elapsedTime);
 
 	fprintf(stdout, "\n## VOXELISATION SETUP \n");
 	AABox<glm::vec3> bbox_mesh(trimesh_to_glm(themesh->bbox.min), trimesh_to_glm(themesh->bbox.max)); // compute bbox around mesh
