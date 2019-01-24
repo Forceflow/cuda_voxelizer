@@ -18,18 +18,21 @@ struct voxinfo{
 	AABox<glm::vec3> bbox;
 	unsigned int gridsize;
 	size_t n_triangles;
-	float unit;
+	glm::vec3 unit;
 
 	voxinfo(AABox<glm::vec3> bbox, unsigned int gridsize, size_t n_triangles) 
 		: gridsize(gridsize), bbox(bbox), n_triangles(n_triangles){
-		unit = (bbox.max.x - bbox.min.x) / float (gridsize);
+		unit.x = (bbox.max.x - bbox.min.x) / float(gridsize);
+		unit.y = (bbox.max.y - bbox.min.y) / float(gridsize);
+		unit.z = (bbox.max.z - bbox.min.z) / float(gridsize);
+
 	}
 
 	void print(){
 		fprintf(stdout, "Bounding Box: (%f, %f, %f) to (%f, %f, %f) \n", bbox.min.x, bbox.min.y, bbox.min.z, bbox.max.x, bbox.max.y, bbox.max.z);
 		fprintf(stdout, "Grid size: %i \n", gridsize);
 		fprintf(stdout, "Triangles: %ull \n", n_triangles);
-		fprintf(stdout, "Unit length: %f \n", unit);
+		fprintf(stdout, "Unit length: x: %f y: %f z: %f\n", unit.x, unit.y, unit.z);
 	}
 };
 
