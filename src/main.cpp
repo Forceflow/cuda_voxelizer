@@ -8,6 +8,7 @@
 // GLM for maths
 #include <glm/glm.hpp>
 #include <glm/gtx/string_cast.hpp>
+#include <glm/gtc/type_ptr.hpp>
 // Trimesh for model importing
 #include "TriMesh.h"
 // TinyObj for alternative model importing
@@ -68,13 +69,13 @@ void trianglesToGPU_managed(const trimesh::TriMesh *mesh, float** triangles) {
 	checkCudaErrors(cudaMallocManaged((void**) triangles, n_floats)); // managed memory
 	fprintf(stdout, "Copy %llu triangles to CUDA-managed UNIFIED memory \n", (size_t)(mesh->faces.size()));
 	for (size_t i = 0; i < mesh->faces.size(); i++) {
-		const trimesh::point &v0 = mesh->vertices[mesh->faces[i][0]];
-		const trimesh::point &v1 = mesh->vertices[mesh->faces[i][1]];
-		const trimesh::point &v2 = mesh->vertices[mesh->faces[i][2]];
+		glm::vec3 v0 = trimesh_to_glm<trimesh::point>(mesh->vertices[mesh->faces[i][0]]);
+		glm::vec3 v1 = trimesh_to_glm<trimesh::point>(mesh->vertices[mesh->faces[i][1]]);
+		glm::vec3 v2 = trimesh_to_glm<trimesh::point>(mesh->vertices[mesh->faces[i][2]]);
 		size_t j = i * 9;
-		memcpy((triangles)+j, &v0, 3 * sizeof(float));
-		memcpy((triangles)+j + 3, &v1, 3 * sizeof(float));
-		memcpy((triangles)+j + 6, &v2, 3 * sizeof(float));
+		memcpy((triangles)+j, glm::value_ptr(v0), sizeof(glm::vec3));
+		memcpy((triangles)+j+3, glm::value_ptr(v1), sizeof(glm::vec3));
+		memcpy((triangles)+j+6, glm::value_ptr(v2), sizeof(glm::vec3));
 	}
 }
 
@@ -86,13 +87,13 @@ void trianglesToGPU(const trimesh::TriMesh *mesh, float** triangles){
 	checkCudaErrors(cudaHostAlloc((void**)&triangle_pointer, n_floats, cudaHostAllocDefault)); // pinned memory to easily copy from
 	fprintf(stdout, "Copy %llu triangles to page-locked HOST memory \n", (size_t)(mesh->faces.size()));
 	for (size_t i = 0; i < mesh->faces.size(); i++){
-		const trimesh::point &v0 = mesh->vertices[mesh->faces[i][0]];
-		const trimesh::point &v1 = mesh->vertices[mesh->faces[i][1]];
-		const trimesh::point &v2 = mesh->vertices[mesh->faces[i][2]];
+		glm::vec3 v0 = trimesh_to_glm<trimesh::point>(mesh->vertices[mesh->faces[i][0]]);
+		glm::vec3 v1 = trimesh_to_glm<trimesh::point>(mesh->vertices[mesh->faces[i][1]]);
+		glm::vec3 v2 = trimesh_to_glm<trimesh::point>(mesh->vertices[mesh->faces[i][2]]);
 		size_t j = i * 9;
-		memcpy((triangle_pointer) + j, &v0, 3 * sizeof(float));
-		memcpy((triangle_pointer) + j + 3, &v1, 3 * sizeof(float));
-		memcpy((triangle_pointer) + j + 6, &v2, 3 * sizeof(float));
+		memcpy((triangle_pointer)+j, glm::value_ptr(v0), sizeof(glm::vec3));
+		memcpy((triangle_pointer)+j+3, glm::value_ptr(v1), sizeof(glm::vec3));
+		memcpy((triangle_pointer)+j+6, glm::value_ptr(v2), sizeof(glm::vec3));
 	}
 	fprintf(stdout, "Allocating %llu kb of DEVICE memory \n", (size_t)(n_floats / 1024.0f));
 	checkCudaErrors(cudaMalloc((void **) triangles, n_floats));
@@ -105,19 +106,19 @@ void trianglesToGPU_thrust(const trimesh::TriMesh *mesh, float** triangles) {
 	// Fill host vector
 	thrust::host_vector<float> trianglethrust_host;
 	for (size_t i = 0; i < mesh->faces.size(); i++) {
-		const trimesh::point &v0 = mesh->vertices[mesh->faces[i][0]];
-		const trimesh::point &v1 = mesh->vertices[mesh->faces[i][1]];
-		const trimesh::point &v2 = mesh->vertices[mesh->faces[i][2]];
+		glm::vec3 v0 = trimesh_to_glm<trimesh::point>(mesh->vertices[mesh->faces[i][0]]);
+		glm::vec3 v1 = trimesh_to_glm<trimesh::point>(mesh->vertices[mesh->faces[i][1]]);
+		glm::vec3 v2 = trimesh_to_glm<trimesh::point>(mesh->vertices[mesh->faces[i][2]]);
 		size_t j = i * 9;
-		trianglethrust_host.push_back(v0[0]);
-		trianglethrust_host.push_back(v0[1]);
-		trianglethrust_host.push_back(v0[2]);
-		trianglethrust_host.push_back(v1[0]);
-		trianglethrust_host.push_back(v1[1]);
-		trianglethrust_host.push_back(v1[2]);
-		trianglethrust_host.push_back(v2[0]);
-		trianglethrust_host.push_back(v2[1]);
-		trianglethrust_host.push_back(v2[2]);
+		trianglethrust_host.push_back(v0.x);
+		trianglethrust_host.push_back(v0.y);
+		trianglethrust_host.push_back(v0.z);
+		trianglethrust_host.push_back(v1.x);
+		trianglethrust_host.push_back(v1.y);
+		trianglethrust_host.push_back(v1.z);
+		trianglethrust_host.push_back(v2.x);
+		trianglethrust_host.push_back(v2.y);
+		trianglethrust_host.push_back(v2.z);
 	}
 	trianglethrust_device = trianglethrust_host;
 	*triangles = (float*)thrust::raw_pointer_cast(&(trianglethrust_device[0]));
@@ -193,7 +194,7 @@ int main(int argc, char *argv[]) {
 		trianglesToGPU_managed(themesh, &triangles);
 	}
 	else {
-		trianglesToGPU_thrust(themesh, &triangles);
+		trianglesToGPU(themesh, &triangles);
 	}
 
 	//float elapsedTime;
