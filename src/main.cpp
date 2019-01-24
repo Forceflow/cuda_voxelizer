@@ -4,7 +4,7 @@
 
 // Standard libs
 #include <string>
-#include <stdio.h>
+#include <cstdio>
 // GLM for maths
 #include <glm/glm.hpp>
 #include <glm/gtx/string_cast.hpp>
@@ -25,6 +25,9 @@ extern void voxelize(const voxinfo & v, float* triangle_data, unsigned int* vtab
 using namespace std;
 
 string version_number = "v0.2";
+
+// Output formats
+// Binvox: 
 enum OutputFormat { output_binvox, output_morton};
 char *OutputFormats[] = { "binvox file", "morton encoded blob" };
 
