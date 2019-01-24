@@ -3,7 +3,8 @@
 #include "TriMesh.h"
 #include <glm/glm.hpp>
 
-inline glm::vec3 trimesh_to_glm(trimesh::vec3 a){
+template<typename trimeshtype>
+inline glm::vec3 trimesh_to_glm(trimeshtype a) {
 	return glm::vec3(a[0], a[1], a[2]);
 }
 
