@@ -16,15 +16,15 @@ struct AABox {
 // voxelisation info (same for every triangle)
 struct voxinfo{
 	AABox<glm::vec3> bbox;
-	unsigned int gridsize;
+	glm::uvec3 gridsize;
 	size_t n_triangles;
 	glm::vec3 unit;
 
-	voxinfo(AABox<glm::vec3> bbox, unsigned int gridsize, size_t n_triangles) 
+	voxinfo(AABox<glm::vec3> bbox, glm::uvec3 gridsize, size_t n_triangles)
 		: gridsize(gridsize), bbox(bbox), n_triangles(n_triangles){
-		unit.x = (bbox.max.x - bbox.min.x) / float(gridsize);
-		unit.y = (bbox.max.y - bbox.min.y) / float(gridsize);
-		unit.z = (bbox.max.z - bbox.min.z) / float(gridsize);
+		unit.x = (bbox.max.x - bbox.min.x) / float(gridsize.x);
+		unit.y = (bbox.max.y - bbox.min.y) / float(gridsize.y);
+		unit.z = (bbox.max.z - bbox.min.z) / float(gridsize.z);
 
 	}
 

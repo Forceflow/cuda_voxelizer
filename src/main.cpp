@@ -205,7 +205,7 @@ int main(int argc, char *argv[]) {
 
 	fprintf(stdout, "\n## VOXELISATION SETUP \n");
 	AABox<glm::vec3> bbox_mesh(trimesh_to_glm(themesh->bbox.min), trimesh_to_glm(themesh->bbox.max)); // compute bbox around mesh
-	voxinfo v(createMeshBBCube<glm::vec3>(bbox_mesh), gridsize, themesh->faces.size());
+	voxinfo v(createMeshBBCube<glm::vec3>(bbox_mesh), glm::uvec3(gridsize, gridsize, gridsize), themesh->faces.size());
 	v.print();
 	size_t vtable_size = ((size_t)gridsize*gridsize*gridsize) / 8.0f;
 

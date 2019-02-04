@@ -82,7 +82,7 @@ __global__ void voxelize_triangle(voxinfo info, float* triangle_data, unsigned i
 	// Common variables used in the voxelization process
 	glm::vec3 delta_p(info.unit.x, info.unit.y, info.unit.z);
 	glm::vec3 c(0.0f, 0.0f, 0.0f); // critical point
-	glm::vec3 grid_max(info.gridsize - 1, info.gridsize - 1, info.gridsize - 1); // grid max (grid runs from 0 to gridsize-1)
+	glm::vec3 grid_max(info.gridsize.x - 1, info.gridsize.y - 1, info.gridsize.z - 1); // grid max (grid runs from 0 to gridsize-1)
 
 	while (thread_id < info.n_triangles){ // every thread works on specific triangles in its stride
 		size_t t = thread_id * 9; // triangle contains 9 vertices
@@ -188,7 +188,7 @@ __global__ void voxelize_triangle(voxinfo info, float* triangle_data, unsigned i
 						size_t location = mortonEncode_LUT(x, y, z);
 						setBit(voxel_table, location);
 					} else {
-						size_t location = x + (y*info.gridsize) + (z*info.gridsize*info.gridsize);
+						size_t location = x + (y*info.gridsize.y) + (z*info.gridsize.y*info.gridsize.z);
 						setBit(voxel_table, location);
 					}
 					continue;
@@ -233,7 +233,7 @@ void voxelize(const voxinfo& v, float* triangle_data, unsigned int* vtable, bool
 
 	if (!useMallocManaged) { // We're not using UNIFIED memory
 		// Malloc voxelisation table
-		vtable_size = ((size_t)v.gridsize * v.gridsize * v.gridsize) / (size_t) 8.0;
+		vtable_size = ((size_t)v.gridsize.x * v.gridsize.y * v.gridsize.z) / (size_t) 8.0;
 		checkCudaErrors(cudaMalloc(&dev_vtable, vtable_size));
 		checkCudaErrors(cudaMemset(dev_vtable, 0, vtable_size));
 		// Start voxelization
