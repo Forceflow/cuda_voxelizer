@@ -33,40 +33,44 @@ __device__ inline uint64_t mortonEncode_LUT(unsigned int x, unsigned int y, unsi
 	return answer;
 }
 
-// Possible optimization: buffer bitsets (for now: too much overhead)
-struct bufferedBitSetter{
-	unsigned int* voxel_table;
-	size_t current_int_location;
-	unsigned int current_mask;
+// Possible optimization: buffer bitsets (for now: Disabled because too much overhead)
+//struct bufferedBitSetter{
+//	unsigned int* voxel_table;
+//	size_t current_int_location;
+//	unsigned int current_mask;
+//
+//	__device__ __inline__ bufferedBitSetter(unsigned int* voxel_table, size_t index) :
+//		voxel_table(voxel_table), current_mask(0) {
+//		current_int_location = int(index / 32.0f);
+//	}
+//
+//	__device__ __inline__ void setBit(size_t index){
+//		size_t new_int_location = int(index / 32.0f);
+//		if (current_int_location != new_int_location){
+//			flush();
+//			current_int_location = new_int_location;
+//		}
+//		unsigned int bit_pos = 31 - (unsigned int)(int(index) % 32);
+//		current_mask = current_mask | (1 << bit_pos);
+//	}
+//
+//	__device__ __inline__ void flush(){
+//		if (current_mask != 0){
+//			atomicOr(&(voxel_table[current_int_location]), current_mask);
+//		}
+//	}
+//};
 
-	__device__ __inline__ bufferedBitSetter(unsigned int* voxel_table, size_t index) :
-		voxel_table(voxel_table), current_mask(0) {
-		current_int_location = int(index / 32.0f);
-	}
+// Possible optimization: check bit before you set it - don't need to do atomic operation if it's already set to 1
+// For now: overhead, so it seems
+//__device__ __inline__ bool checkBit(unsigned int* voxel_table, size_t index){
+//	size_t int_location = index / size_t(32);
+//	unsigned int bit_pos = size_t(31) - (index % size_t(32)); // we count bit positions RtL, but array indices LtR
+//	return ((voxel_table[int_location]) & (1 << bit_pos));
+//}
 
-	__device__ __inline__ void setBit(size_t index){
-		size_t new_int_location = int(index / 32.0f);
-		if (current_int_location != new_int_location){
-			flush();
-			current_int_location = new_int_location;
-		}
-		unsigned int bit_pos = 31 - (unsigned int)(int(index) % 32);
-		current_mask = current_mask | (1 << bit_pos);
-	}
-
-	__device__ __inline__ void flush(){
-		if (current_mask != 0){
-			atomicOr(&(voxel_table[current_int_location]), current_mask);
-		}
-	}
-};
-
-__device__ __inline__ bool checkBit(unsigned int* voxel_table, size_t index){
-	size_t int_location = index / size_t(32);
-	unsigned int bit_pos = size_t(31) - (index % size_t(32)); // we count bit positions RtL, but array indices LtR
-	return ((voxel_table[int_location]) & (1 << bit_pos));
-}
-
+// Set a bit in the giant voxel table. This involves doing an atomic operation on a 32-bit word in memory.
+// Blocking other threads writing to it for a very short time
 __device__ __inline__ void setBit(unsigned int* voxel_table, size_t index){
 	size_t int_location = index / size_t(32);
 	unsigned int bit_pos = size_t(31) - (index % size_t(32)); // we count bit positions RtL, but array indices LtR
