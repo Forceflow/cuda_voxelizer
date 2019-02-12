@@ -2,6 +2,7 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <CudaCompile Include="../../src/voxelize.cu" />
+    <CudaCompile Include="..\..\src\thrust_operations.cu" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="../../src/main.cpp" />
@@ -16,9 +17,6 @@
     <ClInclude Include="../../src/util_cuda.h">
       <Filter>util</Filter>
     </ClInclude>
-    <ClInclude Include="../../src/util_common.h">
-      <Filter>util</Filter>
-    </ClInclude>
     <ClInclude Include="../../src/util_io.h">
       <Filter>util</Filter>
     </ClInclude>
@@ -30,6 +28,11 @@
     </ClInclude>
     <ClInclude Include="..\..\src\libs\helper_string.h">
       <Filter>cuda</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\voxelize.cuh" />
+    <ClInclude Include="..\..\src\thrust_operations.cuh" />
+    <ClInclude Include="..\..\src\morton_LUTs.h">
+      <Filter>util</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -180,6 +180,7 @@ copy /y "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).exe" "$(BINAR
   </ItemDefinitionGroup>
   <ItemGroup>
     <CudaCompile Include="../../src/voxelize.cu" />
+    <CudaCompile Include="..\..\src\thrust_operations.cu" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="../../src/util_io.cpp" />
@@ -190,9 +191,11 @@ copy /y "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).exe" "$(BINAR
     <ClInclude Include="../../src/util_io.h" />
     <ClInclude Include="../../src/util.h" />
     <ClInclude Include="../../src/util_cuda.h" />
-    <ClInclude Include="../../src/util_common.h" />
     <ClInclude Include="..\..\src\libs\helper_cuda.h" />
     <ClInclude Include="..\..\src\libs\helper_string.h" />
+    <ClInclude Include="..\..\src\morton_LUTs.h" />
+    <ClInclude Include="..\..\src\thrust_operations.cuh" />
+    <ClInclude Include="..\..\src\voxelize.cuh" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="../../src/todo.txt" />

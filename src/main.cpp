@@ -11,20 +11,16 @@
 #include <glm/gtc/type_ptr.hpp>
 // Trimesh for model importing
 #include "TriMesh.h"
-// TinyObj for alternative model importing
-// #define TINYOBJLOADER_IMPLEMENTATION // define this in only *one* .cc
-// #include "tiny_obj_loader.h"
+// Util
+#include "util.h"
 #include "util_io.h"
 #include "util_cuda.h"
-#include "util_common.h"
-#include "thrust/device_vector.h"
-#include "thrust/host_vector.h"
 
 // Forward declaration of CUDA calls
-extern void voxelize(const voxinfo & v, float* triangle_data, unsigned int* vtable, bool useMallocManaged, bool morton_code);
+#include "thrust_operations.cuh"
+#include "voxelize.cuh"
 
 using namespace std;
-
 string version_number = "v0.2";
 
 // Output formats
@@ -43,8 +39,6 @@ bool useMallocManaged = false;
 // When we use managed memory, these are globally available pointers (HOST and DEVICE)
 // When not, these are HOST-only pointers
 unsigned int* vtable;
-thrust::host_vector<float> trianglethrust_host;
-thrust::device_vector<float> trianglethrust_device;
 
 // Limitations
 size_t GPU_global_mem;
@@ -99,29 +93,6 @@ void trianglesToGPU(const trimesh::TriMesh *mesh, float** triangles){
 	checkCudaErrors(cudaMalloc((void **) triangles, n_floats));
 	fprintf(stdout, "Copy %llu triangles from page-locked HOST memory to DEVICE memory \n", (size_t)(mesh->faces.size()));
 	checkCudaErrors(cudaMemcpy((void *) *triangles, (void*) triangle_pointer, n_floats, cudaMemcpyDefault));
-}
-
-// METHOD 3: Use a thrust vector
-void trianglesToGPU_thrust(const trimesh::TriMesh *mesh, float** triangles) {
-	// Fill host vector
-	thrust::host_vector<float> trianglethrust_host;
-	for (size_t i = 0; i < mesh->faces.size(); i++) {
-		glm::vec3 v0 = trimesh_to_glm<trimesh::point>(mesh->vertices[mesh->faces[i][0]]);
-		glm::vec3 v1 = trimesh_to_glm<trimesh::point>(mesh->vertices[mesh->faces[i][1]]);
-		glm::vec3 v2 = trimesh_to_glm<trimesh::point>(mesh->vertices[mesh->faces[i][2]]);
-		size_t j = i * 9;
-		trianglethrust_host.push_back(v0.x);
-		trianglethrust_host.push_back(v0.y);
-		trianglethrust_host.push_back(v0.z);
-		trianglethrust_host.push_back(v1.x);
-		trianglethrust_host.push_back(v1.y);
-		trianglethrust_host.push_back(v1.z);
-		trianglethrust_host.push_back(v2.x);
-		trianglethrust_host.push_back(v2.y);
-		trianglethrust_host.push_back(v2.z);
-	}
-	trianglethrust_device = trianglethrust_host;
-	*triangles = (float*)thrust::raw_pointer_cast(&(trianglethrust_device[0]));
 }
 
 void parseProgramParameters(int argc, char* argv[]){
@@ -185,23 +156,12 @@ int main(int argc, char *argv[]) {
 	size_t size = sizeof(float) * 9 * (themesh->faces.size());
 	float* triangles;
 
-	//cudaEvent_t tGPUtime_start, tGPUtime_stop;
-	//checkCudaErrors(cudaEventCreate(&tGPUtime_start));
-	//checkCudaErrors(cudaEventCreate(&tGPUtime_stop));
-	//checkCudaErrors(cudaEventRecord(tGPUtime_start, 0));
-	
 	if(useMallocManaged){ 
 		trianglesToGPU_managed(themesh, &triangles);
 	}
 	else {
-		trianglesToGPU(themesh, &triangles);
+		trianglesToGPU_thrust(themesh, &triangles);
 	}
-
-	//float elapsedTime;
-	//checkCudaErrors(cudaEventRecord(tGPUtime_stop, 0));
-	//checkCudaErrors(cudaEventSynchronize(tGPUtime_stop));
-	//checkCudaErrors(cudaEventElapsedTime(&elapsedTime, tGPUtime_start, tGPUtime_stop));
-	//printf("Triangle to GPU:  %3.1f ms\n", elapsedTime);
 
 	fprintf(stdout, "\n## VOXELISATION SETUP \n");
 	AABox<glm::vec3> bbox_mesh(trimesh_to_glm(themesh->bbox.min), trimesh_to_glm(themesh->bbox.max)); // compute bbox around mesh
@@ -228,4 +188,6 @@ int main(int argc, char *argv[]) {
 		fprintf(stdout, "\n## OUTPUT TO BINVOX FILE \n");
 		write_binvox(vtable, gridsize, filename);
 	}
+
+	std::cout << trianglethrust_host.size() << endl;
 }
