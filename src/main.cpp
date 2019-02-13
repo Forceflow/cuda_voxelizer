@@ -188,6 +188,4 @@ int main(int argc, char *argv[]) {
 		fprintf(stdout, "\n## OUTPUT TO BINVOX FILE \n");
 		write_binvox(vtable, gridsize, filename);
 	}
-
-	std::cout << trianglethrust_host.size() << endl;
 }

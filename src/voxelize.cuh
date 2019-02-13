@@ -8,6 +8,5 @@
 #include <iostream>
 #include "util.h"
 #include "util_cuda.h"
-#include "util_common.h"
 
 void voxelize(const voxinfo & v, float* triangle_data, unsigned int* vtable, bool useMallocManaged, bool morton_code);
