@@ -1,3 +1,5 @@
+#pragma once
+
 // Trimesh for model importing
 #include "TriMesh.h"
 // CUDA
