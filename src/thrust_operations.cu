@@ -1,9 +1,3 @@
-// Standard libs
-#include <string>
-#include <cstdio>
-
-// Trimesh for model importing
-#include "TriMesh.h"
 #include "thrust_operations.cuh"
 
 // Thrust vectors (global)

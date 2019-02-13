@@ -52,7 +52,7 @@ struct voxinfo {
 
 	void print() {
 		fprintf(stdout, "Bounding Box: (%f, %f, %f) to (%f, %f, %f) \n", bbox.min.x, bbox.min.y, bbox.min.z, bbox.max.x, bbox.max.y, bbox.max.z);
-		fprintf(stdout, "Grid size: %i \n", gridsize);
+		fprintf(stdout, "Grid size: %i %i %i \n", gridsize.x, gridsize.y, gridsize.z);
 		fprintf(stdout, "Triangles: %ull \n", n_triangles);
 		fprintf(stdout, "Unit length: x: %f y: %f z: %f\n", unit.x, unit.y, unit.z);
 	}
