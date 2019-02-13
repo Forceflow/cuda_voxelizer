@@ -50,9 +50,10 @@ void printHeader(){
 
 void printHelp(){
 	cout << "Program options: " << endl;
-	cout << " -f <path to model file: .ply, .obj, .3ds>" << endl;
+	cout << " -f <path to model file: .ply, .obj, .3ds> (required)" << endl;
 	cout << " -s <voxelization grid size, power of 2: 8 -> 512, 1024, ... (default: 256)>" << endl << std::endl;
 	cout << " -o <output format: binvox or morton (default: binvox)>" << endl << std::endl;
+	cout << " -m : Force using CUDA managed memory (possible speedup)" << endl << std::endl;
 	cout << "Example: cuda_voxelizer -f /home/jeroen/bunny.ply -s 512" << endl;
 }
 
@@ -95,6 +96,9 @@ void trianglesToGPU(const trimesh::TriMesh *mesh, float** triangles){
 	checkCudaErrors(cudaMemcpy((void *) *triangles, (void*) triangle_pointer, n_floats, cudaMemcpyDefault));
 }
 
+// METHOD 3 to transfer triangles can be found in thrust_operations.cu(h)
+
+// Parse the program parameters and set them as global variables
 void parseProgramParameters(int argc, char* argv[]){
 	if(argc<2){ // not enough arguments
 		fprintf(stdout, "Not enough program parameters. \n \n");
