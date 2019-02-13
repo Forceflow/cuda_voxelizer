@@ -6,7 +6,7 @@
 #include "TriMesh.h"
 #include "thrust_operations.cuh"
 
-// Thrust
+// Thrust vectors (global)
 thrust::host_vector<glm::vec3> trianglethrust_host;
 thrust::device_vector<glm::vec3> trianglethrust_device;
 
@@ -17,7 +17,6 @@ void trianglesToGPU_thrust(const trimesh::TriMesh *mesh, float** triangles) {
 		glm::vec3 v0 = trimesh_to_glm<trimesh::point>(mesh->vertices[mesh->faces[i][0]]);
 		glm::vec3 v1 = trimesh_to_glm<trimesh::point>(mesh->vertices[mesh->faces[i][1]]);
 		glm::vec3 v2 = trimesh_to_glm<trimesh::point>(mesh->vertices[mesh->faces[i][2]]);
-		size_t j = i * 9;
 		trianglethrust_host.push_back(v0);
 		trianglethrust_host.push_back(v1);
 		trianglethrust_host.push_back(v2);

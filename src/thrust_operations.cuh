@@ -9,7 +9,6 @@
 #define GLM_FORCE_CUDA
 // GLM for maths
 #include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
 #include "util.h"
 
 void trianglesToGPU_thrust(const trimesh::TriMesh *mesh, float** triangles);
