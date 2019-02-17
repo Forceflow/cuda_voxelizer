@@ -1,11 +1,15 @@
 #pragma once
 
+// 
+#include <stdint.h>
+
 #include "TriMesh.h"
-#include <glm/glm.hpp>
 #include "cuda.h"
 #include "cuda_runtime.h"
-#include <stdint.h>
 #include "device_launch_parameters.h"
+
+#define GLM_FORCE_CUDA
+#define GLM_FORCE_PURE
 #include <glm/glm.hpp>
 
 template<typename trimeshtype>
@@ -13,7 +17,7 @@ inline glm::vec3 trimesh_to_glm(trimeshtype a) {
 	return glm::vec3(a[0], a[1], a[2]);
 }
 
-inline char checkVoxel(size_t x, size_t y, size_t z, size_t gridsize, const unsigned int* vtable){
+__device__ __host__ inline char checkVoxel(size_t x, size_t y, size_t z, size_t gridsize, const unsigned int* vtable){
 	size_t location = x + (y*gridsize) + (z*gridsize*gridsize);
 	size_t int_location = location / size_t(32);
 	/*size_t max_index = (gridsize*gridsize*gridsize) / __int64(32);
@@ -60,7 +64,7 @@ struct voxinfo {
 
 // create mesh bbox cube
 template <typename T>
-__device__ __host__ inline AABox<T> createMeshBBCube(AABox<T> box) {
+inline AABox<T> createMeshBBCube(AABox<T> box) {
 	AABox<T> answer(box.min, box.max);
 	glm::vec3 lengths = box.max - box.min;
 	float max_length = glm::max(lengths.x, glm::max(lengths.y, lengths.z));
@@ -74,9 +78,7 @@ __device__ __host__ inline AABox<T> createMeshBBCube(AABox<T> box) {
 	return answer;
 }
 
-
-
-__host__ __device__ void inline printBits(size_t const size, void const * const ptr) {
+void inline printBits(size_t const size, void const * const ptr) {
 	unsigned char *b = (unsigned char*)ptr;
 	unsigned char byte;
 	int i, j;
