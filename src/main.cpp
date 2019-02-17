@@ -7,7 +7,6 @@
 #include <cstdio>
 // GLM for maths
 #include <glm/glm.hpp>
-#include <glm/gtx/string_cast.hpp>
 #include <glm/gtc/type_ptr.hpp>
 // Trimesh for model importing
 #include "TriMesh.h"
@@ -142,7 +141,7 @@ int main(int argc, char *argv[]) {
 	fprintf(stdout, "\n## PROGRAM PARAMETERS \n");
 	parseProgramParameters(argc, argv);
 	fprintf(stdout, "\n## CUDA INIT \n");
-	checkCudaRequirements();
+	initCuda();
 
 	fflush(stdout);
 	trimesh::TriMesh::set_verbose(false);

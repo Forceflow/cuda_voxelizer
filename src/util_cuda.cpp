@@ -1,11 +1,7 @@
 #include "util_cuda.h"
 
-//int setupCUDA() {
-//	checkCudaErrors(findCudaDevice());
-//}
-
 // Check if CUDA requirements are met
-int checkCudaRequirements(){
+int initCuda(){
 	// Is there a cuda device?
 	int device_count = 0;
 	checkCudaErrors(cudaGetDeviceCount(&device_count));
