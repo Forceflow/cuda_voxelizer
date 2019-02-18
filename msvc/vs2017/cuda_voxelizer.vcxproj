@@ -123,7 +123,6 @@ echo copy /y "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).exe" "$(
 copy /y "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).exe" "$(BINARY_OUTPUT_DIR)$(ProjectName).exe"</Command>
     </PostBuildEvent>
     <CudaCompile>
-      <TargetMachinePlatform>64</TargetMachinePlatform>
       <PtxAsOptionV>true</PtxAsOptionV>
       <AdditionalOptions>--source-in-ptx %(AdditionalOptions)</AdditionalOptions>
     </CudaCompile>
@@ -172,7 +171,6 @@ echo copy /y "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).exe" "$(
 copy /y "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).exe" "$(BINARY_OUTPUT_DIR)$(ProjectName).exe"</Command>
     </PostBuildEvent>
     <CudaCompile>
-      <TargetMachinePlatform>64</TargetMachinePlatform>
       <FastMath>true</FastMath>
     </CudaCompile>
   </ItemDefinitionGroup>
