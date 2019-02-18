@@ -5,7 +5,7 @@ thrust::host_vector<glm::vec3> trianglethrust_host;
 thrust::device_vector<glm::vec3> trianglethrust_device;
 
 // method 3: use a thrust vector
-extern "C" void trianglesToGPU_thrust(const trimesh::TriMesh *mesh, float** triangles) {
+void trianglesToGPU_thrust(const trimesh::TriMesh *mesh, float** triangles) {
 	// fill host vector
 	for (size_t i = 0; i < mesh->faces.size(); i++) {
 		glm::vec3 v0 = trimesh_to_glm<trimesh::point>(mesh->vertices[mesh->faces[i][0]]);

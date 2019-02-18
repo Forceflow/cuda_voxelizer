@@ -197,7 +197,7 @@ __global__ void voxelize_triangle(voxinfo info, float* triangle_data, unsigned i
 	}
 }
 
-extern "C" void voxelize(const voxinfo& v, float* triangle_data, unsigned int* vtable, bool useMallocManaged, bool morton_code) {
+void voxelize(const voxinfo& v, float* triangle_data, unsigned int* vtable, bool useMallocManaged, bool morton_code) {
 	float   elapsedTime;
 
 	// These are only used when we're not using UNIFIED memory
