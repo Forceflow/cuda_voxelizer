@@ -13,5 +13,3 @@
 // GLM for maths
 #include <glm/glm.hpp>
 #include "util.h"
-
-void trianglesToGPU_thrust(const trimesh::TriMesh *mesh, float** triangles);

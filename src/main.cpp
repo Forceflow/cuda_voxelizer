@@ -15,9 +15,8 @@
 #include "util_io.h"
 #include "util_cuda.h"
 
-// Forward declaration of CUDA calls
-#include "thrust_operations.cuh"
-#include "voxelize.cuh"
+extern "C" void trianglesToGPU_thrust(const trimesh::TriMesh *mesh, float** triangles);
+extern "C" void voxelize(const voxinfo & v, float* triangle_data, unsigned int* vtable, bool useMallocManaged, bool morton_code);
 
 using namespace std;
 string version_number = "v0.2";

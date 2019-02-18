@@ -13,5 +13,3 @@
 #include "util_cuda.h"
 
 #include "morton_LUTs.h"
-
-void voxelize(const voxinfo & v, float* triangle_data, unsigned int* vtable, bool useMallocManaged, bool morton_code);
