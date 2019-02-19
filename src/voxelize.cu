@@ -197,7 +197,7 @@ __global__ void voxelize_triangle(voxinfo info, float* triangle_data, unsigned i
 	}
 }
 
-void voxelize(const voxinfo& v, float* triangle_data, unsigned int* vtable, bool useMallocManaged, bool morton_code) {
+void voxelize(const voxinfo& v, float* triangle_data, unsigned int* vtable, bool useThrustPath, bool morton_code) {
 	float   elapsedTime;
 
 	// These are only used when we're not using UNIFIED memory
@@ -205,12 +205,9 @@ void voxelize(const voxinfo& v, float* triangle_data, unsigned int* vtable, bool
 	size_t vtable_size; // vtable size
 	
 	// Create timers, set start time
-	cudaEvent_t start_total, stop_total, start_vox, stop_vox;
-	checkCudaErrors(cudaEventCreate(&start_total));
-	checkCudaErrors(cudaEventCreate(&stop_total));
+	cudaEvent_t start_vox, stop_vox;
 	checkCudaErrors(cudaEventCreate(&start_vox));
 	checkCudaErrors(cudaEventCreate(&stop_vox));
-	checkCudaErrors(cudaEventRecord(start_total, 0));
 
 	// Copy morton LUT if we're encoding to morton
 	if (morton_code){
@@ -227,9 +224,9 @@ void voxelize(const voxinfo& v, float* triangle_data, unsigned int* vtable, bool
 	// Round up according to array size 
 	gridSize = (v.n_triangles + blockSize - 1) / blockSize;
 
-	if (!useMallocManaged) { // We're not using UNIFIED memory
-		// Malloc voxelisation table
+	if (useThrustPath) { // We're not using UNIFIED memory
 		vtable_size = ((size_t)v.gridsize.x * v.gridsize.y * v.gridsize.z) / (size_t) 8.0;
+		fprintf(stdout, "[Voxel Grid] Allocating %llu kB of DEVICE memory\n", size_t(vtable_size / 1024.0f));
 		checkCudaErrors(cudaMalloc(&dev_vtable, vtable_size));
 		checkCudaErrors(cudaMemset(dev_vtable, 0, vtable_size));
 		// Start voxelization
@@ -245,12 +242,13 @@ void voxelize(const voxinfo& v, float* triangle_data, unsigned int* vtable, bool
 	checkCudaErrors(cudaEventRecord(stop_vox, 0));
 	checkCudaErrors(cudaEventSynchronize(stop_vox));
 	checkCudaErrors(cudaEventElapsedTime(&elapsedTime, start_vox, stop_vox));
-	printf("Voxelisation GPU time:  %3.1f ms\n", elapsedTime);
+	printf("[Voxelization] GPU time:  %3.1f ms\n", elapsedTime);
 
 	// If we're not using UNIFIED memory, copy the voxel table back and free all
-	if (!useMallocManaged){
+	if (useThrustPath){
+		fprintf(stdout, "[Voxel Grid] Copying %llu kB to page-locked HOST memory\n", size_t(vtable_size / 1024.0f));
 		checkCudaErrors(cudaMemcpy((void*)vtable, dev_vtable, vtable_size, cudaMemcpyDefault));
-		checkCudaErrors(cudaFree(triangle_data));
+		fprintf(stdout, "[Voxel Grid] Freeing %llu kB of DEVICE memory\n", size_t(vtable_size / 1024.0f));
 		checkCudaErrors(cudaFree(dev_vtable));
 	}
 
@@ -261,15 +259,7 @@ void voxelize(const voxinfo& v, float* triangle_data, unsigned int* vtable, bool
 	//printf("We've seen %llu triangles on the GPU \n", t_seen);
 	//printf("We've found %llu voxels on the GPU \n", v_count);
 
-	// get stop time, and display the timing results
-	checkCudaErrors(cudaEventRecord(stop_total, 0));
-	checkCudaErrors(cudaEventSynchronize(stop_total));
-	checkCudaErrors(cudaEventElapsedTime(&elapsedTime, start_total, stop_total));
-	printf("Total GPU time (including memory transfers):  %3.1f ms\n", elapsedTime);
-
 	// Destroy timers
-	checkCudaErrors(cudaEventDestroy(start_total));
-	checkCudaErrors(cudaEventDestroy(stop_total));
 	checkCudaErrors(cudaEventDestroy(start_vox));
 	checkCudaErrors(cudaEventDestroy(stop_vox));
 }
