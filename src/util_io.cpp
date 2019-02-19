@@ -17,7 +17,7 @@ void read_binary(void* data, const size_t length, const std::string base_filenam
 	std::ifstream input(base_filename.c_str(), ios_base::in | ios_base::binary);
 	assert(input);
 #ifndef SILENT
-	fprintf(stdout, "Reading %llu kb of binary data from file %s \n", size_t(length / 1024.0f), base_filename.c_str()); fflush(stdout);
+	fprintf(stdout, "[I/O] Reading %llu kb of binary data from file %s \n", size_t(length / 1024.0f), base_filename.c_str()); fflush(stdout);
 #endif
 	input.seekg(0, input.beg);
 	input.read((char*) data, 8);
@@ -28,7 +28,7 @@ void read_binary(void* data, const size_t length, const std::string base_filenam
 void write_binary(void* data, size_t bytes, const std::string base_filename){
 	string filename_output = base_filename + string(".bin");
 #ifndef SILENT
-	fprintf(stdout, "Writing data in binary format to %s (%llu kb) \n", filename_output.c_str(), size_t(bytes / 1024.0f));
+	fprintf(stdout, "[I/O] Writing data in binary format to %s (%llu kb) \n", filename_output.c_str(), size_t(bytes / 1024.0f));
 #endif
 	ofstream output(filename_output.c_str(), ios_base::out | ios_base::binary);
 	output.write((char*)data, bytes);
@@ -39,7 +39,7 @@ void write_binvox(const unsigned int* vtable, const size_t gridsize, const std::
 	// Open file
 	string filename_output = base_filename + string("_") + to_string(gridsize) + string(".binvox");
 #ifndef SILENT
-	fprintf(stdout, "Writing data in binvox format to %s \n", filename_output.c_str());
+	fprintf(stdout, "[I/O] Writing data in binvox format to %s \n", filename_output.c_str());
 #endif
 	ofstream output(filename_output.c_str(), ios::out | ios::binary);
 	assert(output);
