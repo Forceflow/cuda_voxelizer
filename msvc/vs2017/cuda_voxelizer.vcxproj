@@ -191,6 +191,7 @@ copy /y "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).exe" "$(BINAR
     <ClInclude Include="..\..\src\libs\helper_string.h" />
     <ClInclude Include="..\..\src\morton_LUTs.h" />
     <ClInclude Include="..\..\src\thrust_operations.cuh" />
+    <ClInclude Include="..\..\src\timer.h" />
     <ClInclude Include="..\..\src\voxelize.cuh" />
   </ItemGroup>
   <ItemGroup>

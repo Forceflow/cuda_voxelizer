@@ -34,6 +34,7 @@
     <ClInclude Include="..\..\src\morton_LUTs.h">
       <Filter>util</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\timer.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="../../src/todo.txt" />
