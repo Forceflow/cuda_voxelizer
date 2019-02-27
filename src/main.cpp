@@ -166,9 +166,9 @@ int main(int argc, char *argv[]) {
 	fprintf(stdout, "[I/O] Reading mesh from %s \n", filename.c_str());
 	trimesh::TriMesh *themesh = trimesh::TriMesh::read(filename.c_str());
 	fprintf(stdout, "[Mesh] Computing faces \n", filename.c_str());
-	themesh->need_faces(); // Trimesh: Unpack (possible) triangle strips so we have faces
+	themesh->need_faces(); // Trimesh: Unpack (possible) triangle strips so we have faces for sure
 	fprintf(stdout, "[Mesh] Computing bbox \n", filename.c_str());
-	themesh->need_bbox(); // Trimesh: Compute the bounding box
+	themesh->need_bbox(); // Trimesh: Compute the bounding box (in model coordinates)
 
 	fprintf(stdout, "\n## TRIANGLES TO GPU TRANSFER \n");
 	fprintf(stdout, "[Mesh] Number of faces: %u \n", themesh->faces.size());
@@ -183,7 +183,9 @@ int main(int argc, char *argv[]) {
 	}
 
 	fprintf(stdout, "\n## VOXELISATION SETUP \n");
-	AABox<glm::vec3> bbox_mesh(trimesh_to_glm(themesh->bbox.min), trimesh_to_glm(themesh->bbox.max)); // compute bbox around mesh
+	// Initialize our own AABox
+	AABox<glm::vec3> bbox_mesh(trimesh_to_glm(themesh->bbox.min), trimesh_to_glm(themesh->bbox.max)); 
+	// Transform that AABox to a cubical box (by padding directions if needed)
 	voxinfo v(createMeshBBCube<glm::vec3>(bbox_mesh), glm::uvec3(gridsize, gridsize, gridsize), themesh->faces.size());
 	v.print();
 	size_t vtable_size = ((size_t)gridsize*gridsize*gridsize) / 8.0f;

@@ -72,14 +72,14 @@ struct voxinfo {
 //
 template <typename T>
 inline AABox<T> createMeshBBCube(AABox<T> box) {
-	AABox<T> answer(box.min, box.max);
-	glm::vec3 lengths = box.max - box.min;
-	float max_length = glm::max(lengths.x, glm::max(lengths.y, lengths.z));
-	for (int i = 0; i < 3; i++) {
-		float delta = max_length - lengths[i];
-		if (delta != 0) {
-			answer.min[i] = box.min[i] - (delta / 2.0f);
-			answer.max[i] = box.max[i] + (delta / 2.0f);
+	AABox<T> answer(box.min, box.max); // initialize answer
+	glm::vec3 lengths = box.max - box.min; // check length of given bbox 
+	float max_length = glm::max(lengths.x, glm::max(lengths.y, lengths.z)); // which length is the largest?
+	for (int i = 0; i < 3; i++) { // for every direction (X,Y,Z)
+		float delta = max_length - lengths[i]; // compute difference between largest length and current (X,Y or Z) length
+		if (delta != 0) { // if that's not 0 (TODO: we doing float math here - can this be 0.00000000000001?)
+			answer.min[i] = box.min[i] - (delta / 2.0f); // pad with half the difference before current min
+			answer.max[i] = box.max[i] + (delta / 2.0f); // pad with half the difference behind current max
 		}
 	}
 	return answer;
