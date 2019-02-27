@@ -61,7 +61,15 @@ struct voxinfo {
 	}
 };
 
-// create mesh bbox cube
+// Create mesh BBOX cube, using the maximum length between bbox min and bbox max
+// We want to end up with a cube that is this max length.
+// So we pad the directions in which this length is not reached
+//
+// Example: (1,2,3) to (4,4,4) becomes:
+// Max distance is 3
+//
+// (1, 1.5, 2) to (4,4.5,5), which is a cube with side 3
+//
 template <typename T>
 inline AABox<T> createMeshBBCube(AABox<T> box) {
 	AABox<T> answer(box.min, box.max);
