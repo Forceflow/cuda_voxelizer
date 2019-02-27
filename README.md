@@ -41,8 +41,8 @@ A Visual Studio 2017 project solution is provided in the `msvc`folder. It is con
 
 ## Notes
  * If you want a good customizable CPU-based voxelizer, I can recommend [VoxSurf](https://github.com/sylefeb/VoxSurf).
- * Another hackable voxel viewer is Fabian Giesen's excellent [stb_voxel_render.h](https://github.com/nothings/stb/blob/master/stb_voxel_render.h).
- * Nvidia itself also has a voxel library called [GVDB](https://developer.nvidia.com/gvdb), that does a lot more than just voxelizing.
+ * Another hackable voxel viewer is Sean Barrett's excellent [stb_voxel_render.h](https://github.com/nothings/stb/blob/master/stb_voxel_render.h).
+ * Nvidia also has a voxel library called [GVDB](https://developer.nvidia.com/gvdb), that does a lot more than just voxelizing.
 
 ## Todo
  * Parallelize / CUDA-ify bounding box estimation
