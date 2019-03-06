@@ -2,7 +2,7 @@
 
 // Check if CUDA requirements are met
 int initCuda(){
-	// Is there a CUDA device?
+	// Is there a CUDA device at all?
 	int device_count = 0;
 	checkCudaErrors(cudaGetDeviceCount(&device_count));
 	if(device_count < 1){
@@ -14,9 +14,10 @@ int initCuda(){
 	}
 
 	fprintf(stdout, "[CUDA] ");
-	// Select best (fastest) CUDA device (method from Nvidia helper library)
+	// We have at least 1 CUDA device, so now select the fastest (method from Nvidia helper library)
 	int device = findCudaDevice(0, 0);
 
+	// Print available device memory
 	cudaDeviceProp properties;
 	checkCudaErrors(cudaGetDeviceProperties(&properties,device));
 	fprintf(stdout,"[CUDA] Available global device memory: %.0lf MB. \n", ((double) properties.totalGlobalMem / 1024 / 1024));

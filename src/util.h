@@ -1,6 +1,5 @@
 #pragma once
 
-// 
 #include <stdint.h>
 
 #include "TriMesh.h"
@@ -11,11 +10,14 @@
 #define GLM_FORCE_PURE
 #include <glm/glm.hpp>
 
+// Converting builtin TriMesh vectors to GLM vectors
+// We do this as soon as possible, because GLM is great
 template<typename trimeshtype>
 inline glm::vec3 trimesh_to_glm(trimeshtype a) {
 	return glm::vec3(a[0], a[1], a[2]);
 }
 
+// Check if a voxel in the voxel table is set
 __device__ __host__ inline char checkVoxel(size_t x, size_t y, size_t z, size_t gridsize, const unsigned int* vtable){
 	size_t location = x + (y*gridsize) + (z*gridsize*gridsize);
 	size_t int_location = location / size_t(32);
@@ -31,6 +33,7 @@ __device__ __host__ inline char checkVoxel(size_t x, size_t y, size_t z, size_t 
 	return char(0);
 }
 
+// An Axis Aligned box
 template <typename T>
 struct AABox {
 	T min;
@@ -39,7 +42,7 @@ struct AABox {
 	__device__ __host__ AABox(T min, T max) : min(min), max(max) {}
 };
 
-// voxelisation info (same for every triangle)
+// Voxelisation info (global parameters for the voxelization process)
 struct voxinfo {
 	AABox<glm::vec3> bbox;
 	glm::uvec3 gridsize;
@@ -85,6 +88,7 @@ inline AABox<T> createMeshBBCube(AABox<T> box) {
 	return answer;
 }
 
+// Helper method to print bits
 void inline printBits(size_t const size, void const * const ptr) {
 	unsigned char *b = (unsigned char*)ptr;
 	unsigned char byte;
