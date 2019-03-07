@@ -10,7 +10,7 @@ FIND_PACKAGE(GLM REQUIRED)
  
 SET(CUDA_VOXELIZER_EXECUTABLE cuda_voxelizer)
 
-SET(Trimesh2_INCLUDE_DIR "./thirdparty/trimesh2/include" CACHE PATH "Path to Trimesh2 includes")
+SET(Trimesh2_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/thirdparty/trimesh2/include" CACHE PATH "Path to Trimesh2 includes")
 
 FIND_FILE(Trimesh2_TriMesh_h TriMesh.h ${Trimesh2_INCLUDE_DIR})
 IF(NOT Trimesh2_TriMesh_h)
@@ -19,7 +19,7 @@ ENDIF()
 MARK_AS_ADVANCED(Trimesh2_TriMesh_h)
 INCLUDE_DIRECTORIES(${Trimesh2_INCLUDE_DIR})
 
-SET(Trimesh2_LINK_DIR "./thirdparty/trimesh2/lib.Linux64" CACHE PATH "Path to Trimesh2 libraries")
+SET(Trimesh2_LINK_DIR "${CMAKE_SOURCE_DIR}/thirdparty/trimesh2/lib.Linux64" CACHE PATH "Path to Trimesh2 libraries")
 FIND_LIBRARY(Trimesh2_LIBRARY trimesh ${Trimesh2_LINK_DIR})
 IF(NOT Trimesh2_LIBRARY)
 	message(SEND_ERROR "Can't find libtrimesh.a in ${Trimesh2_LINK_DIR}")
@@ -28,13 +28,12 @@ MARK_AS_ADVANCED(Trimesh2_LIBRARY)
 
 SET(CUDA_VOXELIZER_SRCS
   ./src/main.cpp
-  ./src/tiny_obj_loader.cc
   ./src/util_cuda.cpp
   ./src/util_io.cpp
 )
 SET(CUDA_VOXELIZER_SRCS_CU
-  ./src/bounding_box.cu
   ./src/voxelize.cu
+  ./src/thrust_operations.cu
 )
 
 CUDA_ADD_EXECUTABLE(
