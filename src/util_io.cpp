@@ -11,7 +11,6 @@ size_t get_file_length(const std::string base_filename){
 	input.close();
 	return length; // get file length
 }
-
 void read_binary(void* data, const size_t length, const std::string base_filename){
 	// open file
 	std::ifstream input(base_filename.c_str(), ios_base::in | ios_base::binary);
