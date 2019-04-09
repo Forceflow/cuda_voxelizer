@@ -103,18 +103,18 @@ copy /y "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).exe" "$(BINAR
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <CudaCompile Include="../../src/voxelize.cu" />
+    <CudaCompile Include="..\..\src/voxelize.cu" />
     <CudaCompile Include="..\..\src\thrust_operations.cu" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="../../src/util_io.cpp" />
-    <ClCompile Include="../../src/util_cuda.cpp" />
-    <ClCompile Include="../../src/main.cpp" />
+    <ClCompile Include="..\..\src\util_io.cpp" />
+    <ClCompile Include="..\..\src\util_cuda.cpp" />
+    <ClCompile Include="..\..\src\main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="../../src/util_io.h" />
-    <ClInclude Include="../../src/util.h" />
-    <ClInclude Include="../../src/util_cuda.h" />
+    <ClInclude Include="..\..\src\util_io.h" />
+    <ClInclude Include="..\..\src\util.h" />
+    <ClInclude Include="..\..\src\util_cuda.h" />
     <ClInclude Include="..\..\src\libs\helper_cuda.h" />
     <ClInclude Include="..\..\src\libs\helper_string.h" />
     <ClInclude Include="..\..\src\morton_LUTs.h" />
@@ -123,7 +123,7 @@ copy /y "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).exe" "$(BINAR
     <ClInclude Include="..\..\src\voxelize.cuh" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="../../src/todo.txt" />
+    <Text Include="..\..\src\todo.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
