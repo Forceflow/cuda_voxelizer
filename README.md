@@ -25,7 +25,7 @@ The project has the following build dependencies:
  * [Trimesh2](https://github.com/Forceflow/trimesh2) for model importing. Latest version recommended.
  * [GLM](http://glm.g-truc.net/0.9.8/index.html) for vector math. Any recent version will do.
 
-A Visual Studio 2017 project solution is provided in the `msvc`folder. It is configured for CUDA 10.0, but you can edit the project file to make it work with lower CUDA versions. You can edit the `custom_includes.props` file to configure the library locations, and specify a place where the resulting binaries should be placed.
+A Visual Studio 2017 project solution is provided in the `msvc`folder. It is configured for CUDA 10.1, but you can edit the project file to make it work with lower CUDA versions. You can edit the `custom_includes.props` file to configure the library locations, and specify a place where the resulting binaries should be placed.
 
 ```
     <TRIMESH_DIR>C:\libs\trimesh2\</TRIMESH_DIR>
