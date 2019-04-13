@@ -103,9 +103,9 @@ __global__ void voxelize_triangle(voxinfo info, float* triangle_data, unsigned i
 		t_bbox_grid.min = glm::clamp(t_bbox_world.min / info.unit, glm::vec3(0.0f, 0.0f, 0.0f), grid_max);
 		t_bbox_grid.max = glm::clamp(t_bbox_world.max / info.unit, glm::vec3(0.0f, 0.0f, 0.0f), grid_max);
 
-		// SANITY CHECK TO DETECT PROBLEMS
-		if (t_bbox_grid.min == t_bbox_grid.max) {
-			// If the triangle bounding box minimum and maximum is the same, it's totally outside voxel space
+		// SANITY CHECK TO DETECT PROBLEMS (First try)
+		if (t_bbox_grid.min.x == t_bbox_grid.max.x || t_bbox_grid.min.y == t_bbox_grid.max.y || t_bbox_grid.min.z == t_bbox_grid.max.z) {
+			// If in any direction the triangle bounding box minimum and maximum is the same it's out of voxel space
 			thread_id += stride;
 			printf("Voxelizer: I got a triangle that's completely out of voxel space, discarding");
 			continue; // discard this triangle and start work on the next
