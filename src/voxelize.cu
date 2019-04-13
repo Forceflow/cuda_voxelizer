@@ -1,4 +1,5 @@
 #include "voxelize.cuh"
+#include "tribox_helper.h"
 
 // CUDA Global Memory variables
 //__device__ size_t voxel_count = 0; // How many voxels did we count
@@ -9,7 +10,7 @@ __constant__ uint32_t morton256_y[256];
 __constant__ uint32_t morton256_z[256];
 
 // Encode morton code using LUT table
-__device__ inline uint64_t mortonEncode_LUT(unsigned int x, unsigned int y, unsigned int z){
+__device__ inline uint64_t mortonEncode_LUT(unsigned int x, unsigned int y, unsigned int z) {
 	uint64_t answer = 0;
 	answer = morton256_z[(z >> 16) & 0xFF] |
 		morton256_y[(y >> 16) & 0xFF] |
@@ -19,10 +20,92 @@ __device__ inline uint64_t mortonEncode_LUT(unsigned int x, unsigned int y, unsi
 		morton256_y[(y >> 8) & 0xFF] |
 		morton256_x[(x >> 8) & 0xFF];
 	answer = answer << 24 |
-		morton256_z[(z)& 0xFF] |
-		morton256_y[(y)& 0xFF] |
-		morton256_x[(x)& 0xFF];
+		morton256_z[(z) & 0xFF] |
+		morton256_y[(y) & 0xFF] |
+		morton256_x[(x) & 0xFF];
 	return answer;
+}
+
+// Tomas Akenine-Mollers triangle-aabox test
+// https://fileadmin.cs.lth.se/cs/Personal/Tomas_Akenine-Moller/pubs/tribox.pdf
+// Not ready for release, all these functions can be replaced by their GLM counterpart
+__device__ int triBoxOverlap(float boxcenter[3], float boxhalfsize[3], float triverts[3][3])
+{
+	/*    use separating axis theorem to test overlap between triangle and box */
+	/*    need to test for overlap in these directions: */
+	/*    1) the {x,y,z}-directions (actually, since we use the AABB of the triangle */
+	/*       we do not even need to test these) */
+	/*    2) normal of the triangle */
+	/*    3) crossproduct(edge from tri, {x,y,z}-directin) */
+	/*       this gives 3x3=9 more tests */
+
+	float v0[3], v1[3], v2[3];
+	//   float axis[3];
+	float min, max, p0, p1, p2, rad, fex, fey, fez;		// -NJMP- "d" local variable removed
+	float normal[3], e0[3], e1[3], e2[3];
+	/* This is the fastest branch on Sun */
+	/* move everything so that the boxcenter is in (0,0,0) */
+
+	SUB(v0, triverts[0], boxcenter);
+	SUB(v1, triverts[1], boxcenter);
+	SUB(v2, triverts[2], boxcenter);
+
+	/* compute triangle edges */
+	SUB(e0, v1, v0);      /* tri edge 0 */
+	SUB(e1, v2, v1);      /* tri edge 1 */
+	SUB(e2, v0, v2);      /* tri edge 2 */
+
+	/* Bullet 3:  *
+	/*  test the 9 tests first (this was faster) */
+	fex = fabsf(e0[X]);
+	fey = fabsf(e0[Y]);
+	fez = fabsf(e0[Z]);
+	AXISTEST_X01(e0[Z], e0[Y], fez, fey);
+	AXISTEST_Y02(e0[Z], e0[X], fez, fex);
+	AXISTEST_Z12(e0[Y], e0[X], fey, fex);
+
+	fex = fabsf(e1[X]);
+	fey = fabsf(e1[Y]);
+	fez = fabsf(e1[Z]);
+
+	AXISTEST_X01(e1[Z], e1[Y], fez, fey);
+	AXISTEST_Y02(e1[Z], e1[X], fez, fex);
+	AXISTEST_Z0(e1[Y], e1[X], fey, fex);
+
+	fex = fabsf(e2[X]);
+	fey = fabsf(e2[Y]);
+	fez = fabsf(e2[Z]);
+
+	AXISTEST_X2(e2[Z], e2[Y], fez, fey);
+	AXISTEST_Y1(e2[Z], e2[X], fez, fex);
+	AXISTEST_Z12(e2[Y], e2[X], fey, fex);
+
+	/* Bullet 1: */
+	/*  first test overlap in the {x,y,z}-directions */
+	/*  find min, max of the triangle each direction, and test for overlap in */
+	/*  that direction -- this is equivalent to testing a minimal AABB around */
+	/*  the triangle against the AABB */
+
+	/* test in X-direction */
+	FINDMINMAX(v0[X], v1[X], v2[X], min, max);
+	if (min > boxhalfsize[X] || max < -boxhalfsize[X]) return 0;
+
+	/* test in Y-direction */
+	FINDMINMAX(v0[Y], v1[Y], v2[Y], min, max);
+	if (min > boxhalfsize[Y] || max < -boxhalfsize[Y]) return 0;
+
+	/* test in Z-direction */
+	FINDMINMAX(v0[Z], v1[Z], v2[Z], min, max);
+	if (min > boxhalfsize[Z] || max < -boxhalfsize[Z]) return 0;
+
+	/* Bullet 2: */
+	/*  test if the box intersects the plane of the triangle */
+	/*  compute plane equation of triangle: normal*x+d=0 */
+	CROSS(normal, e0, e1);
+
+	// -NJMP- (line removed here)
+	if (!planeBoxOverlap(normal, v0, boxhalfsize)) return 0;	// -NJMP-
+	return 1;   /* box and triangle overlaps */
 }
 
 // Possible optimization: buffer bitsets (for now: Disabled because too much overhead)
@@ -94,6 +177,17 @@ __global__ void voxelize_triangle(voxinfo info, float* triangle_data, unsigned i
 		glm::vec3 e2 = v0 - v2;
 		// Normal vector pointing up from the triangle
 		glm::vec3 n = glm::normalize(glm::cross(e0, e1));
+
+		// Does this triangle _actually_ touch the voxel grid in any way?
+		float boxcenter[3] = { grid_max.x / 2.0f, grid_max.y / 2.0f , grid_max.z / 2.0f };
+		float triverts[3][3] = { v0.x, v0.y, v0.z, v1.x, v1.y, v1.z, v2.x, v2.y, v2.z };
+		// In our case, boxcenter and boxhalfsize are the same: we already moved to origin
+		if (!triBoxOverlap(boxcenter, boxcenter, triverts)){
+			// box and triangle don't overlap in any way - skip rest of execution
+			thread_id += stride; // increase stride
+			continue; // go work on next triangle
+		}
+		// else: everything is good, and we can continue the voxelizing
 
 		// COMPUTE TRIANGLE BBOX IN GRID
 		// Triangle bounding box in world coordinates is min(v0,v1,v2) and max(v0,v1,v2)
