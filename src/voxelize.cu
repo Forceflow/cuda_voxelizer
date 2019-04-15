@@ -179,7 +179,7 @@ __global__ void voxelize_triangle(voxinfo info, float* triangle_data, unsigned i
 		glm::vec3 n = glm::normalize(glm::cross(e0, e1));
 
 		// Does this triangle _actually_ touch the voxel grid in any way?
-		float boxcenter[3] = { info.gridsize.x / 2.0f, info.gridsize.y / 2.0f , info.gridsize.y / 2.0f };
+		float boxcenter[3] = { info.gridsize.x / 2.0f, info.gridsize.y / 2.0f , info.gridsize.z / 2.0f };
 		float triverts[3][3] = { v0.x, v0.y, v0.z, v1.x, v1.y, v1.z, v2.x, v2.y, v2.z };
 		// In our case, boxcenter and boxhalfsize are the same: we already moved to origin
 		if (!triBoxOverlap(boxcenter, boxcenter, triverts)){
