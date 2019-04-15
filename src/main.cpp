@@ -32,7 +32,7 @@ char *OutputFormats[] = { "binvox file", "morton encoded blob" };
 string filename = "";
 string filename_base = "";
 OutputFormat outputformat = output_binvox;
-unsigned int gridsize = 256;
+glm::uvec3 gridsize = glm::uvec3(256, 256, 256);
 bool useThrustPath = false;
 
 void printHeader(){
@@ -115,7 +115,8 @@ void parseProgramParameters(int argc, char* argv[]){
 			i++;
 		}
 		else if (string(argv[i]) == "-s") {
-			gridsize = atoi(argv[i + 1]);
+			unsigned int s = atoi(argv[i + 1]);
+			gridsize = glm::uvec3(s,s,s);
 			i++;
 		} else if (string(argv[i]) == "-h") {
 			printHelp();
@@ -186,9 +187,9 @@ int main(int argc, char *argv[]) {
 	// Initialize our own AABox
 	AABox<glm::vec3> bbox_mesh(trimesh_to_glm(themesh->bbox.min), trimesh_to_glm(themesh->bbox.max)); 
 	// Transform that AABox to a cubical box (by padding directions if needed)
-	voxinfo v(createMeshBBCube<glm::vec3>(bbox_mesh), glm::uvec3(gridsize, gridsize, gridsize), themesh->faces.size());
+	voxinfo v(createMeshBBCube<glm::vec3>(bbox_mesh), gridsize, themesh->faces.size());
 	v.print();
-	size_t vtable_size = ((size_t)gridsize*gridsize*gridsize) / 8.0f;
+	size_t vtable_size = ((size_t)gridsize.x*gridsize.y*gridsize.z) / 8.0f;
 
 	unsigned int* vtable;
 	if (!useThrustPath) {

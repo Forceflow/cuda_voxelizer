@@ -34,9 +34,9 @@ void write_binary(void* data, size_t bytes, const std::string base_filename){
 	output.close();
 }
 
-void write_binvox(const unsigned int* vtable, const size_t gridsize, const std::string base_filename){
+void write_binvox(const unsigned int* vtable, const glm::uvec3 gridsize, const std::string base_filename){
 	// Open file
-	string filename_output = base_filename + string("_") + to_string(gridsize) + string(".binvox");
+	string filename_output = base_filename + string("_") + to_string(gridsize.x) + string("x") + to_string(gridsize.y)  + string("x") + to_string(gridsize.z) + string(".binvox");
 #ifndef SILENT
 	fprintf(stdout, "[I/O] Writing data in binvox format to %s \n", filename_output.c_str());
 #endif
@@ -45,7 +45,7 @@ void write_binvox(const unsigned int* vtable, const size_t gridsize, const std::
 	
 	// Write ASCII header
 	output << "#binvox 1" << endl;
-	output << "dim " << gridsize << " " << gridsize << " " << gridsize << "" << endl;
+	output << "dim " << gridsize.x << " " << gridsize.y << " " << gridsize.z << "" << endl;
 	output << "data" << endl;
 
 	// Write first voxel
@@ -54,9 +54,9 @@ void write_binvox(const unsigned int* vtable, const size_t gridsize, const std::
 	char current_seen = 1;
 
 	// Write BINARY Data
-	for (size_t x = 0; x < gridsize; x++){
-		for (size_t z = 0; z < gridsize; z++){
-			for (size_t y = 0; y < gridsize; y++){
+	for (size_t x = 0; x < gridsize.x; x++){
+		for (size_t z = 0; z < gridsize.y; z++){
+			for (size_t y = 0; y < gridsize.z; y++){
 				if (x == 0 && y == 0 && z == 0){
 					continue;
 				}
