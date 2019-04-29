@@ -24,6 +24,21 @@ void read_binary(void* data, const size_t length, const std::string base_filenam
 	return;
 }
 
+void write_obj(const unsigned int* vtable, const size_t gridsize, const std::string base_filename) {
+	string filename_output = base_filename + string("_") + to_string(gridsize) + string(".obj");
+	ofstream output(filename_output.c_str(), ios::out);
+	assert(output);
+	for (size_t x = 0; x < gridsize; x++) {
+		for (size_t y = 0; y < gridsize; y++) {
+			for (size_t z = 0; z < gridsize; z++) {
+				if (checkVoxel(x, y, z, gridsize, vtable)); {
+					output << "v " << x << " " << y << " " << z << endl;
+				}
+			}
+		}
+	}
+}
+
 void write_binary(void* data, size_t bytes, const std::string base_filename){
 	string filename_output = base_filename + string(".bin");
 #ifndef SILENT
@@ -48,16 +63,15 @@ void write_binvox(const unsigned int* vtable, const size_t gridsize, const std::
 	output << "dim " << gridsize << " " << gridsize << " " << gridsize << "" << endl;
 	output << "data" << endl;
 
-	// Write first voxel
-	char currentvalue = checkVoxel(0, 0, 0, gridsize, vtable);
-	output.write((char*)&currentvalue, 1);
-	char current_seen = 1;
-
-	// Write BINARY Data
+	// Write BINARY Data (and compress it a bit using run-length encoding)
+	char currentvalue, current_seen;
 	for (size_t x = 0; x < gridsize; x++){
 		for (size_t z = 0; z < gridsize; z++){
 			for (size_t y = 0; y < gridsize; y++){
-				if (x == 0 && y == 0 && z == 0){
+				if (x == 0 && y == 0 && z == 0){ // special case: first voxel
+					currentvalue = checkVoxel(0, 0, 0, gridsize, vtable);
+					output.write((char*)&currentvalue, 1);
+					current_seen = 1;
 					continue;
 				}
 				char nextvalue = checkVoxel(x, y, z, gridsize, vtable);
