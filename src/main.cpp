@@ -188,7 +188,7 @@ int main(int argc, char *argv[]) {
 	// Transform that AABox to a cubical box (by padding directions if needed)
 	voxinfo v(createMeshBBCube<glm::vec3>(bbox_mesh), glm::uvec3(gridsize, gridsize, gridsize), themesh->faces.size());
 	v.print();
-	size_t vtable_size = ((size_t)gridsize*gridsize*gridsize) / 8.0f;
+	size_t vtable_size = (size_t) ceil((v.gridsize.x*v.gridsize.y*v.gridsize.z) / 8.0f);
 
 	unsigned int* vtable;
 	if (!useThrustPath) {
