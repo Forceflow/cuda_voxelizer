@@ -37,6 +37,7 @@ void write_obj(const unsigned int* vtable, const size_t gridsize, const std::str
 			}
 		}
 	}
+	output.close();
 }
 
 void write_binary(void* data, size_t bytes, const std::string base_filename){
