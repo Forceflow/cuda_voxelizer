@@ -26,14 +26,20 @@ void read_binary(void* data, const size_t length, const std::string base_filenam
 
 void write_obj(const unsigned int* vtable, const size_t gridsize, const std::string base_filename) {
 	string filename_output = base_filename + string("_") + to_string(gridsize) + string(".obj");
+#ifndef SILENT
+	fprintf(stdout, "[I/O] Writing data in obj format to %s \n", filename_output.c_str());
+#endif
 	ofstream output(filename_output.c_str(), ios::out);
 	assert(output);
 	for (size_t x = 0; x < gridsize; x++) {
 		for (size_t y = 0; y < gridsize; y++) {
 			for (size_t z = 0; z < gridsize; z++) {
-				if (checkVoxel(x, y, z, gridsize, vtable)); {
-					output << "v " << x << " " << y << " " << z << endl;
+				if (checkVoxel(x, y, z, gridsize, vtable)) {
+					output << "v " << (x+0.5) << " " << (y + 0.5) << " " << (z + 0.5) << endl; // +0.5 to put vertex in the middle of the voxel
 				}
+				//else {
+				//	output << "NOVOXEL " << x << " " << y << " " << z << endl;
+				//}
 			}
 		}
 	}

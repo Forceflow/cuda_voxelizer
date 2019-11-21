@@ -17,7 +17,7 @@
 #include "timer.h"
 
 using namespace std;
-string version_number = "v0.3";
+string version_number = "v0.4";
 
 // Forward declaration of CUDA functions
 float* meshToGPU_thrust(const trimesh::TriMesh *mesh); // METHOD 3 to transfer triangles can be found in thrust_operations.cu(h)
@@ -25,8 +25,8 @@ void cleanup_thrust();
 void voxelize(const voxinfo & v, float* triangle_data, unsigned int* vtable, bool useThrustPath, bool morton_code);
 
 // Output formats
-enum OutputFormat { output_binvox, output_morton};
-char *OutputFormats[] = { "binvox file", "morton encoded blob" };
+enum OutputFormat { output_binvox, output_morton, output_obj};
+char *OutputFormats[] = { "binvox file", "morton encoded blob", "obj file"};
 
 // Default options
 string filename = "";
@@ -49,7 +49,7 @@ void printHelp(){
 	cout << "Program options: " << endl;
 	cout << " -f <path to model file: .ply, .obj, .3ds> (required)" << endl;
 	cout << " -s <voxelization grid size, power of 2: 8 -> 512, 1024, ... (default: 256)>" << endl;
-	cout << " -o <output format: binvox or morton (default: binvox)>" << endl;
+	cout << " -o <output format: binvox, obj or morton (default: binvox)>" << endl;
 	cout << " -t : Force using CUDA Thrust Library (possible speedup / throughput improvement)" << endl;
 	printExample();
 }
@@ -128,6 +128,9 @@ void parseProgramParameters(int argc, char* argv[]){
 			}
 			else if (output == "morton"){
 				outputformat = output_morton;
+			}
+			else if (output == "obj") {
+				outputformat = output_obj;
 			}
 			else {
 				fprintf(stdout, "Unrecognized output format: %s, valid options are binvox (default) or morton \n", output);
@@ -209,6 +212,9 @@ int main(int argc, char *argv[]) {
 	} else if (outputformat == output_binvox){
 		fprintf(stdout, "\n## OUTPUT TO BINVOX FILE \n");
 		write_binvox(vtable, gridsize, filename);
+	}
+	else if (outputformat == output_obj) {
+		write_obj(vtable, gridsize, filename);
 	}
 
 	if (useThrustPath) {

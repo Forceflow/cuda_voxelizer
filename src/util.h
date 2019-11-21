@@ -18,7 +18,7 @@ inline glm::vec3 trimesh_to_glm(trimeshtype a) {
 }
 
 // Check if a voxel in the voxel table is set
-__device__ __host__ inline char checkVoxel(size_t x, size_t y, size_t z, size_t gridsize, const unsigned int* vtable){
+__device__ __host__ inline bool checkVoxel(size_t x, size_t y, size_t z, size_t gridsize, const unsigned int* vtable){
 	size_t location = x + (y*gridsize) + (z*gridsize*gridsize);
 	size_t int_location = location / size_t(32);
 	/*size_t max_index = (gridsize*gridsize*gridsize) / __int64(32);
@@ -28,9 +28,9 @@ __device__ __host__ inline char checkVoxel(size_t x, size_t y, size_t z, size_t 
 	}*/
 	unsigned int bit_pos = size_t(31) - (location % size_t(32)); // we count bit positions RtL, but array indices LtR
 	if ((vtable[int_location]) & (1 << bit_pos)){
-		return char(1);
+		return true;
 	}
-	return char(0);
+	return false;
 }
 
 // An Axis Aligned box
