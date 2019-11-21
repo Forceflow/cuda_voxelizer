@@ -13,8 +13,8 @@ Experimental CUDA voxelizer, to convert polygon meshes to (annotated) voxel grid
 
 ## Usage
 Program options:
- * `-f <path to model file>`: **(required)** A path to a polygon-based 3D model file. Supported input formats: .ply, .off, .obj, .3DS, .SM and RAY.
- * `-s <voxel grid length>`: The length of the cubical voxel grid. Default: 256, resulting in a 256 x 256 x 256 voxelization grid.  Cuda_voxelizer will automatically select the tightest bounding box around the model. If you want to output to the *morton* file format, this should be a power of 2.
+ * `-f <path to model file>`: **(required)** A path to a polygon-based 3D model file. 
+ * `-s <voxel grid length>`: The length of the cubical voxel grid. Default: 256, resulting in a 256 x 256 x 256 voxelization grid.  Cuda_voxelizer will automatically select the tightest bounding box around the model.
  * `-o <output format>`:, The output format for voxelized models, currently *binvox*, *obj* or *morton*. Default: *binvox*. Output files are saved in the same folder as the input file.
   * `-t` : Use Thrust library for CUDA memory operations. Might provide speed / throughput improvement. Default: disabled.
   
