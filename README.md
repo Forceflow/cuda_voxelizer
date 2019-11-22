@@ -55,17 +55,33 @@ A Visual Studio 2019 project solution is provided in the `msvc`folder. It is con
 | 512^3     | 13.4 ms |
 | 1024^3    | 38.6 ms  |
 
-## Notes
+## Notes / See Also
+ * The .binvox file format was created by [Patrick Min](https://www.patrickmin.com/binvox/). Check some other interesting tools he wrote:
+   * [viewvox](https://www.patrickmin.com/viewvox/): Visualization of voxel grids (a copy of this tool is included in cuda_voxelizer releases)
+   * [thinvox](https://www.patrickmin.com/thinvox/): Thinning of voxel grids
  * If you want a good customizable CPU-based voxelizer, I can recommend [VoxSurf](https://github.com/sylefeb/VoxSurf).
  * Another hackable voxel viewer is Sean Barrett's excellent [stb_voxel_render.h](https://github.com/nothings/stb/blob/master/stb_voxel_render.h).
  * Nvidia also has a voxel library called [GVDB](https://developer.nvidia.com/gvdb), that does a lot more than just voxelizing.
 
-## Todo
- * Parallelize / CUDA-ify bounding box estimation
- * Support non-cubical grids
+## Todo / Possible future work
+This is on my list of nice things to add. Don't hesistate to crack one of these yourself and make a PR!
+
+ * .obj export to actual mesh instead of a point cloud
+ * Noncubic grid support
+ * Memory limits test
  * Output to more popular voxel formats like MagicaVoxel, Minecraft
  * Optimize grid/block size launch parameters
  * Implement partitioning for larger models
  * Do a pre-pass to categorize triangles
  * Implement capture of normals / color / texture data
-
+ 
+## Citation
+If you use cuda_voxelizer in your published paper or other software, please reference it, for example as follows:
+<pre>
+@Misc{cudavoxelizer17,
+author = "Jeroen Baert",
+title = "Cuda Voxelizer: A GPU-accelerated Mesh Voxelizer",
+howpublished = "\url{https://github.com/Forceflow/cuda_voxelizer}",
+year = "2017"}
+</pre>
+If you end up using cuda_voxelizer in something cool, drop me an e-mail (mail (at) jeroen-baert.be)!

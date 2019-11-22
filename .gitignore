@@ -37,7 +37,6 @@ dlldata.c
 *_i.h
 *.ilk
 *.meta
-*.obj
 *.pch
 *.pdb
 *.pgc
@@ -181,3 +180,7 @@ FakesAssemblies/
 
 #VS folders
 .vs/
+
+#Generated voxel models
+*.binvox
+*.bin
