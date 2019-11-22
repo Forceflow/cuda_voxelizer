@@ -27,12 +27,14 @@ Program options:
 ![viewvox example](https://raw.githubusercontent.com/Forceflow/cuda_voxelizer/master/img/viewvox.JPG)
 
 ## Building
+### Dependencies
 The project has the following build dependencies:
  * [Cuda 8.0 Toolkit (or higher)](https://developer.nvidia.com/cuda-toolkit) for CUDA.
  * Cuda Thrust libraries (they come with the toolkit).
  * [Trimesh2](https://github.com/Forceflow/trimesh2) for model importing. Latest version recommended.
  * [GLM](http://glm.g-truc.net/0.9.8/index.html) for vector math. Any recent version will do.
 
+### Windows
 A Visual Studio 2019 project solution is provided in the `msvc`folder. It is configured for CUDA 10.2, but you can edit the project file to make it work with lower CUDA versions. You can edit the `custom_includes.props` file to configure the library locations, and specify a place where the resulting binaries should be placed.
 
 ```
@@ -41,7 +43,8 @@ A Visual Studio 2019 project solution is provided in the `msvc`folder. It is con
     <BINARY_OUTPUT_DIR>D:\dev\Binaries\</BINARY_OUTPUT_DIR>
 ```
 
-[Philipp-M](https://github.com/Philipp-M) and [andreanicastro](https://github.com/andreanicastro) were kind enough to write CMake support as well.
+### Linux
+[Philipp-M](https://github.com/Philipp-M) and [andreanicastro](https://github.com/andreanicastro) were kind enough to write [CMake](https://cmake.org/) support. Since November 2019, cuda_voxelizer also builds on [Travis CI](https://travis-ci.org/Forceflow/cuda_voxelizer), so check out the [yaml config file](https://github.com/Forceflow/cuda_voxelizer/blob/master/.travis.yml) for more Linux build support.
 
 ## Details
 `cuda_voxelizer` implements an optimized version of the method described in M. Schwarz and HP Seidel's 2010 paper [*Fast Parallel Surface and Solid Voxelization on GPU's*](http://research.michael-schwarz.com/publ/2010/vox/). The morton-encoded table was based on my 2013 HPG paper [*Out-Of-Core construction of Sparse Voxel Octrees*](http://graphics.cs.kuleuven.be/publications/BLD14OCCSVO/)  and the work in [*libmorton*](https://github.com/Forceflow/libmorton).
