@@ -195,7 +195,7 @@ int main(int argc, char *argv[]) {
 
 	unsigned int* vtable;
 	if (!useThrustPath) {
-		fprintf(stdout, "[Voxel Grid] Allocating %llu MB of CUDA-managed UNIFIED memory\n", size_t(vtable_size / 1024.0f / 1024.0f));
+		fprintf(stdout, "[Voxel Grid] Allocating %llu kB of CUDA-managed UNIFIED memory\n", size_t(vtable_size / 1024.0f));
 		checkCudaErrors(cudaMallocManaged((void **)&vtable, vtable_size));
 	}
 	else{
