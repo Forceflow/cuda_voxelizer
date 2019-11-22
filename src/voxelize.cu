@@ -184,7 +184,7 @@ __global__ void voxelize_triangle(voxinfo info, float* triangle_data, unsigned i
 						size_t location = mortonEncode_LUT(x, y, z);
 						setBit(voxel_table, location);
 					} else {
-						size_t location = x + (y*info.gridsize.y) + (z*info.gridsize.y*info.gridsize.z);
+						size_t location = static_cast<size_t>(x) + (static_cast<size_t>(y)* static_cast<size_t>(info.gridsize.y)) + (static_cast<size_t>(z)* static_cast<size_t>(info.gridsize.y)* static_cast<size_t>(info.gridsize.z));
 						setBit(voxel_table, location);
 					}
 					continue;

@@ -17,7 +17,7 @@
 #include "timer.h"
 
 using namespace std;
-string version_number = "v0.4";
+string version_number = "v0.4.1";
 
 // Forward declaration of CUDA functions
 float* meshToGPU_thrust(const trimesh::TriMesh *mesh); // METHOD 3 to transfer triangles can be found in thrust_operations.cu(h)
@@ -191,11 +191,11 @@ int main(int argc, char *argv[]) {
 	// Transform that AABox to a cubical box (by padding directions if needed)
 	voxinfo v(createMeshBBCube<glm::vec3>(bbox_mesh), glm::uvec3(gridsize, gridsize, gridsize), themesh->faces.size());
 	v.print();
-	size_t vtable_size = (size_t) ceil((v.gridsize.x*v.gridsize.y*v.gridsize.z) / 8.0f);
+	size_t vtable_size = static_cast<size_t>(ceil(static_cast<size_t>(v.gridsize.x)* static_cast<size_t>(v.gridsize.y)* static_cast<size_t>(v.gridsize.z)) / 8.0f);
 
 	unsigned int* vtable;
 	if (!useThrustPath) {
-		fprintf(stdout, "[Voxel Grid] Allocating %llu kB of CUDA-managed UNIFIED memory\n", size_t(vtable_size / 1024.0f));
+		fprintf(stdout, "[Voxel Grid] Allocating %llu MB of CUDA-managed UNIFIED memory\n", size_t(vtable_size / 1024.0f / 1024.0f));
 		checkCudaErrors(cudaMallocManaged((void **)&vtable, vtable_size));
 	}
 	else{
