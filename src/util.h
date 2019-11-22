@@ -5,6 +5,7 @@
 #include "TriMesh.h"
 #include "cuda.h"
 #include "cuda_runtime.h"
+#include <string>
 
 #define GLM_FORCE_CUDA
 #define GLM_FORCE_PURE
@@ -59,7 +60,7 @@ struct voxinfo {
 	void print() {
 		fprintf(stdout, "[Voxelization] Bounding Box: (%f,%f,%f)-(%f,%f,%f) \n", bbox.min.x, bbox.min.y, bbox.min.z, bbox.max.x, bbox.max.y, bbox.max.z);
 		fprintf(stdout, "[Voxelization] Grid size: %i %i %i \n", gridsize.x, gridsize.y, gridsize.z);
-		fprintf(stdout, "[Voxelization] Triangles: %u \n", n_triangles);
+		fprintf(stdout, "[Voxelization] Triangles: %zu \n", n_triangles);
 		fprintf(stdout, "[Voxelization] Unit length: x: %f y: %f z: %f\n", unit.x, unit.y, unit.z);
 	}
 };
@@ -103,7 +104,7 @@ void inline printBits(size_t const size, void const * const ptr) {
 	unsigned char *b = (unsigned char*)ptr;
 	unsigned char byte;
 	int i, j;
-	for (i = size - 1; i >= 0; i--) {
+	for (i = static_cast<int>(size) - 1; i >= 0; i--) {
 		for (j = 7; j >= 0; j--) {
 			byte = b[i] & (1 << j);
 			byte >>= j;
@@ -118,3 +119,16 @@ void inline printBits(size_t const size, void const * const ptr) {
 	}
 	puts("");
 }
+
+// readablesizestrings
+inline std::string readableSize(size_t bytes) {
+	double bytes_d = static_cast<double>(bytes);
+	std::string r;
+	if (bytes_d <= 0) r = "0 Bytes";
+	else if (bytes_d >= 1099511627776.0) r = std::to_string(static_cast<size_t>(bytes_d / 1099511627776.0)) + " TB";
+	else if (bytes_d >= 1073741824.0) r = std::to_string(static_cast<size_t>(bytes_d / 1073741824.0)) + " GB";
+	else if (bytes_d >= 1048576.0) r = std::to_string(static_cast<size_t>(bytes_d / 1048576.0)) + " MB";
+	else if (bytes_d >= 1024.0) r = std::to_string(static_cast<size_t>(bytes_d / 1024.0)) + " KB";
+	else r = std::to_string(static_cast<size_t>(bytes_d)) + " bytes";
+	return r;
+};

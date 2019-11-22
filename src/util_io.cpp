@@ -49,7 +49,7 @@ void write_obj(const unsigned int* vtable, const size_t gridsize, const std::str
 void write_binary(void* data, size_t bytes, const std::string base_filename){
 	string filename_output = base_filename + string(".bin");
 #ifndef SILENT
-	fprintf(stdout, "[I/O] Writing data in binary format to %s (%llu kb) \n", filename_output.c_str(), size_t(bytes / 1024.0f));
+	fprintf(stdout, "[I/O] Writing data in binary format to %s (%s) \n", filename_output.c_str(), readableSize(bytes).c_str());
 #endif
 	ofstream output(filename_output.c_str(), ios_base::out | ios_base::binary);
 	output.write((char*)data, bytes);
