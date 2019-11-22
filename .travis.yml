@@ -39,3 +39,4 @@ script:
   - cd build
   - cmake ..
   - make
+  - ./cuda_voxelizer
