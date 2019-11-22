@@ -25,13 +25,13 @@ void cleanup_thrust();
 void voxelize(const voxinfo & v, float* triangle_data, unsigned int* vtable, bool useThrustPath, bool morton_code);
 
 // Output formats
-enum OutputFormat { output_binvox, output_morton, output_obj};
+enum class OutputFormat { output_binvox = 0, output_morton = 1, output_obj = 2};
 char *OutputFormats[] = { "binvox file", "morton encoded blob", "obj file"};
 
 // Default options
 string filename = "";
 string filename_base = "";
-OutputFormat outputformat = output_binvox;
+OutputFormat outputformat = OutputFormat::output_binvox;
 unsigned int gridsize = 256;
 bool useThrustPath = false;
 
@@ -56,9 +56,10 @@ void printHelp(){
 
 // METHOD 1: Helper function to transfer triangles to automatically managed CUDA memory ( > CUDA 7.x)
 float* meshToGPU_managed(const trimesh::TriMesh *mesh) {
+	Timer t; t.start();
 	size_t n_floats = sizeof(float) * 9 * (mesh->faces.size());
 	float* device_triangles;
-	fprintf(stdout, "[Mesh] Allocating %llu kB of CUDA-managed UNIFIED memory \n", (size_t)(n_floats / 1024.0f));
+	fprintf(stdout, "[Mesh] Allocating %s of CUDA-managed UNIFIED memory for triangle data \n", (readableSize(n_floats)).c_str());
 	checkCudaErrors(cudaMallocManaged((void**) &device_triangles, n_floats)); // managed memory
 	fprintf(stdout, "[Mesh] Copy %llu triangles to CUDA-managed UNIFIED memory \n", (size_t)(mesh->faces.size()));
 	for (size_t i = 0; i < mesh->faces.size(); i++) {
@@ -70,6 +71,7 @@ float* meshToGPU_managed(const trimesh::TriMesh *mesh) {
 		memcpy((device_triangles)+j+3, glm::value_ptr(v1), sizeof(glm::vec3));
 		memcpy((device_triangles)+j+6, glm::value_ptr(v2), sizeof(glm::vec3));
 	}
+	t.stop();fprintf(stdout, "[Mesh] Transfer time to GPU: %.1f ms \n", t.elapsed_time_milliseconds);
 	return device_triangles;
 }
 
@@ -124,16 +126,16 @@ void parseProgramParameters(int argc, char* argv[]){
 			string output = (argv[i + 1]);
 			transform(output.begin(), output.end(), output.begin(), ::tolower); // to lowercase
 			if (output == "binvox"){
-				outputformat = output_binvox;
+				outputformat = OutputFormat::output_binvox;
 			}
 			else if (output == "morton"){
-				outputformat = output_morton;
+				outputformat = OutputFormat::output_morton;
 			}
 			else if (output == "obj") {
-				outputformat = output_obj;
+				outputformat = OutputFormat::output_obj;
 			}
 			else {
-				fprintf(stdout, "Unrecognized output format: %s, valid options are binvox (default) or morton \n", output);
+				fprintf(stdout, "Unrecognized output format: %s, valid options are binvox (default) or morton \n", output.c_str());
 				exit(0);
 			}
 		}
@@ -146,13 +148,14 @@ void parseProgramParameters(int argc, char* argv[]){
 		printExample();
 		exit(0);
 	}
-	fprintf(stdout, "Filename: %s \n", filename.c_str());
-	fprintf(stdout, "Grid size: %i \n", gridsize);
-	fprintf(stdout, "Output format: %s \n", OutputFormats[outputformat]);
-	fprintf(stdout, "Using CUDA Thrust: %s \n", useThrustPath ? "Yes" : "No");
+	fprintf(stdout, "[Info] Filename: %s \n", filename.c_str());
+	fprintf(stdout, "[Info] Grid size: %i \n", gridsize);
+	fprintf(stdout, "[Info] Output format: %s \n", OutputFormats[int(outputformat)]);
+	fprintf(stdout, "[Info] Using CUDA Thrust: %s \n", useThrustPath ? "Yes" : "No");
 }
 
 int main(int argc, char *argv[]) {
+	Timer t; t.start();
 	printHeader();
 	fprintf(stdout, "\n## PROGRAM PARAMETERS \n");
 	parseProgramParameters(argc, argv);
@@ -168,14 +171,14 @@ int main(int argc, char *argv[]) {
 	fprintf(stdout, "\n## Read input mesh \n");
 	fprintf(stdout, "[I/O] Reading mesh from %s \n", filename.c_str());
 	trimesh::TriMesh *themesh = trimesh::TriMesh::read(filename.c_str());
-	fprintf(stdout, "[Mesh] Computing faces \n", filename.c_str());
+	fprintf(stdout, "[Mesh] Computing faces \n");
 	themesh->need_faces(); // Trimesh: Unpack (possible) triangle strips so we have faces for sure
-	fprintf(stdout, "[Mesh] Computing bbox \n", filename.c_str());
+	fprintf(stdout, "[Mesh] Computing bbox \n");
 	themesh->need_bbox(); // Trimesh: Compute the bounding box (in model coordinates)
 
 	fprintf(stdout, "\n## TRIANGLES TO GPU TRANSFER \n");
-	fprintf(stdout, "[Mesh] Number of faces: %u \n", themesh->faces.size());
-	fprintf(stdout, "[Mesh] Number of vertices: %u \n", themesh->vertices.size());
+	fprintf(stdout, "[Mesh] Number of faces: %zu \n", themesh->faces.size());
+	fprintf(stdout, "[Mesh] Number of vertices: %zu \n", themesh->vertices.size());
 	float* device_triangles;
 
 	if(useThrustPath){
@@ -195,29 +198,30 @@ int main(int argc, char *argv[]) {
 
 	unsigned int* vtable;
 	if (!useThrustPath) {
-		fprintf(stdout, "[Voxel Grid] Allocating %llu kB of CUDA-managed UNIFIED memory\n", size_t(vtable_size / 1024.0f));
+		fprintf(stdout, "[Voxel Grid] Allocating %s of CUDA-managed UNIFIED memory for Voxel Grid\n", readableSize(vtable_size).c_str());
 		checkCudaErrors(cudaMallocManaged((void **)&vtable, vtable_size));
 	}
 	else{
 		// ALLOCATE MEMORY ON HOST
-		fprintf(stdout, "[Voxel Grid] Allocating %llu kB of page-locked HOST memory\n", size_t(vtable_size / 1024.0f));
+		fprintf(stdout, "[Voxel Grid] Allocating %s kB of page-locked HOST memory for Voxel Grid\n", readableSize(vtable_size).c_str());
 		checkCudaErrors(cudaHostAlloc((void **)&vtable, vtable_size, cudaHostAllocDefault));
 	}
 	fprintf(stdout, "\n## GPU VOXELISATION \n");
-	voxelize(v, device_triangles, vtable, useThrustPath, (outputformat == output_morton));
+	voxelize(v, device_triangles, vtable, useThrustPath, (outputformat == OutputFormat::output_morton));
 
-	if (outputformat == output_morton){
+	if (outputformat == OutputFormat::output_morton){
 		fprintf(stdout, "\n## OUTPUT TO BINARY FILE \n");
 		write_binary(vtable, vtable_size, filename);
-	} else if (outputformat == output_binvox){
+	} else if (outputformat == OutputFormat::output_binvox){
 		fprintf(stdout, "\n## OUTPUT TO BINVOX FILE \n");
 		write_binvox(vtable, gridsize, filename);
 	}
-	else if (outputformat == output_obj) {
+	else if (outputformat == OutputFormat::output_obj) {
 		write_obj(vtable, gridsize, filename);
 	}
 
 	if (useThrustPath) {
 		cleanup_thrust();
 	}
+	t.stop(); fprintf(stdout, "[Info] Total runtime: %.1f ms \n", t.elapsed_time_milliseconds);
 }

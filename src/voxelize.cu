@@ -226,7 +226,7 @@ void voxelize(const voxinfo& v, float* triangle_data, unsigned int* vtable, bool
 
 	if (useThrustPath) { // We're not using UNIFIED memory
 		vtable_size = ((size_t)v.gridsize.x * v.gridsize.y * v.gridsize.z) / (size_t) 8.0;
-		fprintf(stdout, "[Voxel Grid] Allocating %llu kB of DEVICE memory\n", size_t(vtable_size / 1024.0f));
+		fprintf(stdout, "[Voxel Grid] Allocating %llu kB of DEVICE memory for Voxel Grid\n", size_t(vtable_size / 1024.0f));
 		checkCudaErrors(cudaMalloc(&dev_vtable, vtable_size));
 		checkCudaErrors(cudaMemset(dev_vtable, 0, vtable_size));
 		// Start voxelization
@@ -242,7 +242,7 @@ void voxelize(const voxinfo& v, float* triangle_data, unsigned int* vtable, bool
 	checkCudaErrors(cudaEventRecord(stop_vox, 0));
 	checkCudaErrors(cudaEventSynchronize(stop_vox));
 	checkCudaErrors(cudaEventElapsedTime(&elapsedTime, start_vox, stop_vox));
-	printf("[Voxelization] GPU time:  %3.1f ms\n", elapsedTime);
+	printf("[Voxelization] GPU time: %.1f ms\n", elapsedTime);
 
 	// If we're not using UNIFIED memory, copy the voxel table back and free all
 	if (useThrustPath){
