@@ -29,7 +29,7 @@ before_install:
   - PATH=${PATH}:${PWD}
 
 script:
-  mkdir build
-  cd build
-  cmake ..
-  make
+  - mkdir build
+  - cd build
+  - cmake ..
+  - make
