@@ -39,3 +39,5 @@ script:
   - cd build
   - cmake ..
   - make
+# Try to run the executable - cannot do any actual voxelizing, because Travis has no GPU
+  - ./cuda_voxelizer
