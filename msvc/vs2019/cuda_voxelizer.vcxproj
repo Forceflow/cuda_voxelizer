@@ -107,11 +107,13 @@ copy /y "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).exe" "$(BINAR
     <CudaCompile Include="..\..\src\thrust_operations.cu" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\src\cpu_voxelizer.cpp" />
     <ClCompile Include="..\..\src\util_io.cpp" />
     <ClCompile Include="..\..\src\util_cuda.cpp" />
     <ClCompile Include="..\..\src\main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\src\cpu_voxelizer.h" />
     <ClInclude Include="..\..\src\util_io.h" />
     <ClInclude Include="..\..\src\util.h" />
     <ClInclude Include="..\..\src\util_cuda.h" />

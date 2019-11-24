@@ -1,7 +1,7 @@
 #include "util_cuda.h"
 
 // Check if CUDA requirements are met
-int initCuda(){
+bool initCuda(){
 	// Is there a CUDA device at all?
 	int device_count = 0;
 	checkCudaErrors(cudaGetDeviceCount(&device_count));
@@ -10,7 +10,7 @@ int initCuda(){
 		fprintf(stderr, "[CUDA] Make sure CUDA device is powered, connected and available. \n");
 		fprintf(stderr, "[CUDA] On laptops: disable powersave/battery mode. \n");
 		fprintf(stderr, "[CUDA] Exiting... \n");
-		exit(0);
+		return false;
 	}
 
 	fprintf(stdout, "[CUDA] ");
@@ -25,8 +25,8 @@ int initCuda(){
 	// Check compute capability
 	if (properties.major < 2){
 		fprintf(stderr, "[CUDA] Your cuda device has compute capability %i.%i. We need at least 2.0 for atomic operations. Exiting. \n", properties.major, properties.minor);
-		exit(0);
+		return false;
 	}
 
-	return 1;
+	return true;
 }
