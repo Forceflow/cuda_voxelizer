@@ -6,7 +6,7 @@ bool initCuda(){
 	int device_count = 0;
 	// Check if CUDA runtime calls work at all
 	cudaError t = cudaGetDeviceCount(&device_count);
-	if (t) {
+	if (t != cudaSuccess) {
 		fprintf(stderr, "[CUDA] First call to CUDA Runtime API failed. Are the drivers installed? \n");
 		return false;
 	}
