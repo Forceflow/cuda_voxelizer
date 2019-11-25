@@ -34,6 +34,7 @@ The project has the following build dependencies:
  * Cuda Thrust libraries (they come with the toolkit).
  * [Trimesh2](https://github.com/Forceflow/trimesh2) for model importing. Latest version recommended.
  * [GLM](http://glm.g-truc.net/0.9.8/index.html) for vector math. Any recent version will do.
+ * [OpenMP](https://www.openmp.org/)
 
 ### Windows
 A Visual Studio 2019 project solution is provided in the `msvc`folder. It is configured for CUDA 10.2, but you can edit the project file to make it work with lower CUDA versions. You can edit the `custom_includes.props` file to configure the library locations, and specify a place where the resulting binaries should be placed.
