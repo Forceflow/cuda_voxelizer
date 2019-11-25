@@ -41,4 +41,5 @@ script:
   - cmake ..
   - make
 # Try to run the executable - cannot do any actual voxelizing, because Travis has no GPU
-  - ./cuda_voxelizer
+# This will revert to CPU voxelization
+  - ./cuda_voxelizer -f ../test_models/bunny.OBJ

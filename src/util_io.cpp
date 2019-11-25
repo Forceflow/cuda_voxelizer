@@ -30,11 +30,13 @@ void write_obj(const unsigned int* vtable, const size_t gridsize, const std::str
 	fprintf(stdout, "[I/O] Writing data in obj format to %s \n", filename_output.c_str());
 #endif
 	ofstream output(filename_output.c_str(), ios::out);
+	size_t voxels_written = 0;
 	assert(output);
 	for (size_t x = 0; x < gridsize; x++) {
 		for (size_t y = 0; y < gridsize; y++) {
 			for (size_t z = 0; z < gridsize; z++) {
 				if (checkVoxel(x, y, z, gridsize, vtable)) {
+					voxels_written += 1;
 					output << "v " << (x+0.5) << " " << (y + 0.5) << " " << (z + 0.5) << endl; // +0.5 to put vertex in the middle of the voxel
 				}
 				//else {
@@ -43,6 +45,7 @@ void write_obj(const unsigned int* vtable, const size_t gridsize, const std::str
 			}
 		}
 	}
+	std::cout << "written " << voxels_written << std::endl;
 	output.close();
 }
 

@@ -8,4 +8,4 @@
 #include "libs/helper_cuda.h"
 
 // Function to check cuda requirements
-int initCuda();
+bool initCuda();

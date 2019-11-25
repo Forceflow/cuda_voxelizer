@@ -1,9 +1,15 @@
 #include "voxelize.cuh"
 
 // CUDA Global Memory variables
-//__device__ size_t voxel_count = 0; // How many voxels did we count
-//__device__ size_t triangles_seen_count = 0; // Sanity check
 
+// Debug counters for some sanity checks
+#ifdef _DEBUG
+__device__ size_t debug_d_n_voxels_marked = 0;
+__device__ size_t debug_d_n_triangles = 0;
+__device__ size_t debug_d_n_voxels_tested = 0;
+#endif
+
+// Morton LUTs for when we need them
 __constant__ uint32_t morton256_x[256];
 __constant__ uint32_t morton256_y[256];
 __constant__ uint32_t morton256_z[256];
@@ -77,7 +83,6 @@ __global__ void voxelize_triangle(voxinfo info, float* triangle_data, unsigned i
 
 	// Common variables used in the voxelization process
 	glm::vec3 delta_p(info.unit.x, info.unit.y, info.unit.z);
-	glm::vec3 c(0.0f, 0.0f, 0.0f); // critical point
 	glm::vec3 grid_max(info.gridsize.x - 1, info.gridsize.y - 1, info.gridsize.z - 1); // grid max (grid runs from 0 to gridsize-1)
 
 	while (thread_id < info.n_triangles){ // every thread works on specific triangles in its stride
@@ -104,6 +109,7 @@ __global__ void voxelize_triangle(voxinfo info, float* triangle_data, unsigned i
 		t_bbox_grid.max = glm::clamp(t_bbox_world.max / info.unit, glm::vec3(0.0f, 0.0f, 0.0f), grid_max);
 
 		// PREPARE PLANE TEST PROPERTIES
+		glm::vec3 c(0.0f, 0.0f, 0.0f);
 		if (n.x > 0.0f) { c.x = info.unit.x; }
 		if (n.y > 0.0f) { c.y = info.unit.y; }
 		if (n.z > 0.0f) { c.z = info.unit.z; }
@@ -154,11 +160,13 @@ __global__ void voxelize_triangle(voxinfo info, float* triangle_data, unsigned i
 				for (int x = t_bbox_grid.min.x; x <= t_bbox_grid.max.x; x++){
 					// size_t location = x + (y*info.gridsize) + (z*info.gridsize*info.gridsize);
 					// if (checkBit(voxel_table, location)){ continue; }
-
+#ifdef _DEBUG
+					atomicAdd(&debug_d_n_voxels_tested, 1);
+#endif
 					// TRIANGLE PLANE THROUGH BOX TEST
 					glm::vec3 p(x*info.unit.x, y*info.unit.y, z*info.unit.z);
 					float nDOTp = glm::dot(n, p);
-					if ((nDOTp + d1) * (nDOTp + d2) > 0.0f){ continue; }
+					if ((nDOTp + d1) * (nDOTp + d2) > 0.0f) { continue; }
 
 					// PROJECTION TESTS
 					// XY
@@ -179,7 +187,10 @@ __global__ void voxelize_triangle(voxinfo info, float* triangle_data, unsigned i
 					if ((glm::dot(n_zx_e1, p_zx) + d_xz_e1) < 0.0f){ continue; }
 					if ((glm::dot(n_zx_e2, p_zx) + d_xz_e2) < 0.0f){ continue; }
 
-					//atomicAdd(&voxel_count, 1);
+#ifdef _DEBUG
+					atomicAdd(&debug_d_n_voxels_marked, 1);
+#endif
+
 					if (morton_order){
 						size_t location = mortonEncode_LUT(x, y, z);
 						setBit(voxel_table, location);
@@ -191,8 +202,9 @@ __global__ void voxelize_triangle(voxinfo info, float* triangle_data, unsigned i
 				}
 			}
 		}
-		// sanity check: atomically count triangles
-		//atomicAdd(&triangles_seen_count, 1);
+#ifdef _DEBUG
+		atomicAdd(&debug_d_n_triangles, 1);
+#endif
 		thread_id += stride;
 	}
 }
@@ -242,7 +254,7 @@ void voxelize(const voxinfo& v, float* triangle_data, unsigned int* vtable, bool
 	checkCudaErrors(cudaEventRecord(stop_vox, 0));
 	checkCudaErrors(cudaEventSynchronize(stop_vox));
 	checkCudaErrors(cudaEventElapsedTime(&elapsedTime, start_vox, stop_vox));
-	printf("[Voxelization] GPU time: %.1f ms\n", elapsedTime);
+	printf("[Perf] Voxelization GPU time: %.1f ms\n", elapsedTime);
 
 	// If we're not using UNIFIED memory, copy the voxel table back and free all
 	if (useThrustPath){
@@ -253,11 +265,15 @@ void voxelize(const voxinfo& v, float* triangle_data, unsigned int* vtable, bool
 	}
 
 	// SANITY CHECKS
-	//size_t t_seen, v_count;
-	//HANDLE_CUDA_ERROR(cudaMemcpyFromSymbol((void*)&(t_seen),triangles_seen_count, sizeof(t_seen), 0, cudaMemcpyDeviceToHost));
-	//HANDLE_CUDA_ERROR(cudaMemcpyFromSymbol((void*)&(v_count), voxel_count, sizeof(v_count), 0, cudaMemcpyDeviceToHost));
-	//printf("We've seen %llu triangles on the GPU \n", t_seen);
-	//printf("We've found %llu voxels on the GPU \n", v_count);
+#ifdef _DEBUG
+	size_t debug_n_triangles, debug_n_voxels_marked, debug_n_voxels_tested;
+	checkCudaErrors(cudaMemcpyFromSymbol((void*)&(debug_n_triangles),debug_d_n_triangles, sizeof(debug_d_n_triangles), 0, cudaMemcpyDeviceToHost));
+	checkCudaErrors(cudaMemcpyFromSymbol((void*)&(debug_n_voxels_marked), debug_d_n_voxels_marked, sizeof(debug_d_n_voxels_marked), 0, cudaMemcpyDeviceToHost));
+	checkCudaErrors(cudaMemcpyFromSymbol((void*) & (debug_n_voxels_tested), debug_d_n_voxels_tested, sizeof(debug_d_n_voxels_tested), 0, cudaMemcpyDeviceToHost));
+	printf("[Debug] Processed %llu triangles on the GPU \n", debug_n_triangles);
+	printf("[Debug] Tested %llu voxels for overlap on GPU \n", debug_n_voxels_tested);
+	printf("[Debug] Marked %llu voxels as filled (includes duplicates!) \n", debug_n_voxels_marked);
+#endif
 
 	// Destroy timers
 	checkCudaErrors(cudaEventDestroy(start_vox));

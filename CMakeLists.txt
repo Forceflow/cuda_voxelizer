@@ -30,6 +30,7 @@ SET(CUDA_VOXELIZER_SRCS
   ./src/main.cpp
   ./src/util_cuda.cpp
   ./src/util_io.cpp
+  ./src/cpu_voxelizer.cpp
 )
 SET(CUDA_VOXELIZER_SRCS_CU
   ./src/voxelize.cu
