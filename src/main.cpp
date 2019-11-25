@@ -6,6 +6,7 @@
 #include <string>
 #include <cstdio>
 // GLM for maths
+#define GLM_FORCE_PURE
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 // Trimesh for model importing
@@ -15,9 +16,11 @@
 #include "util_io.h"
 #include "util_cuda.h"
 #include "timer.h"
+// CPU voxelizer fallback
+#include "cpu_voxelizer.h"
 
 using namespace std;
-string version_number = "v0.4.1";
+string version_number = "v0.4.4";
 
 // Forward declaration of CUDA functions
 float* meshToGPU_thrust(const trimesh::TriMesh *mesh); // METHOD 3 to transfer triangles can be found in thrust_operations.cu(h)
@@ -34,10 +37,12 @@ string filename_base = "";
 OutputFormat outputformat = OutputFormat::output_binvox;
 unsigned int gridsize = 256;
 bool useThrustPath = false;
+bool forceCPU = false;
 
 void printHeader(){
+	fprintf(stdout, "## CUDA VOXELIZER \n");
 	cout << "CUDA Voxelizer " << version_number << " by Jeroen Baert" << endl; 
-	cout << "github.com/Forceflow/cuda_voxelizer - jeroen.baert@cs.kuleuven.be" << endl;
+	cout << "github.com/Forceflow/cuda_voxelizer - mail@jeroen-baert.be" << endl;
 }
 
 void printExample() {
@@ -71,7 +76,15 @@ float* meshToGPU_managed(const trimesh::TriMesh *mesh) {
 		memcpy((device_triangles)+j+3, glm::value_ptr(v1), sizeof(glm::vec3));
 		memcpy((device_triangles)+j+6, glm::value_ptr(v2), sizeof(glm::vec3));
 	}
-	t.stop();fprintf(stdout, "[Mesh] Transfer time to GPU: %.1f ms \n", t.elapsed_time_milliseconds);
+	t.stop();fprintf(stdout, "[Perf] Mesh transfer time to GPU: %.1f ms \n", t.elapsed_time_milliseconds);
+
+	//for (size_t i = 0; i < mesh->faces.size(); i++) {
+	//	size_t t = i * 9;
+	//	std::cout << "Tri: " << device_triangles[t] << " " << device_triangles[t + 1] << " " << device_triangles[t + 2] << std::endl;
+	//	std::cout << "Tri: " << device_triangles[t + 3] << " " << device_triangles[t + 4] << " " << device_triangles[t + 5] << std::endl;
+	//	std::cout << "Tri: " << device_triangles[t + 6] << " " << device_triangles[t + 7] << " " << device_triangles[t + 8] << std::endl;
+	//}
+
 	return device_triangles;
 }
 
@@ -129,15 +142,9 @@ void parseProgramParameters(int argc, char* argv[]){
 		} else if (string(argv[i]) == "-o") {
 			string output = (argv[i + 1]);
 			transform(output.begin(), output.end(), output.begin(), ::tolower); // to lowercase
-			if (output == "binvox"){
-				outputformat = OutputFormat::output_binvox;
-			}
-			else if (output == "morton"){
-				outputformat = OutputFormat::output_morton;
-			}
-			else if (output == "obj") {
-				outputformat = OutputFormat::output_obj;
-			}
+			if (output == "binvox"){outputformat = OutputFormat::output_binvox;}
+			else if (output == "morton"){outputformat = OutputFormat::output_morton;}
+			else if (output == "obj"){outputformat = OutputFormat::output_obj;}
 			else {
 				fprintf(stdout, "[Err] Unrecognized output format: %s, valid options are binvox (default) or morton \n", output.c_str());
 				exit(1);
@@ -145,6 +152,9 @@ void parseProgramParameters(int argc, char* argv[]){
 		}
 		else if (string(argv[i]) == "-t") {
 			useThrustPath = true;
+		}
+		else if (string(argv[i]) == "-cpu") {
+			forceCPU = true;
 		}
 	}
 	if (!filegiven) {
@@ -155,7 +165,7 @@ void parseProgramParameters(int argc, char* argv[]){
 	fprintf(stdout, "[Info] Filename: %s \n", filename.c_str());
 	fprintf(stdout, "[Info] Grid size: %i \n", gridsize);
 	fprintf(stdout, "[Info] Output format: %s \n", OutputFormats[int(outputformat)]);
-	fprintf(stdout, "[Info] Using CUDA Thrust: %s \n", useThrustPath ? "Yes" : "No");
+	fprintf(stdout, "[Info] Using CUDA Thrust: %s (default: No)\n", useThrustPath ? "Yes" : "No");
 }
 
 int main(int argc, char *argv[]) {
@@ -163,61 +173,84 @@ int main(int argc, char *argv[]) {
 	printHeader();
 	fprintf(stdout, "\n## PROGRAM PARAMETERS \n");
 	parseProgramParameters(argc, argv);
-	fprintf(stdout, "\n## CUDA INIT \n");
-	initCuda();
-
 	fflush(stdout);
 	trimesh::TriMesh::set_verbose(false);
+
+	// SECTION: Read the mesh from disk using the TriMesh library
+	fprintf(stdout, "\n## READ MESH \n");
 #ifdef _DEBUG
-	fprintf(stdout, "\n## MESH IMPORT \n");
 	trimesh::TriMesh::set_verbose(true);
 #endif
-	fprintf(stdout, "\n## Read input mesh \n");
 	fprintf(stdout, "[I/O] Reading mesh from %s \n", filename.c_str());
 	trimesh::TriMesh *themesh = trimesh::TriMesh::read(filename.c_str());
-	fprintf(stdout, "[Mesh] Computing faces \n");
 	themesh->need_faces(); // Trimesh: Unpack (possible) triangle strips so we have faces for sure
+	fprintf(stdout, "[Mesh] Number of triangles: %zu \n", themesh->faces.size());
+	fprintf(stdout, "[Mesh] Number of vertices: %zu \n", themesh->vertices.size());
 	fprintf(stdout, "[Mesh] Computing bbox \n");
 	themesh->need_bbox(); // Trimesh: Compute the bounding box (in model coordinates)
 
-	fprintf(stdout, "\n## TRIANGLES TO GPU TRANSFER \n");
-	fprintf(stdout, "[Mesh] Number of faces: %zu \n", themesh->faces.size());
-	fprintf(stdout, "[Mesh] Number of vertices: %zu \n", themesh->vertices.size());
-	float* device_triangles;
-
-	if(useThrustPath){
-		device_triangles = meshToGPU_thrust(themesh);
-	}
-	else {
-		device_triangles = meshToGPU_managed(themesh);
-	}
-
+	// SECTION: Compute some information needed for voxelization (bounding box, unit vector, ...)
 	fprintf(stdout, "\n## VOXELISATION SETUP \n");
 	// Initialize our own AABox
-	AABox<glm::vec3> bbox_mesh(trimesh_to_glm(themesh->bbox.min), trimesh_to_glm(themesh->bbox.max)); 
+	AABox<glm::vec3> bbox_mesh(trimesh_to_glm(themesh->bbox.min), trimesh_to_glm(themesh->bbox.max));
 	// Transform that AABox to a cubical box (by padding directions if needed)
-	voxinfo v(createMeshBBCube<glm::vec3>(bbox_mesh), glm::uvec3(gridsize, gridsize, gridsize), themesh->faces.size());
-	v.print();
-	size_t vtable_size = static_cast<size_t>(ceil(static_cast<size_t>(v.gridsize.x)* static_cast<size_t>(v.gridsize.y)* static_cast<size_t>(v.gridsize.z)) / 8.0f);
+	// Create voxinfo struct, which handles all the rest
+	voxinfo voxelization_info(createMeshBBCube<glm::vec3>(bbox_mesh), glm::uvec3(gridsize, gridsize, gridsize), themesh->faces.size());
+	voxelization_info.print();
+	// Compute space needed to hold voxel table (1 voxel / bit)
+	size_t vtable_size = static_cast<size_t>(ceil(static_cast<size_t>(voxelization_info.gridsize.x)* static_cast<size_t>(voxelization_info.gridsize.y)* static_cast<size_t>(voxelization_info.gridsize.z)) / 8.0f);
+	unsigned int* vtable; // Both voxelization paths (GPU and CPU) need this
 
-	unsigned int* vtable;
-	if (!useThrustPath) {
-		fprintf(stdout, "[Voxel Grid] Allocating %s of CUDA-managed UNIFIED memory for Voxel Grid\n", readableSize(vtable_size).c_str());
-		checkCudaErrors(cudaMallocManaged((void **)&vtable, vtable_size));
+	// SECTION: Try to figure out if we have a CUDA-enabled GPU
+	fprintf(stdout, "\n## CUDA INIT \n");
+	bool cuda_ok = initCuda();
+	if (cuda_ok) {
+		fprintf(stdout, "[Info] CUDA GPU found\n");
 	}
-	else{
-		// ALLOCATE MEMORY ON HOST
-		fprintf(stdout, "[Voxel Grid] Allocating %s kB of page-locked HOST memory for Voxel Grid\n", readableSize(vtable_size).c_str());
-		checkCudaErrors(cudaHostAlloc((void **)&vtable, vtable_size, cudaHostAllocDefault));
+	else {
+		fprintf(stdout, "[Info] CUDA GPU not found\n");
 	}
-	fprintf(stdout, "\n## GPU VOXELISATION \n");
-	voxelize(v, device_triangles, vtable, useThrustPath, (outputformat == OutputFormat::output_morton));
 
+	// SECTION: The actual voxelization
+	if (cuda_ok && !forceCPU) { 
+		// GPU voxelization
+		fprintf(stdout, "\n## TRIANGLES TO GPU TRANSFER \n");
+
+		float* device_triangles;
+		// Transfer triangles to GPU using either thrust or managed cuda memory
+		if (useThrustPath) { device_triangles = meshToGPU_thrust(themesh); }
+		else { device_triangles = meshToGPU_managed(themesh); }
+
+		if (!useThrustPath) {
+			fprintf(stdout, "[Voxel Grid] Allocating %s of CUDA-managed UNIFIED memory for Voxel Grid\n", readableSize(vtable_size).c_str());
+			checkCudaErrors(cudaMallocManaged((void**)&vtable, vtable_size));
+		}
+		else {
+			// ALLOCATE MEMORY ON HOST
+			fprintf(stdout, "[Voxel Grid] Allocating %s kB of page-locked HOST memory for Voxel Grid\n", readableSize(vtable_size).c_str());
+			checkCudaErrors(cudaHostAlloc((void**)&vtable, vtable_size, cudaHostAllocDefault));
+		}
+		fprintf(stdout, "\n## GPU VOXELISATION \n");
+		voxelize(voxelization_info, device_triangles, vtable, useThrustPath, (outputformat == OutputFormat::output_morton));
+	} else { 
+		// CPU VOXELIZATION FALLBACK
+		fprintf(stdout, "\n## CPU VOXELISATION \n");
+		if (!forceCPU) { fprintf(stdout, "[Info] No suitable CUDA GPU was found: Falling back to CPU voxelization\n"); }
+		else { fprintf(stdout, "[Info] Doing CPU voxelization (forced using command-line switch -cpu)\n"); }
+		vtable = (unsigned int*) calloc(1, vtable_size);
+		cpu_voxelizer::cpu_voxelize_mesh(voxelization_info, themesh, vtable, (outputformat == OutputFormat::output_morton));
+	}
+
+	//// DEBUG: print vtable
+	//for (int i = 0; i < vtable_size; i++) {
+	//	char* vtable_p = (char*)vtable;
+	//	cout << (int) vtable_p[i] << endl;
+	//}
+
+	fprintf(stdout, "\n## FILE OUTPUT \n");
 	if (outputformat == OutputFormat::output_morton){
-		fprintf(stdout, "\n## OUTPUT TO BINARY FILE \n");
 		write_binary(vtable, vtable_size, filename);
 	} else if (outputformat == OutputFormat::output_binvox){
-		fprintf(stdout, "\n## OUTPUT TO BINVOX FILE \n");
 		write_binvox(vtable, gridsize, filename);
 	}
 	else if (outputformat == OutputFormat::output_obj) {
@@ -227,5 +260,7 @@ int main(int argc, char *argv[]) {
 	if (useThrustPath) {
 		cleanup_thrust();
 	}
-	t.stop(); fprintf(stdout, "[Info] Total runtime: %.1f ms \n", t.elapsed_time_milliseconds);
+
+	fprintf(stdout, "\n## STATS \n");
+	t.stop(); fprintf(stdout, "[Perf] Total runtime: %.1f ms \n", t.elapsed_time_milliseconds);
 }

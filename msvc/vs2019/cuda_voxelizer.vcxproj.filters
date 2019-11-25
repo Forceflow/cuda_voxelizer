@@ -5,9 +5,14 @@
     <CudaCompile Include="..\..\src/voxelize.cu" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\util_io.cpp" />
-    <ClCompile Include="..\..\src\util_cuda.cpp" />
     <ClCompile Include="..\..\src\main.cpp" />
+    <ClCompile Include="..\..\src\util_cuda.cpp">
+      <Filter>util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\util_io.cpp">
+      <Filter>util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\cpu_voxelizer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\libs\helper_cuda.h">
@@ -22,17 +27,23 @@
       <Filter>util</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\timer.h" />
-    <ClInclude Include="..\..\src\util_io.h" />
-    <ClInclude Include="..\..\src\util.h" />
-    <ClInclude Include="..\..\src\util_cuda.h" />
+    <ClInclude Include="..\..\src\util_cuda.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\util_io.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\util.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\cpu_voxelizer.h">
+      <Filter>util</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\..\src\todo.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Filter Include="Headers">
-      <UniqueIdentifier>{a2e537a9-9e17-41e8-a392-f7ab084dbd64}</UniqueIdentifier>
-    </Filter>
     <Filter Include="util">
       <UniqueIdentifier>{a0232da8-2097-49f4-9412-0e4223c7ba4d}</UniqueIdentifier>
     </Filter>

@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/Forceflow/cuda_voxelizer.svg?branch=master)](https://travis-ci.org/Forceflow/cuda_voxelizer) ![](https://img.shields.io/github/license/Forceflow/cuda_voxelizer.svg) [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.me/Forceflow)
 
-# cuda_voxelizer v0.4.1
+# cuda_voxelizer v0.4.4
 Experimental CUDA voxelizer, a command-line tool to convert polygon meshes to (annotated) voxel grids.
  * Supported input formats: .ply, .off, .obj, .3DS, .SM and RAY
  * Supported output formats:
@@ -8,7 +8,7 @@ Experimental CUDA voxelizer, a command-line tool to convert polygon meshes to (a
    * .obj file: A vertex for each voxel. Can be viewed using any compatible viewer, like [Blender](https://www.blender.org/).
    * a binary file containing a Morton-ordered grid. This is a format I personally use for other tools.
  * Requires a CUDA-compatible video card. Compute Capability 2.0 or higher (Nvidia Fermi or better).
- * Current project targets CUDA 10.2
+ ** Since v0.4.4, the voxelizer reverts to a (slower) CPU voxelization method when no CUDA device is found
  * 64-bit executables only. 32-bit might work, but you're on your own :)
 
 ## Usage
@@ -16,7 +16,8 @@ Program options:
  * `-f <path to model file>`: **(required)** A path to a polygon-based 3D model file. 
  * `-s <voxel grid length>`: The length of the cubical voxel grid. Default: 256, resulting in a 256 x 256 x 256 voxelization grid.  Cuda_voxelizer will automatically select the tightest bounding box around the model.
  * `-o <output format>`: The output format for voxelized models, currently *binvox*, *obj* or *morton*. Default: *binvox*. Output files are saved in the same folder as the input file.
-  * `-t` : Use Thrust library for CUDA memory operations. Might provide speed / throughput improvement. Default: disabled.
+ * `-cpu`: Force voxelization on the CPU instead of GPU. For when a CUDA device is not detected/compatible, or for very small models where GPU call overhead is not worth it.
+ * `-t` : Use Thrust library for CUDA memory operations. Might provide speed / throughput improvement. Default: disabled.
   
 ## Examples
 

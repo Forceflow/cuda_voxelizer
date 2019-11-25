@@ -12,11 +12,19 @@
 #define GLM_FORCE_PURE
 #include <glm/glm.hpp>
 
+
 // Converting builtin TriMesh vectors to GLM vectors
-// We do this as soon as possible, because GLM is great
+// We do this as soon as possible, because GLM is great and the builtin Vector math of TriMesh is okay, but not CUDA-compatible
 template<typename trimeshtype>
 inline glm::vec3 trimesh_to_glm(trimeshtype a) {
 	return glm::vec3(a[0], a[1], a[2]);
+}
+
+// Converting GLM vectors to builtin TriMesh vectors
+// We do this as soon as possible, because GLM is great and the builtin Vector math of TriMesh is okay, but not CUDA-compatible
+template<typename trimeshtype>
+inline trimeshtype glm_to_trimesh(glm::vec3 a) {
+	return trimeshtype(a[0], a[1], a[2]);
 }
 
 // Check if a voxel in the voxel table is set
