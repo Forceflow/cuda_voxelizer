@@ -2,8 +2,16 @@
 
 // Check if CUDA requirements are met
 bool initCuda(){
-	// Is there a CUDA device at all?
+
 	int device_count = 0;
+	// Check if CUDA runtime calls work at all
+	cudaError t = cudaGetDeviceCount(&device_count);
+	if (t) {
+		fprintf(stderr, "[CUDA] First call to CUDA Runtime API failed. Are the drivers installed? \n");
+		return false;
+	}
+
+	// Is there a CUDA device at all?
 	checkCudaErrors(cudaGetDeviceCount(&device_count));
 	if(device_count < 1){
 		fprintf(stderr, "[CUDA] No CUDA devices found. \n \n");
@@ -13,6 +21,7 @@ bool initCuda(){
 		return false;
 	}
 
+	fprintf(stderr, "[CUDA] CUDA device(s) found, picking best one \n");
 	fprintf(stdout, "[CUDA] ");
 	// We have at least 1 CUDA device, so now select the fastest (method from Nvidia helper library)
 	int device = findCudaDevice(0, 0);
@@ -20,6 +29,7 @@ bool initCuda(){
 	// Print available device memory
 	cudaDeviceProp properties;
 	checkCudaErrors(cudaGetDeviceProperties(&properties,device));
+	fprintf(stdout, "[CUDA] Best device: %s \n", properties.name);
 	fprintf(stdout,"[CUDA] Available global device memory: %.0lf MB. \n", ((double) properties.totalGlobalMem / 1024 / 1024));
 
 	// Check compute capability
