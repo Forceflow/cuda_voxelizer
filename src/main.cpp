@@ -114,6 +114,10 @@ void parseProgramParameters(int argc, char* argv[]){
 			filename = argv[i + 1];
 			filename_base = filename.substr(0, filename.find_last_of("."));
 			filegiven = true;
+			if (!file_exists(filename)) {
+				fprintf(stdout, "[Err] File does not exist / cannot access: %s \n", filename.c_str());
+				exit(1);
+			}
 			i++;
 		}
 		else if (string(argv[i]) == "-s") {
@@ -135,8 +139,8 @@ void parseProgramParameters(int argc, char* argv[]){
 				outputformat = OutputFormat::output_obj;
 			}
 			else {
-				fprintf(stdout, "Unrecognized output format: %s, valid options are binvox (default) or morton \n", output.c_str());
-				exit(0);
+				fprintf(stdout, "[Err] Unrecognized output format: %s, valid options are binvox (default) or morton \n", output.c_str());
+				exit(1);
 			}
 		}
 		else if (string(argv[i]) == "-t") {
@@ -144,9 +148,9 @@ void parseProgramParameters(int argc, char* argv[]){
 		}
 	}
 	if (!filegiven) {
-		fprintf(stdout, "You didn't specify a file using -f (path). This is required. Exiting. \n");
+		fprintf(stdout, "[Err] You didn't specify a file using -f (path). This is required. Exiting. \n");
 		printExample();
-		exit(0);
+		exit(1);
 	}
 	fprintf(stdout, "[Info] Filename: %s \n", filename.c_str());
 	fprintf(stdout, "[Info] Grid size: %i \n", gridsize);

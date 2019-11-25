@@ -6,6 +6,7 @@
 #include "cuda.h"
 #include "cuda_runtime.h"
 #include <string>
+#include <fstream>
 
 #define GLM_FORCE_CUDA
 #define GLM_FORCE_PURE
@@ -132,3 +133,9 @@ inline std::string readableSize(size_t bytes) {
 	else r = std::to_string(static_cast<size_t>(bytes_d)) + " bytes";
 	return r;
 };
+
+// check if file exists
+inline bool file_exists(const std::string& name) {
+	std::ifstream f(name.c_str());
+	return f.good();
+}
