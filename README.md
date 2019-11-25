@@ -8,7 +8,7 @@ Experimental CUDA voxelizer, a command-line tool to convert polygon meshes to (a
    * .obj file: A vertex for each voxel. Can be viewed using any compatible viewer, like [Blender](https://www.blender.org/).
    * a binary file containing a Morton-ordered grid. This is a format I personally use for other tools.
  * Requires a CUDA-compatible video card. Compute Capability 2.0 or higher (Nvidia Fermi or better).
- ** Since v0.4.4, the voxelizer reverts to a (slower) CPU voxelization method when no CUDA device is found
+   * Since v0.4.4, the voxelizer reverts to a (slower) CPU voxelization method when no CUDA device is found
  * 64-bit executables only. 32-bit might work, but you're on your own :)
 
 ## Usage
