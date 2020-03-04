@@ -1,7 +1,7 @@
 [![Build Status](https://travis-ci.org/Forceflow/cuda_voxelizer.svg?branch=master)](https://travis-ci.org/Forceflow/cuda_voxelizer) ![](https://img.shields.io/github/license/Forceflow/cuda_voxelizer.svg) [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.me/Forceflow)
 
 # cuda_voxelizer v0.4.4c
-CUDA voxelizer, a command-line tool to convert polygon meshes to (annotated) voxel grids using the GPU (with a CPU fallback if no commpatible GPU is found).
+CUDA voxelizer, a command-line tool to convert polygon meshes to (annotated) voxel grids using the GPU (with a CPU fallback if no compatible GPU is found).
  * Supported input formats: .ply, .off, .obj, .3DS, .SM and RAY
  * Supported output formats:
    * [.binvox ](http://www.patrickmin.com/binvox/binvox.html) file (default). Can be viewed using [viewvox](http://www.patrickmin.com/viewvox/).
