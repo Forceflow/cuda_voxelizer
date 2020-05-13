@@ -1,5 +1,7 @@
 #include "util.h"
 #include "util_io.h"
+#include "TriMesh_algo.h"
+#include <Windows.h>
 
 using namespace std;
 
@@ -96,9 +98,10 @@ void write_cube(const size_t& x, const size_t& y, const size_t& z, ofstream& out
 }
 
 void write_obj_cubes(const unsigned int* vtable, const size_t gridsize, const std::string base_filename) {
+	string temp_filename_output = base_filename + string("_") + to_string(gridsize) + string("_voxels_TEMP.obj");
 	string filename_output = base_filename + string("_") + to_string(gridsize) + string("_voxels.obj");
 #ifndef SILENT
-	fprintf(stdout, "[I/O] Writing data in obj voxels format to %s \n", filename_output.c_str());
+	fprintf(stdout, "[I/O] Writing data in obj voxels format to file %s \n", filename_output.c_str());
 #endif
 	ofstream output(filename_output.c_str(), ios::out);
 
@@ -122,7 +125,20 @@ void write_obj_cubes(const unsigned int* vtable, const size_t gridsize, const st
 			}
 		}
 	}
-	std::cout << "written " << voxels_written << std::endl;
+	// std::cout << "written " << voxels_written << std::endl;
+
+	fprintf(stdout, "[I/O] Reading file back into TriMesh2 library for optimizing \n", filename_output.c_str());
+	// Load the file using TriMesh2
+	trimesh::TriMesh* temp_mesh = trimesh::TriMesh::read(filename_output.c_str());
+	fprintf(stdout, "[I/O] Reordering / Optimizing mesh\n");
+	trimesh::reorder_verts(temp_mesh);
+	//trimesh::faceflip(temp_mesh);
+	//trimesh::edgeflip(temp_mesh);
+	//temp_mesh->clear_normals();
+	//temp_mesh->need_normals();
+	fprintf(stdout, "[I/O] Writing final mesh to file %s \n", filename_output.c_str());
+	temp_mesh->write(filename_output.c_str());
+
 	output.close();
 }
 
