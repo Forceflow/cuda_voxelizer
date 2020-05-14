@@ -1,7 +1,6 @@
 #include "util.h"
 #include "util_io.h"
 #include "TriMesh_algo.h"
-#include <Windows.h>
 
 using namespace std;
 
