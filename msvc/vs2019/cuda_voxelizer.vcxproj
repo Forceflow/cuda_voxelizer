@@ -67,6 +67,7 @@
     <PostBuildEvent>
       <Command>echo copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"
 copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"
+copy "$(CudaToolkitBinDir)\cudart*.dll" "$(BINARY_OUTPUT_DIR)"
 echo copy /y "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).exe" "$(BINARY_OUTPUT_DIR)$(ProjectName).exe"
 copy /y "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).exe" "$(BINARY_OUTPUT_DIR)$(ProjectName).exe"</Command>
     </PostBuildEvent>
@@ -95,6 +96,7 @@ copy /y "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).exe" "$(BINAR
     <PostBuildEvent>
       <Command>echo copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"
 copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"
+copy "$(CudaToolkitBinDir)\cudart*.dll" "$(BINARY_OUTPUT_DIR)"
 echo copy /y "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).exe" "$(BINARY_OUTPUT_DIR)$(ProjectName).exe"
 copy /y "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).exe" "$(BINARY_OUTPUT_DIR)$(ProjectName).exe"</Command>
     </PostBuildEvent>
