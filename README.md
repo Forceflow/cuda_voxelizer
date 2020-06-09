@@ -26,7 +26,7 @@ Program options:
 
 `cuda_voxelizer -f bunny.ply -s 64 -o obj -t` generates a 64 x 64 x 64 bunny .obj voxel model which will be stored in `bunny_64.obj`. During voxelization, the Cuda Thrust library will be used for a possible speedup, but YMMV.
 
-![output_examples](https://raw.githubusercontent.com/Forceflow/cuda_voxelizer/master/img/output_examples.JPG)
+![output_examples](https://raw.githubusercontent.com/Forceflow/cuda_voxelizer/master/img/output_examples.jpg)
 
 ## Building
 ### Dependencies
