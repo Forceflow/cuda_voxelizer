@@ -20,7 +20,7 @@
 #include "cpu_voxelizer.h"
 
 using namespace std;
-string version_number = "v0.4.4";
+string version_number = "v0.4.5";
 
 // Forward declaration of CUDA functions
 float* meshToGPU_thrust(const trimesh::TriMesh *mesh); // METHOD 3 to transfer triangles can be found in thrust_operations.cu(h)
@@ -28,8 +28,8 @@ void cleanup_thrust();
 void voxelize(const voxinfo & v, float* triangle_data, unsigned int* vtable, bool useThrustPath, bool morton_code);
 
 // Output formats
-enum class OutputFormat { output_binvox = 0, output_morton = 1, output_obj = 2};
-char *OutputFormats[] = { "binvox file", "morton encoded blob", "obj file"};
+enum class OutputFormat { output_binvox = 0, output_morton = 1, output_obj_points = 2, output_obj_cubes = 3};
+char *OutputFormats[] = { "binvox file", "morton encoded blob", "obj file (pointcloud)", "obj file (cubes)"};
 
 // Default options
 string filename = "";
@@ -54,7 +54,7 @@ void printHelp(){
 	cout << "Program options: " << endl;
 	cout << " -f <path to model file: .ply, .obj, .3ds> (required)" << endl;
 	cout << " -s <voxelization grid size, power of 2: 8 -> 512, 1024, ... (default: 256)>" << endl;
-	cout << " -o <output format: binvox, obj or morton (default: binvox)>" << endl;
+	cout << " -o <output format: binvox, obj, obj_points or morton (default: binvox)>" << endl;
 	cout << " -t : Force using CUDA Thrust Library (possible speedup / throughput improvement)" << endl;
 	printExample();
 }
@@ -144,7 +144,8 @@ void parseProgramParameters(int argc, char* argv[]){
 			transform(output.begin(), output.end(), output.begin(), ::tolower); // to lowercase
 			if (output == "binvox"){outputformat = OutputFormat::output_binvox;}
 			else if (output == "morton"){outputformat = OutputFormat::output_morton;}
-			else if (output == "obj"){outputformat = OutputFormat::output_obj;}
+			else if (output == "obj"){outputformat = OutputFormat::output_obj_cubes;}
+			else if (output == "obj_points") { outputformat = OutputFormat::output_obj_points; }
 			else {
 				fprintf(stdout, "[Err] Unrecognized output format: %s, valid options are binvox (default) or morton \n", output.c_str());
 				exit(1);
@@ -253,8 +254,11 @@ int main(int argc, char *argv[]) {
 	} else if (outputformat == OutputFormat::output_binvox){
 		write_binvox(vtable, gridsize, filename);
 	}
-	else if (outputformat == OutputFormat::output_obj) {
-		write_obj(vtable, gridsize, filename);
+	else if (outputformat == OutputFormat::output_obj_points) {
+		write_obj_pointcloud(vtable, gridsize, filename);
+	}
+	else if (outputformat == OutputFormat::output_obj_cubes) {
+		write_obj_cubes(vtable, gridsize, filename);
 	}
 
 	if (useThrustPath) {
