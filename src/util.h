@@ -5,20 +5,30 @@
 #include "TriMesh.h"
 #include "cuda.h"
 #include "cuda_runtime.h"
+#include <string>
+#include <fstream>
 
 #define GLM_FORCE_CUDA
 #define GLM_FORCE_PURE
 #include <glm/glm.hpp>
 
+
 // Converting builtin TriMesh vectors to GLM vectors
-// We do this as soon as possible, because GLM is great
+// We do this as soon as possible, because GLM is great and the builtin Vector math of TriMesh is okay, but not CUDA-compatible
 template<typename trimeshtype>
 inline glm::vec3 trimesh_to_glm(trimeshtype a) {
 	return glm::vec3(a[0], a[1], a[2]);
 }
 
+// Converting GLM vectors to builtin TriMesh vectors
+// We do this as soon as possible, because GLM is great and the builtin Vector math of TriMesh is okay, but not CUDA-compatible
+template<typename trimeshtype>
+inline trimeshtype glm_to_trimesh(glm::vec3 a) {
+	return trimeshtype(a[0], a[1], a[2]);
+}
+
 // Check if a voxel in the voxel table is set
-__device__ __host__ inline char checkVoxel(size_t x, size_t y, size_t z, size_t gridsize, const unsigned int* vtable){
+__device__ __host__ inline bool checkVoxel(size_t x, size_t y, size_t z, size_t gridsize, const unsigned int* vtable){
 	size_t location = x + (y*gridsize) + (z*gridsize*gridsize);
 	size_t int_location = location / size_t(32);
 	/*size_t max_index = (gridsize*gridsize*gridsize) / __int64(32);
@@ -28,9 +38,9 @@ __device__ __host__ inline char checkVoxel(size_t x, size_t y, size_t z, size_t 
 	}*/
 	unsigned int bit_pos = size_t(31) - (location % size_t(32)); // we count bit positions RtL, but array indices LtR
 	if ((vtable[int_location]) & (1 << bit_pos)){
-		return char(1);
+		return true;
 	}
-	return char(0);
+	return false;
 }
 
 // An Axis Aligned box
@@ -59,7 +69,7 @@ struct voxinfo {
 	void print() {
 		fprintf(stdout, "[Voxelization] Bounding Box: (%f,%f,%f)-(%f,%f,%f) \n", bbox.min.x, bbox.min.y, bbox.min.z, bbox.max.x, bbox.max.y, bbox.max.z);
 		fprintf(stdout, "[Voxelization] Grid size: %i %i %i \n", gridsize.x, gridsize.y, gridsize.z);
-		fprintf(stdout, "[Voxelization] Triangles: %u \n", n_triangles);
+		fprintf(stdout, "[Voxelization] Triangles: %zu \n", n_triangles);
 		fprintf(stdout, "[Voxelization] Unit length: x: %f y: %f z: %f\n", unit.x, unit.y, unit.z);
 	}
 };
@@ -103,7 +113,7 @@ void inline printBits(size_t const size, void const * const ptr) {
 	unsigned char *b = (unsigned char*)ptr;
 	unsigned char byte;
 	int i, j;
-	for (i = size - 1; i >= 0; i--) {
+	for (i = static_cast<int>(size) - 1; i >= 0; i--) {
 		for (j = 7; j >= 0; j--) {
 			byte = b[i] & (1 << j);
 			byte >>= j;
@@ -117,4 +127,23 @@ void inline printBits(size_t const size, void const * const ptr) {
 		}
 	}
 	puts("");
+}
+
+// readablesizestrings
+inline std::string readableSize(size_t bytes) {
+	double bytes_d = static_cast<double>(bytes);
+	std::string r;
+	if (bytes_d <= 0) r = "0 Bytes";
+	else if (bytes_d >= 1099511627776.0) r = std::to_string(static_cast<size_t>(bytes_d / 1099511627776.0)) + " TB";
+	else if (bytes_d >= 1073741824.0) r = std::to_string(static_cast<size_t>(bytes_d / 1073741824.0)) + " GB";
+	else if (bytes_d >= 1048576.0) r = std::to_string(static_cast<size_t>(bytes_d / 1048576.0)) + " MB";
+	else if (bytes_d >= 1024.0) r = std::to_string(static_cast<size_t>(bytes_d / 1024.0)) + " KB";
+	else r = std::to_string(static_cast<size_t>(bytes_d)) + " bytes";
+	return r;
+};
+
+// check if file exists
+inline bool file_exists(const std::string& name) {
+	std::ifstream f(name.c_str());
+	return f.good();
 }
