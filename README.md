@@ -19,7 +19,7 @@ Program options:
    * `morton`: a binary file containing a Morton-ordered grid. This is a format I personally use for other tools.
  * `-cpu`: Force voxelization on the CPU instead of GPU. For when a CUDA device is not detected/compatible, or for very small models where GPU call overhead is not worth it.
  * `-t` : Use Thrust library for CUDA memory operations. Might provide speed / throughput improvement. Default: disabled.
- * `-solid` : Use solid voxelization. Default: disabled.
+ * `-solid` : Use solid voxelization (it is not available for cpu). Default: disabled.
  
   
 ## Examples
