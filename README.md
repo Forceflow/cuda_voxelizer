@@ -16,7 +16,7 @@ Program options:
    * `obj`: A mesh containing actual cubes (made up of triangle faces) for each voxel.
    * `obj_points`: A mesh containing a point cloud, with a vertex for each voxel. Can be viewed using any compatible viewer that can just display vertices, like [Blender](https://www.blender.org/) or [Meshlab](https://www.meshlab.net/).
    * `morton`: a binary file containing a Morton-ordered grid. This is a format I personally use for other tools.
- * `-cpu`: Force voxelization on the CPU instead of GPU. For when a CUDA device is not detected/compatible, or for very small models where GPU call overhead is not worth it. This is a single-threaded process, and very slow for big models.
+ * `-cpu`: Force voxelization on the CPU instead of GPU. For when a CUDA device is not detected/compatible, or for very small models where GPU call overhead is not worth it. This is done multi-threaded, but can still be very slow for large models / grid sizes.
  * `-thrust` : Use Thrust library for copying the model data to the GPU, for a possible speed / throughput improvement. I found this to be very system-dependent. Default: disabled.
  * `-solid` : (Experimental) Use solid voxelization instead of voxelizing the mesh faces. Incompatible with `-cpu`. Needs a watertight input mesh.
 
