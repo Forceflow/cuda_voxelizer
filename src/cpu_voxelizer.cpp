@@ -1,4 +1,5 @@
 #include "cpu_voxelizer.h"
+#include <omp.h>
 
 namespace cpu_voxelizer {
 
@@ -7,7 +8,10 @@ namespace cpu_voxelizer {
 		size_t int_location = index / size_t(32);
 		uint32_t bit_pos = size_t(31) - (index % size_t(32)); // we count bit positions RtL, but array indices LtR
 		uint32_t mask = 1 << bit_pos | 0;
-		voxel_table[int_location] = (voxel_table[int_location] | mask);
+		#pragma omp critical 
+		{
+			voxel_table[int_location] = (voxel_table[int_location] | mask);
+		}
 	}
 
 	// Encode morton code using LUT table
@@ -34,12 +38,12 @@ namespace cpu_voxelizer {
 		//glm::vec3 c(0.0f, 0.0f, 0.0f); // critical point
 		//glm::vec3 grid_max(info.gridsize.x - 1, info.gridsize.y - 1, info.gridsize.z - 1); // grid max (grid runs from 0 to gridsize-1)
 
-
 		// PREPASS
 		// Move all vertices to origin (can be done in parallel)
 		trimesh::vec3 move_min = glm_to_trimesh<trimesh::vec3>(info.bbox.min);
-#pragma omp for
-		for (uint64_t i = 0; i < themesh->vertices.size(); i++) {
+#pragma omp parallel for
+		for (int64_t i = 0; i < themesh->vertices.size(); i++) {
+			if (i == 0) { printf("[Info] Using %d threads \n", omp_get_num_threads()); }
 			themesh->vertices[i] = themesh->vertices[i] - move_min;
 		}
 
@@ -49,7 +53,9 @@ namespace cpu_voxelizer {
 		size_t debug_n_voxels_marked = 0;
 #endif
 
-		for (size_t i = 0; i < info.n_triangles; i++) {
+#pragma omp parallel for
+		
+		for (int64_t i = 0; i < info.n_triangles; i++) {
 			// Common variables used in the voxelization process
 			glm::vec3 delta_p(info.unit.x, info.unit.y, info.unit.z);
 			glm::vec3 c(0.0f, 0.0f, 0.0f); // critical point

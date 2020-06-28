@@ -20,12 +20,13 @@
 #include "cpu_voxelizer.h"
 
 using namespace std;
-string version_number = "v0.4.5";
+string version_number = "v0.4.6";
 
 // Forward declaration of CUDA functions
 float* meshToGPU_thrust(const trimesh::TriMesh *mesh); // METHOD 3 to transfer triangles can be found in thrust_operations.cu(h)
 void cleanup_thrust();
 void voxelize(const voxinfo & v, float* triangle_data, unsigned int* vtable, bool useThrustPath, bool morton_code);
+void voxelize_solid(const voxinfo& v, float* triangle_data, unsigned int* vtable, bool useThrustPath, bool morton_code);
 
 // Output formats
 enum class OutputFormat { output_binvox = 0, output_morton = 1, output_obj_points = 2, output_obj_cubes = 3};
@@ -38,6 +39,7 @@ OutputFormat outputformat = OutputFormat::output_binvox;
 unsigned int gridsize = 256;
 bool useThrustPath = false;
 bool forceCPU = false;
+bool solidVoxelization = false;
 
 void printHeader(){
 	fprintf(stdout, "## CUDA VOXELIZER \n");
@@ -51,12 +53,15 @@ void printExample() {
 
 void printHelp(){
 	fprintf(stdout, "\n## HELP  \n");
-	cout << "Program options: " << endl;
+	cout << "Program options: " << endl << endl;
 	cout << " -f <path to model file: .ply, .obj, .3ds> (required)" << endl;
 	cout << " -s <voxelization grid size, power of 2: 8 -> 512, 1024, ... (default: 256)>" << endl;
 	cout << " -o <output format: binvox, obj, obj_points or morton (default: binvox)>" << endl;
-	cout << " -t : Force using CUDA Thrust Library (possible speedup / throughput improvement)" << endl;
+	cout << " -thrust : Force using CUDA Thrust Library (possible speedup / throughput improvement)" << endl;
+	cout << " -cpu : Force CPU-based voxelization (slow, but works if no compatible GPU can be found)" << endl;
+	cout << " -solid : Force solid voxelization (experimental, needs watertight model, incompatible with -cpu)" << endl << endl;
 	printExample();
+	cout << endl;
 }
 
 // METHOD 1: Helper function to transfer triangles to automatically managed CUDA memory ( > CUDA 7.x)
@@ -151,11 +156,14 @@ void parseProgramParameters(int argc, char* argv[]){
 				exit(1);
 			}
 		}
-		else if (string(argv[i]) == "-t") {
+		else if (string(argv[i]) == "-thrust") {
 			useThrustPath = true;
 		}
 		else if (string(argv[i]) == "-cpu") {
 			forceCPU = true;
+		}
+		else if (string(argv[i])=="-solid"){
+			solidVoxelization = true;
 		}
 	}
 	if (!filegiven) {
@@ -167,9 +175,11 @@ void parseProgramParameters(int argc, char* argv[]){
 	fprintf(stdout, "[Info] Grid size: %i \n", gridsize);
 	fprintf(stdout, "[Info] Output format: %s \n", OutputFormats[int(outputformat)]);
 	fprintf(stdout, "[Info] Using CUDA Thrust: %s (default: No)\n", useThrustPath ? "Yes" : "No");
+	fprintf(stdout, "[Info] Using CPU-based voxelization: %s (default: No)\n", forceCPU ? "Yes" : "No");
+	fprintf(stdout, "[Info] Using Solid Voxelization: %s (default: No)\n", solidVoxelization ? "Yes" : "No");
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
 	Timer t; t.start();
 	printHeader();
 	fprintf(stdout, "\n## PROGRAM PARAMETERS \n");
@@ -183,7 +193,7 @@ int main(int argc, char *argv[]) {
 	trimesh::TriMesh::set_verbose(true);
 #endif
 	fprintf(stdout, "[I/O] Reading mesh from %s \n", filename.c_str());
-	trimesh::TriMesh *themesh = trimesh::TriMesh::read(filename.c_str());
+	trimesh::TriMesh* themesh = trimesh::TriMesh::read(filename.c_str());
 	themesh->need_faces(); // Trimesh: Unpack (possible) triangle strips so we have faces for sure
 	fprintf(stdout, "[Mesh] Number of triangles: %zu \n", themesh->faces.size());
 	fprintf(stdout, "[Mesh] Number of vertices: %zu \n", themesh->vertices.size());
@@ -199,17 +209,16 @@ int main(int argc, char *argv[]) {
 	voxinfo voxelization_info(createMeshBBCube<glm::vec3>(bbox_mesh), glm::uvec3(gridsize, gridsize, gridsize), themesh->faces.size());
 	voxelization_info.print();
 	// Compute space needed to hold voxel table (1 voxel / bit)
-	size_t vtable_size = static_cast<size_t>(ceil(static_cast<size_t>(voxelization_info.gridsize.x)* static_cast<size_t>(voxelization_info.gridsize.y)* static_cast<size_t>(voxelization_info.gridsize.z)) / 8.0f);
+	size_t vtable_size = static_cast<size_t>(ceil(static_cast<size_t>(voxelization_info.gridsize.x) * static_cast<size_t>(voxelization_info.gridsize.y) * static_cast<size_t>(voxelization_info.gridsize.z)) / 8.0f);
 	unsigned int* vtable; // Both voxelization paths (GPU and CPU) need this
 
-	// SECTION: Try to figure out if we have a CUDA-enabled GPU
-	fprintf(stdout, "\n## CUDA INIT \n");
-	bool cuda_ok = initCuda();
-	if (cuda_ok) {
-		fprintf(stdout, "[Info] CUDA GPU found\n");
-	}
-	else {
-		fprintf(stdout, "[Info] CUDA GPU not found\n");
+	bool cuda_ok = false;
+	if (!forceCPU)
+	{
+		// SECTION: Try to figure out if we have a CUDA-enabled GPU
+		fprintf(stdout, "\n## CUDA INIT \n");
+		cuda_ok = initCuda();
+		cuda_ok ? fprintf(stdout, "[Info] CUDA GPU found\n") : fprintf(stdout, "[Info] CUDA GPU not found\n");
 	}
 
 	// SECTION: The actual voxelization
@@ -232,7 +241,13 @@ int main(int argc, char *argv[]) {
 			checkCudaErrors(cudaHostAlloc((void**)&vtable, vtable_size, cudaHostAllocDefault));
 		}
 		fprintf(stdout, "\n## GPU VOXELISATION \n");
-		voxelize(voxelization_info, device_triangles, vtable, useThrustPath, (outputformat == OutputFormat::output_morton));
+		if (solidVoxelization){
+			voxelize_solid(voxelization_info, device_triangles, vtable, useThrustPath, (outputformat == OutputFormat::output_morton));
+		}
+		else
+		{
+			voxelize(voxelization_info, device_triangles, vtable, useThrustPath, (outputformat == OutputFormat::output_morton));
+		}
 	} else { 
 		// CPU VOXELIZATION FALLBACK
 		fprintf(stdout, "\n## CPU VOXELISATION \n");
