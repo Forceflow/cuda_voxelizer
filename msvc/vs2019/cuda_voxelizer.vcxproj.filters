@@ -3,6 +3,7 @@
   <ItemGroup>
     <CudaCompile Include="..\..\src\thrust_operations.cu" />
     <CudaCompile Include="..\..\src/voxelize.cu" />
+    <CudaCompile Include="..\..\src\voxelize_solid.cu" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\main.cpp" />

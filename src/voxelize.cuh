@@ -1,5 +1,7 @@
 #pragma once
 
+// Commun functions for both the solid and non-solid voxelization methods
+
 #include "cuda.h"
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
@@ -11,7 +13,6 @@
 #include <iostream>
 #include "util.h"
 #include "util_cuda.h"
-
 #include "morton_LUTs.h"
 
 // Morton LUTs for when we need them

@@ -1,3 +1,7 @@
+/*
+	Solid voxelization based on the Schwarz-Seidel paper.
+*/
+
 #include "voxelize.cuh"
 
 #define float_error 0.000001
