@@ -20,7 +20,7 @@
 #include "cpu_voxelizer.h"
 
 using namespace std;
-string version_number = "v0.4.5";
+string version_number = "v0.4.6";
 
 // Forward declaration of CUDA functions
 float* meshToGPU_thrust(const trimesh::TriMesh *mesh); // METHOD 3 to transfer triangles can be found in thrust_operations.cu(h)
@@ -53,12 +53,15 @@ void printExample() {
 
 void printHelp(){
 	fprintf(stdout, "\n## HELP  \n");
-	cout << "Program options: " << endl;
+	cout << "Program options: " << endl << endl;
 	cout << " -f <path to model file: .ply, .obj, .3ds> (required)" << endl;
 	cout << " -s <voxelization grid size, power of 2: 8 -> 512, 1024, ... (default: 256)>" << endl;
 	cout << " -o <output format: binvox, obj, obj_points or morton (default: binvox)>" << endl;
-	cout << " -t : Force using CUDA Thrust Library (possible speedup / throughput improvement)" << endl;
+	cout << " -thrust : Force using CUDA Thrust Library (possible speedup / throughput improvement)" << endl;
+	cout << " -cpu : Force CPU-based voxelization (slow, but works if no compatible GPU can be found)" << endl;
+	cout << " -solid : Force solid voxelization (experimental, needs watertight model, incompatible with -cpu)" << endl << endl;
 	printExample();
+	cout << endl;
 }
 
 // METHOD 1: Helper function to transfer triangles to automatically managed CUDA memory ( > CUDA 7.x)
@@ -153,7 +156,7 @@ void parseProgramParameters(int argc, char* argv[]){
 				exit(1);
 			}
 		}
-		else if (string(argv[i]) == "-t") {
+		else if (string(argv[i]) == "-thrust") {
 			useThrustPath = true;
 		}
 		else if (string(argv[i]) == "-cpu") {
@@ -172,6 +175,7 @@ void parseProgramParameters(int argc, char* argv[]){
 	fprintf(stdout, "[Info] Grid size: %i \n", gridsize);
 	fprintf(stdout, "[Info] Output format: %s \n", OutputFormats[int(outputformat)]);
 	fprintf(stdout, "[Info] Using CUDA Thrust: %s (default: No)\n", useThrustPath ? "Yes" : "No");
+	fprintf(stdout, "[Info] Using CPU-based voxelization: %s (default: No)\n", forceCPU ? "Yes" : "No");
 	fprintf(stdout, "[Info] Using Solid Voxelization: %s (default: No)\n", solidVoxelization ? "Yes" : "No");
 }
 
