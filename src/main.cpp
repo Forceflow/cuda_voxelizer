@@ -26,6 +26,7 @@ string version_number = "v0.4.5";
 float* meshToGPU_thrust(const trimesh::TriMesh *mesh); // METHOD 3 to transfer triangles can be found in thrust_operations.cu(h)
 void cleanup_thrust();
 void voxelize(const voxinfo & v, float* triangle_data, unsigned int* vtable, bool useThrustPath, bool morton_code);
+void voxelize_solid(const voxinfo& v, float* triangle_data, unsigned int* vtable, bool useThrustPath, bool morton_code);
 
 // Output formats
 enum class OutputFormat { output_binvox = 0, output_morton = 1, output_obj_points = 2, output_obj_cubes = 3};
@@ -38,6 +39,7 @@ OutputFormat outputformat = OutputFormat::output_binvox;
 unsigned int gridsize = 256;
 bool useThrustPath = false;
 bool forceCPU = false;
+bool solidVoxelization = false;
 
 void printHeader(){
 	fprintf(stdout, "## CUDA VOXELIZER \n");
@@ -157,6 +159,9 @@ void parseProgramParameters(int argc, char* argv[]){
 		else if (string(argv[i]) == "-cpu") {
 			forceCPU = true;
 		}
+		else if (string(argv[i])=="-solid"){
+			solidVoxelization = true;
+		}
 	}
 	if (!filegiven) {
 		fprintf(stdout, "[Err] You didn't specify a file using -f (path). This is required. Exiting. \n");
@@ -167,6 +172,7 @@ void parseProgramParameters(int argc, char* argv[]){
 	fprintf(stdout, "[Info] Grid size: %i \n", gridsize);
 	fprintf(stdout, "[Info] Output format: %s \n", OutputFormats[int(outputformat)]);
 	fprintf(stdout, "[Info] Using CUDA Thrust: %s (default: No)\n", useThrustPath ? "Yes" : "No");
+	fprintf(stdout, "[Info] Using Solid Voxelization: %s (default: No)\n", solidVoxelization ? "Yes" : "No");
 }
 
 int main(int argc, char *argv[]) {
@@ -232,7 +238,13 @@ int main(int argc, char *argv[]) {
 			checkCudaErrors(cudaHostAlloc((void**)&vtable, vtable_size, cudaHostAllocDefault));
 		}
 		fprintf(stdout, "\n## GPU VOXELISATION \n");
-		voxelize(voxelization_info, device_triangles, vtable, useThrustPath, (outputformat == OutputFormat::output_morton));
+		if (solidVoxelization){
+			voxelize_solid(voxelization_info, device_triangles, vtable, useThrustPath, (outputformat == OutputFormat::output_morton));
+		}
+		else
+		{
+			voxelize(voxelization_info, device_triangles, vtable, useThrustPath, (outputformat == OutputFormat::output_morton));
+		}
 	} else { 
 		// CPU VOXELIZATION FALLBACK
 		fprintf(stdout, "\n## CPU VOXELISATION \n");

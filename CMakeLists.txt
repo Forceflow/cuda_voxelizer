@@ -36,6 +36,7 @@ SET(CUDA_VOXELIZER_SRCS
 SET(CUDA_VOXELIZER_SRCS_CU
   ./src/voxelize.cu
   ./src/thrust_operations.cu
+  ./src/voxelize_solid.cu
 )
 
 CUDA_ADD_EXECUTABLE(
