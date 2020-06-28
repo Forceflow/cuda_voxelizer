@@ -179,7 +179,7 @@ void parseProgramParameters(int argc, char* argv[]){
 	fprintf(stdout, "[Info] Using Solid Voxelization: %s (default: No)\n", solidVoxelization ? "Yes" : "No");
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
 	Timer t; t.start();
 	printHeader();
 	fprintf(stdout, "\n## PROGRAM PARAMETERS \n");
@@ -193,7 +193,7 @@ int main(int argc, char *argv[]) {
 	trimesh::TriMesh::set_verbose(true);
 #endif
 	fprintf(stdout, "[I/O] Reading mesh from %s \n", filename.c_str());
-	trimesh::TriMesh *themesh = trimesh::TriMesh::read(filename.c_str());
+	trimesh::TriMesh* themesh = trimesh::TriMesh::read(filename.c_str());
 	themesh->need_faces(); // Trimesh: Unpack (possible) triangle strips so we have faces for sure
 	fprintf(stdout, "[Mesh] Number of triangles: %zu \n", themesh->faces.size());
 	fprintf(stdout, "[Mesh] Number of vertices: %zu \n", themesh->vertices.size());
@@ -209,17 +209,16 @@ int main(int argc, char *argv[]) {
 	voxinfo voxelization_info(createMeshBBCube<glm::vec3>(bbox_mesh), glm::uvec3(gridsize, gridsize, gridsize), themesh->faces.size());
 	voxelization_info.print();
 	// Compute space needed to hold voxel table (1 voxel / bit)
-	size_t vtable_size = static_cast<size_t>(ceil(static_cast<size_t>(voxelization_info.gridsize.x)* static_cast<size_t>(voxelization_info.gridsize.y)* static_cast<size_t>(voxelization_info.gridsize.z)) / 8.0f);
+	size_t vtable_size = static_cast<size_t>(ceil(static_cast<size_t>(voxelization_info.gridsize.x) * static_cast<size_t>(voxelization_info.gridsize.y) * static_cast<size_t>(voxelization_info.gridsize.z)) / 8.0f);
 	unsigned int* vtable; // Both voxelization paths (GPU and CPU) need this
 
-	// SECTION: Try to figure out if we have a CUDA-enabled GPU
-	fprintf(stdout, "\n## CUDA INIT \n");
-	bool cuda_ok = initCuda();
-	if (cuda_ok) {
-		fprintf(stdout, "[Info] CUDA GPU found\n");
-	}
-	else {
-		fprintf(stdout, "[Info] CUDA GPU not found\n");
+	bool cuda_ok = false;
+	if (!forceCPU)
+	{
+		// SECTION: Try to figure out if we have a CUDA-enabled GPU
+		fprintf(stdout, "\n## CUDA INIT \n");
+		cuda_ok = initCuda();
+		cuda_ok ? fprintf(stdout, "[Info] CUDA GPU found\n") : fprintf(stdout, "[Info] CUDA GPU not found\n");
 	}
 
 	// SECTION: The actual voxelization
