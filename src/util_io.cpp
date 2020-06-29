@@ -179,6 +179,9 @@ void write_binvox(const unsigned int* vtable, const voxinfo v_info, const std::s
 	// Write ASCII header
 	output << "#binvox 1" << endl;
 	output << "dim " << v_info.gridsize.x << " " << v_info.gridsize.y << " " << v_info.gridsize.z << "" << endl;
+	output << "translate " << v_info.bbox.min.x << " " << v_info.bbox.min.y << " " << v_info.bbox.min.z << endl;
+	output << "scale " << max(max(v_info.bbox.max.x - v_info.bbox.min.x, v_info.bbox.max.y - v_info.bbox.min.y), 
+		v_info.bbox.max.z - v_info.bbox.min.z) << endl;
 	output << "data" << endl;
 
 	// Write BINARY Data (and compress it a bit using run-length encoding)
