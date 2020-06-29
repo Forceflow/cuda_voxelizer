@@ -53,14 +53,14 @@ A Visual Studio 2019 project solution is provided in the `msvc`folder. It is con
 ## Details
 `cuda_voxelizer` implements an optimized version of the method described in M. Schwarz and HP Seidel's 2010 paper [*Fast Parallel Surface and Solid Voxelization on GPU's*](http://research.michael-schwarz.com/publ/2010/vox/). The morton-encoded table was based on my 2013 HPG paper [*Out-Of-Core construction of Sparse Voxel Octrees*](http://graphics.cs.kuleuven.be/publications/BLD14OCCSVO/)  and the work in [*libmorton*](https://github.com/Forceflow/libmorton).
 
-`cuda_voxelizer` is built with a focus on performance. Usage of the routine as a per-frame voxelization step for real-time applications is viable. More performance metrics are on the todo list, but on a GTX 1060 these are the voxelization timings for the Stanford Bunny Model (1,55 MB, 70k triangles), including GPU memory transfers. Still lots of room for optimization.
+`cuda_voxelizer` is built with a focus on performance. Usage of the routine as a per-frame voxelization step for real-time applications is viable. These are the voxelization timings for the [Stanford Bunny Model](https://graphics.stanford.edu/data/3Dscanrep/) (1,55 MB, 70k triangles). This is purely for a non-solid voxelization step, without GPU transfer time.
 
-| Grid size | Time    |
-|-----------|---------|
-| 128^3     | 4.2 ms  |
-| 256^3     | 6.2 ms  |
-| 512^3     | 13.4 ms |
-| 1024^3    | 38.6 ms  |
+| Grid size | GPU (GTX 1050 TI) | CPU (Intel i7 8750H, 12 threads) |
+|-----------|--------|--------|
+| 128^3     | 0.3 ms | 63.6 ms |
+| 256^3     | 0.6 ms | 118.2 ms |
+| 512^3     | 1.8 ms | 308.8 ms |
+| 1024^3    | 8.6 ms | 1047.5 ms |
 
 ## Notes / See Also
  * The .binvox file format was created by [Patrick Min](https://www.patrickmin.com/binvox/). Check some other interesting tools he wrote:
