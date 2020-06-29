@@ -33,6 +33,7 @@ namespace cpu_voxelizer {
 
 	// Mesh voxelization method
 	void cpu_voxelize_mesh(voxinfo info, trimesh::TriMesh* themesh, unsigned int* voxel_table, bool morton_order) {
+		Timer cpu_voxelization_timer; cpu_voxelization_timer.start();
 		//// Common variables used in the voxelization process
 		//glm::vec3 delta_p(info.unit.x, info.unit.y, info.unit.z);
 		//glm::vec3 c(0.0f, 0.0f, 0.0f); // critical point
@@ -179,6 +180,7 @@ namespace cpu_voxelizer {
 				}
 			}
 		}
+		cpu_voxelization_timer.stop(); fprintf(stdout, "[Perf] CPU voxelization time: %.1f ms \n", cpu_voxelization_timer.elapsed_time_milliseconds);
 #ifdef _DEBUG
 		printf("[Debug] Processed %llu triangles on the CPU \n", debug_n_triangles);
 		printf("[Debug] Tested %llu voxels for overlap on CPU \n", debug_n_voxels_tested);
