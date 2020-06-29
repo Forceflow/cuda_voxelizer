@@ -20,7 +20,7 @@
 #include "cpu_voxelizer.h"
 
 using namespace std;
-string version_number = "v0.4.6";
+string version_number = "v0.4.7";
 
 // Forward declaration of CUDA functions
 float* meshToGPU_thrust(const trimesh::TriMesh *mesh); // METHOD 3 to transfer triangles can be found in thrust_operations.cu(h)
@@ -267,13 +267,13 @@ int main(int argc, char* argv[]) {
 	if (outputformat == OutputFormat::output_morton){
 		write_binary(vtable, vtable_size, filename);
 	} else if (outputformat == OutputFormat::output_binvox){
-		write_binvox(vtable, gridsize, filename);
+		write_binvox(vtable, voxelization_info, filename);
 	}
 	else if (outputformat == OutputFormat::output_obj_points) {
-		write_obj_pointcloud(vtable, gridsize, filename);
+		write_obj_pointcloud(vtable, voxelization_info, filename);
 	}
 	else if (outputformat == OutputFormat::output_obj_cubes) {
-		write_obj_cubes(vtable, gridsize, filename);
+		write_obj_cubes(vtable, voxelization_info, filename);
 	}
 
 	if (useThrustPath) {
