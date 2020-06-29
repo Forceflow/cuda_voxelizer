@@ -16,7 +16,7 @@ Program options:
    * `obj`: A mesh containing actual cubes (made up of triangle faces) for each voxel.
    * `obj_points`: A mesh containing a point cloud, with a vertex for each voxel. Can be viewed using any compatible viewer that can just display vertices, like [Blender](https://www.blender.org/) or [Meshlab](https://www.meshlab.net/).
    * `morton`: a binary file containing a Morton-ordered grid. This is a format I personally use for other tools.
- * `-cpu`: Force voxelization on the CPU instead of GPU. For when a CUDA device is not detected/compatible, or for very small models where GPU call overhead is not worth it. This is done multi-threaded, but can still be very slow for large models / grid sizes.
+ * `-cpu`: Force voxelization on the CPU instead of GPU. For when a CUDA device is not detected/compatible, or for very small models where GPU call overhead is not worth it. This is done multi-threaded, but will be slower for large models / grid sizes.
  * `-thrust` : Use Thrust library for copying the model data to the GPU, for a possible speed / throughput improvement. I found this to be very system-dependent. Default: disabled.
  * `-solid` : (Experimental) Use solid voxelization instead of voxelizing the mesh faces. Incompatible with `-cpu`. Needs a watertight input mesh.
 
@@ -53,19 +53,25 @@ A Visual Studio 2019 project solution is provided in the `msvc`folder. It is con
 ## Details
 `cuda_voxelizer` implements an optimized version of the method described in M. Schwarz and HP Seidel's 2010 paper [*Fast Parallel Surface and Solid Voxelization on GPU's*](http://research.michael-schwarz.com/publ/2010/vox/). The morton-encoded table was based on my 2013 HPG paper [*Out-Of-Core construction of Sparse Voxel Octrees*](http://graphics.cs.kuleuven.be/publications/BLD14OCCSVO/)  and the work in [*libmorton*](https://github.com/Forceflow/libmorton).
 
-`cuda_voxelizer` is built with a focus on performance. Usage of the routine as a per-frame voxelization step for real-time applications is viable. These are the voxelization timings for the [Stanford Bunny Model](https://graphics.stanford.edu/data/3Dscanrep/) (1,55 MB, 70k triangles). This is purely for a non-solid voxelization step, without GPU transfer time.
+`cuda_voxelizer` is built with a focus on performance. Usage of the routine as a per-frame voxelization step for real-time applications is viable. These are the voxelization timings for the [Stanford Bunny Model](https://graphics.stanford.edu/data/3Dscanrep/) (1,55 MB, 70k triangles). 
+ * This is the voxelization time for a non-solid voxelization. No I/O - from disk or to GPU - is included in this timing.
+ * CPU voxelization time is heavily dependent on how many cores your CPU has - OpenMP allocates 1 thread per core.
 
 | Grid size | GPU (GTX 1050 TI) | CPU (Intel i7 8750H, 12 threads) |
 |-----------|--------|--------|
+| 64^3     | 0.2 ms | 39.8 ms |
 | 128^3     | 0.3 ms | 63.6 ms |
 | 256^3     | 0.6 ms | 118.2 ms |
 | 512^3     | 1.8 ms | 308.8 ms |
 | 1024^3    | 8.6 ms | 1047.5 ms |
+| 2048^3    | 44.6 ms | 4147.4 ms |
 
 ## Notes / See Also
- * The .binvox file format was created by [Patrick Min](https://www.patrickmin.com/binvox/). Check some other interesting tools he wrote:
-   * [viewvox](https://www.patrickmin.com/viewvox/): Visualization of voxel grids (a copy of this tool is included in cuda_voxelizer releases)
-   * [thinvox](https://www.patrickmin.com/thinvox/): Thinning of voxel grids
+ * The [.binvox file format](https://www.patrickmin.com/binvox/binvox.html) was created by Michael Kazhdan. 
+   * [Patrick Min](https://www.patrickmin.com/binvox/) wrote some interesting tools to work with it:
+     * [viewvox](https://www.patrickmin.com/viewvox/): Visualization of voxel grids (a copy of this tool is included in cuda_voxelizer releases)
+     * [thinvox](https://www.patrickmin.com/thinvox/): Thinning of voxel grids
+   * [binvox-rw-py](https://github.com/dimatura/binvox-rw-py) is a Python module to interact with .binvox files
  * Thanks to [conceptclear](https://github.com/conceptclear) for implementing solid voxelization
  * If you want a good customizable CPU-based voxelizer, I can recommend [VoxSurf](https://github.com/sylefeb/VoxSurf).
  * Another hackable voxel viewer is Sean Barrett's excellent [stb_voxel_render.h](https://github.com/nothings/stb/blob/master/stb_voxel_render.h).
