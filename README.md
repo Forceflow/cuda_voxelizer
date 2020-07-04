@@ -27,7 +27,7 @@ Program options:
 
 `cuda_voxelizer -f torus.ply -s 64 -o obj -thrust -solid` generates a solid (filled) 64 x 64 x 64 .obj voxel model which will be stored in `torus_64.obj`. During voxelization, the Cuda Thrust library will be used for a possible speedup, but YMMV.
 
-![output_examples](https://raw.githubusercontent.com/Forceflow/cuda_voxelizer/master/img/output_examples.jpg)
+![output_examples](https://raw.githubusercontent.com/Forceflow/cuda_voxelizer/main/img/output_examples.jpg)
 
 ## Building
 The build process is aimed at 64-bit executables. It might be possible to build for 32-bit as well, but I'm not actively testing/supporting this.
