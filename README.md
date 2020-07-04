@@ -27,7 +27,7 @@ Program options:
 
 `cuda_voxelizer -f torus.ply -s 64 -o obj -thrust -solid` generates a solid (filled) 64 x 64 x 64 .obj voxel model which will be stored in `torus_64.obj`. During voxelization, the Cuda Thrust library will be used for a possible speedup, but YMMV.
 
-![output_examples](https://raw.githubusercontent.com/Forceflow/cuda_voxelizer/master/img/output_examples.jpg)
+![output_examples](https://raw.githubusercontent.com/Forceflow/cuda_voxelizer/main/img/output_examples.jpg)
 
 ## Building
 The build process is aimed at 64-bit executables. It might be possible to build for 32-bit as well, but I'm not actively testing/supporting this.
@@ -59,12 +59,12 @@ A Visual Studio 2019 project solution is provided in the `msvc`folder. It is con
 
 | Grid size | GPU (GTX 1050 TI) | CPU (Intel i7 8750H, 12 threads) |
 |-----------|--------|--------|
-| 64^3     | 0.2 ms | 39.8 ms |
-| 128^3     | 0.3 ms | 63.6 ms |
-| 256^3     | 0.6 ms | 118.2 ms |
-| 512^3     | 1.8 ms | 308.8 ms |
-| 1024^3    | 8.6 ms | 1047.5 ms |
-| 2048^3    | 44.6 ms | 4147.4 ms |
+| 64³     | 0.2 ms | 39.8 ms |
+| 128³     | 0.3 ms | 63.6 ms |
+| 256³     | 0.6 ms | 118.2 ms |
+| 512³     | 1.8 ms | 308.8 ms |
+| 1024³    | 8.6 ms | 1047.5 ms |
+| 2048³    | 44.6 ms | 4147.4 ms |
 
 ## Notes / See Also
  * The [.binvox file format](https://www.patrickmin.com/binvox/binvox.html) was created by Michael Kazhdan. 

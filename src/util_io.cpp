@@ -92,7 +92,6 @@ void write_cube(const size_t& x, const size_t& y, const size_t& z, ofstream& out
 }
 
 void write_obj_cubes(const unsigned int* vtable, const voxinfo v_info, const std::string base_filename) {
-	string temp_filename_output = base_filename + string("_") + to_string(v_info.gridsize.x) + string("_voxels_TEMP.obj");
 	string filename_output = base_filename + string("_") + to_string(v_info.gridsize.x) + string("_voxels.obj");
 #ifndef SILENT
 	fprintf(stdout, "[I/O] Writing data in obj voxels format to file %s \n", filename_output.c_str());
@@ -107,13 +106,13 @@ void write_obj_cubes(const unsigned int* vtable, const voxinfo v_info, const std
 	//write_vertex_normal(output, glm::ivec3(0, -1, 0)); // bottom = 5
 	//write_vertex_normal(output, glm::ivec3(0, 1, 0)); // top = 6
 
-	size_t voxels_written = 0;
+	//size_t voxels_written = 0;
 	assert(output);
 	for (size_t x = 0; x < v_info.gridsize.x; x++) {
 		for (size_t y = 0; y < v_info.gridsize.y; y++) {
 			for (size_t z = 0; z < v_info.gridsize.z; z++) {
 				if (checkVoxel(x, y, z, v_info.gridsize, vtable)) {
-					voxels_written += 1;
+					//voxels_written += 1;
 					write_cube(x, y, z, output);
 				}
 			}
@@ -121,10 +120,9 @@ void write_obj_cubes(const unsigned int* vtable, const voxinfo v_info, const std
 	}
 	// std::cout << "written " << voxels_written << std::endl;
 
-	fprintf(stdout, "[I/O] Reading file back into TriMesh2 library for optimizing \n", filename_output.c_str());
+	fprintf(stdout, "[I/O] Reordering / Optimizing mesh with Trimesh2 \n");
 	// Load the file using TriMesh2
-	trimesh::TriMesh* temp_mesh = trimesh::TriMesh::read(filename_output.c_str());
-	fprintf(stdout, "[I/O] Reordering / Optimizing mesh\n");
+	trimesh::TriMesh* temp_mesh = trimesh::TriMesh::read(filename_output.c_str());	
 	trimesh::reorder_verts(temp_mesh);
 	//trimesh::faceflip(temp_mesh);
 	//trimesh::edgeflip(temp_mesh);
