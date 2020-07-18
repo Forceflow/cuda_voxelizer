@@ -12,19 +12,15 @@ env:
 jobs:
   linux-build:
     runs-on: ubuntu-18.04
-    container: nvidia/cuda:10.1-devel-ubuntu18.04
+    container: nvidia/cuda:10.2-devel-ubuntu18.04
     
     steps:
     - name: Checkout
       uses: actions/checkout@v2 
 
     - name: Install GLM and OpenMP
-      run: apt update && apt install -y libglm-dev libgomp1
-    - name: Build Trimesh2
-      run: |
-        apt install -y git mesa-common-dev libglu1-mesa-dev libxi-dev 
-        git clone -b 2020.03.04 https://github.com/Forceflow/trimesh2.git ../trimesh2
-        cd ../trimesh2 && make all -j 2 && make clean && cd -
+      run: apt update && apt install -y libglm-dev libgomp1 git mesa-common-dev libglu1-mesa-dev libxi-dev 
+    
     - name: Install CMake
       run: |
         apt install -y wget
@@ -33,13 +29,19 @@ jobs:
         mkdir "$HOME"/cmake
         ./cmake-install.sh --skip-license --prefix="$HOME"/cmake
         rm ./cmake-install.sh
+    
+    - name: Build Trimesh2
+      run: |
+        git clone -b 2020.03.04 https://github.com/Forceflow/trimesh2.git ../trimesh2
+        cd ../trimesh2 && make all -j 2 && make clean && cd -
+
     - name: Build cuda_voxelizer
       run: |
         PATH=$PATH:"$HOME"/cmake/bin
         mkdir ./build
         cd ./build
         cmake -DTrimesh2_INCLUDE_DIR="../../trimesh2/include" -DTrimesh2_LINK_DIR="../../trimesh2/lib.Linux64" -DCUDA_ARCH=${CUDA_ARCH} ..
-        ../cmake/bin/cmake --build . -j 2
+        cmake --build . -j 2
     - name: Test
       run: ./build/cuda_voxelizer -f ./test_models/bunny.OBJ -s 64 -cpu
   
@@ -51,10 +53,10 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v2
-      
+
     - name: Install CUDA 10.1
       run: |
-        Invoke-WebRequest http://developer.download.nvidia.com/compute/cuda/10.1/Prod/local_installers/cuda_10.1.243_426.00_win10.exe -OutFile .\cuda.exe
+        (New-Object System.Net.WebClient).DownloadFile("http://developer.download.nvidia.com/compute/cuda/10.1/Prod/local_installers/cuda_10.1.243_426.00_win10.exe", ".\cuda.exe")
         Start-Process -FilePath .\cuda.exe -ArgumentList "-s","nvcc_10.1","cudart_10.1","visual_studio_integration_10.1" -Wait -NoNewWindow
         rm .\cuda.exe
 
@@ -66,15 +68,16 @@ jobs:
       id: trimesh2-cache
       uses: actions/cache@v2
       with:
-        path: ..\trimesh2-build
+        path: ${{ runner.workspace }}\trimesh2-build
         key: ${{ runner.os }}-build-trimesh2-cache
    
     - name: Build Trimesh2
       if: steps.trimesh2-cache.outputs.cache-hit != 'true'
       run: |
+        Install-Module VSSetup -Scope CurrentUser -Force
         git clone -b 2020.03.04 https://github.com/Forceflow/trimesh2.git ..\trimesh2
         cd ..\trimesh2
-        & 'C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\msbuild.exe' .\msvc\vs2019\trimesh2.sln -nologo -m:2 /t:libsrc /p:Configuration=Release /p:Platform=x64
+        & (Join-Path (Get-VSSetupInstance).InstallationPath -ChildPath MSBuild\Current\Bin\msbuild.exe) .\msvc\vs2019\trimesh2.sln -nologo -m:2 /t:libsrc /p:Configuration=Release /p:Platform=x64
         mkdir ..\trimesh2-build
         Move-Item .\include ..\trimesh2-build
         Move-Item .\lib.Win64.vs142 ..\trimesh2-build
@@ -87,5 +90,6 @@ jobs:
         mkdir .\build
         & cmake -A x64 -DCMAKE_TOOLCHAIN_FILE:FILEPATH="C:\vcpkg\scripts\buildsystems\vcpkg.cmake" -DTrimesh2_INCLUDE_DIR:PATH="$trimeshDir\include" -DTrimesh2_LINK_DIR:PATH="$trimeshDir\lib.Win64.vs142" -DCUDA_ARCH:STRING=$env:CUDA_ARCH -DCMAKE_BUILD_TYPE=Release -S . -B .\build
         & cmake --build .\build -j 2 --target ALL_BUILD --config Release
+    
     - name: Test cuda_voxelizer
       run: .\build\Release\cuda_voxelizer.exe -f .\test_models\bunny.OBJ -s 64 -cpu
