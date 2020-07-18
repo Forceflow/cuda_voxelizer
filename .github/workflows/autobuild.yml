@@ -1,18 +1,21 @@
 name: build
 
-on:
-  workflow_dispatch:
-    inputs:
-      cuda-version:
-        description: 'CUDA version for Linux build. For example: 10.1, 10.2. This parameter has no effect for Windows.'
-        required: true
-        default: '10.2'
+on: 
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+    branches:
+      - main
+      - dev
+
 env: 
   CUDA_ARCH: 30
 jobs:
   linux-build:
     runs-on: ubuntu-18.04
-    container: nvidia/cuda:10.2-devel-ubuntu18.04
+    container: nvidia/cuda:10.1-devel-ubuntu18.04
     
     steps:
     - name: Checkout
