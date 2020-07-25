@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/Forceflow/cuda_voxelizer.svg?branch=master)](https://travis-ci.org/Forceflow/cuda_voxelizer) ![](https://img.shields.io/github/license/Forceflow/cuda_voxelizer.svg) [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.me/Forceflow)
 
-# cuda_voxelizer v0.4.7
+# cuda_voxelizer v0.4.8
 A command-line tool to convert polygon meshes to (annotated) voxel grids.
  * Supported input formats: .ply, .off, .obj, .3DS, .SM and RAY
  * Supported output formats: .binvox, .obj, morton ordered grid
@@ -31,6 +31,8 @@ Program options:
 
 ## Building
 The build process is aimed at 64-bit executables. It might be possible to build for 32-bit as well, but I'm not actively testing/supporting this.
+You can build using CMake, or using the provided Visual Studio project. Since November 2019, cuda_voxelizer also builds on [Travis CI](https://travis-ci.org/Forceflow/cuda_voxelizer), so check out the [yaml config file](https://github.com/Forceflow/cuda_voxelizer/blob/main/.travis.yml) for more Linux build support.
+
 ### Dependencies
 The project has the following build dependencies:
  * [Nvidia Cuda 8.0 Toolkit (or higher)](https://developer.nvidia.com/cuda-toolkit) for CUDA + Thrust libraries (standard included)
@@ -38,7 +40,28 @@ The project has the following build dependencies:
  * [GLM](http://glm.g-truc.net/0.9.8/index.html) for vector math. Any recent version will do.
  * [OpenMP](https://www.openmp.org/)
 
-### Windows
+### Build using CMake (Windows, Linux)
+
+After installing dependencies, do `mkdir build` and `cd build`, followed by:
+
+For Windows with Visual Studio 2019:
+```
+cmake -A x64 -DTrimesh2_INCLUDE_DIR:PATH="path_to_trimesh2_include" -DTrimesh2_LINK_DIR:PATH="path_to_trimesh2_library_dir" -DCUDA_ARCH:STRING="your_cuda_compute_capability" .. 
+```
+
+For Linux:
+```
+cmake -DTrimesh2_INCLUDE_DIR:PATH="path_to_trimesh2_include" -DTrimesh2_LINK_DIR:PATH="path_to_trimesh2_library_dir" -DCUDA_ARCH:STRING="your_cuda_compute_capability" .. 
+```
+Where `your_cuda_compute_capability` is a string specifying your CUDA architecture ([more info here](https://docs.nvidia.com/cuda/archive/10.2/cuda-compiler-driver-nvcc/index.html#options-for-steering-gpu-code-generation-gpu-architecture)). For example: `-DCUDA_ARCH:STRING=61` or `-DCUDA_ARCH:STRING=60`.
+
+Finally, run
+```
+cmake --build . -j number_of_cores
+```
+
+### Build using Visual Studio project (Windows)
+
 A Visual Studio 2019 project solution is provided in the `msvc`folder. It is configured for CUDA 11, but you can edit the project file to make it work with lower CUDA versions. You can edit the `custom_includes.props` file to configure the library locations, and specify a place where the resulting binaries should be placed.
 
 ```
@@ -46,10 +69,6 @@ A Visual Studio 2019 project solution is provided in the `msvc`folder. It is con
     <GLM_DIR>C:\libs\glm\</GLM_DIR>
     <BINARY_OUTPUT_DIR>D:\dev\Binaries\</BINARY_OUTPUT_DIR>
 ```
-
-### Linux
-[Philipp-M](https://github.com/Philipp-M) and [andreanicastro](https://github.com/andreanicastro) were kind enough to write [CMake](https://cmake.org/) support. Since November 2019, cuda_voxelizer also builds on [Travis CI](https://travis-ci.org/Forceflow/cuda_voxelizer), so check out the [yaml config file](https://github.com/Forceflow/cuda_voxelizer/blob/master/.travis.yml) for more Linux build support.
-
 ## Details
 `cuda_voxelizer` implements an optimized version of the method described in M. Schwarz and HP Seidel's 2010 paper [*Fast Parallel Surface and Solid Voxelization on GPU's*](http://research.michael-schwarz.com/publ/2010/vox/). The morton-encoded table was based on my 2013 HPG paper [*Out-Of-Core construction of Sparse Voxel Octrees*](http://graphics.cs.kuleuven.be/publications/BLD14OCCSVO/)  and the work in [*libmorton*](https://github.com/Forceflow/libmorton).
 
