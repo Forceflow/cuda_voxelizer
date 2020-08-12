@@ -20,7 +20,7 @@
 #include "cpu_voxelizer.h"
 
 using namespace std;
-string version_number = "v0.4.7";
+string version_number = "v0.4.8";
 
 // Forward declaration of CUDA functions
 float* meshToGPU_thrust(const trimesh::TriMesh *mesh); // METHOD 3 to transfer triangles can be found in thrust_operations.cu(h)
@@ -244,8 +244,7 @@ int main(int argc, char* argv[]) {
 		if (solidVoxelization){
 			voxelize_solid(voxelization_info, device_triangles, vtable, useThrustPath, (outputformat == OutputFormat::output_morton));
 		}
-		else
-		{
+		else{
 			voxelize(voxelization_info, device_triangles, vtable, useThrustPath, (outputformat == OutputFormat::output_morton));
 		}
 	} else { 
@@ -253,8 +252,14 @@ int main(int argc, char* argv[]) {
 		fprintf(stdout, "\n## CPU VOXELISATION \n");
 		if (!forceCPU) { fprintf(stdout, "[Info] No suitable CUDA GPU was found: Falling back to CPU voxelization\n"); }
 		else { fprintf(stdout, "[Info] Doing CPU voxelization (forced using command-line switch -cpu)\n"); }
+		// allocate zero-filled array
 		vtable = (unsigned int*) calloc(1, vtable_size);
-		cpu_voxelizer::cpu_voxelize_mesh(voxelization_info, themesh, vtable, (outputformat == OutputFormat::output_morton));
+		if (!solidVoxelization) {
+			cpu_voxelizer::cpu_voxelize_mesh(voxelization_info, themesh, vtable, (outputformat == OutputFormat::output_morton));
+		}
+		else {
+			cpu_voxelizer::cpu_voxelize_mesh_solid(voxelization_info, themesh, vtable, (outputformat == OutputFormat::output_morton));
+		}
 	}
 
 	//// DEBUG: print vtable

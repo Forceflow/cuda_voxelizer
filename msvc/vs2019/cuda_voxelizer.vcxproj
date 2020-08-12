@@ -86,6 +86,8 @@ copy /y "$(SolutionDir)$(Platform)\$(Configuration)\$(TargetName).exe" "$(BINARY
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <OpenMPSupport>true</OpenMPSupport>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <FloatingPointModel>Strict</FloatingPointModel>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
