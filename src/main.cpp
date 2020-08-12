@@ -20,7 +20,7 @@
 #include "cpu_voxelizer.h"
 
 using namespace std;
-string version_number = "v0.4.8";
+string version_number = "v0.4.9";
 
 // Forward declaration of CUDA functions
 float* meshToGPU_thrust(const trimesh::TriMesh *mesh); // METHOD 3 to transfer triangles can be found in thrust_operations.cu(h)
@@ -59,7 +59,7 @@ void printHelp(){
 	cout << " -o <output format: binvox, obj, obj_points or morton (default: binvox)>" << endl;
 	cout << " -thrust : Force using CUDA Thrust Library (possible speedup / throughput improvement)" << endl;
 	cout << " -cpu : Force CPU-based voxelization (slow, but works if no compatible GPU can be found)" << endl;
-	cout << " -solid : Force solid voxelization (experimental, needs watertight model, incompatible with -cpu)" << endl << endl;
+	cout << " -solid : Force solid voxelization (experimental, needs watertight model)" << endl << endl;
 	printExample();
 	cout << endl;
 }
