@@ -1,4 +1,14 @@
+/*
+	Solid voxelization based on the Schwarz-Seidel paper.
+*/
+
 #include "voxelize.cuh"
+
+#ifdef _DEBUG
+__device__ size_t debug_d_n_voxels_marked = 0;
+__device__ size_t debug_d_n_triangles = 0;
+__device__ size_t debug_d_n_voxels_tested = 0;
+#endif
 
 #define float_error 0.000001
 

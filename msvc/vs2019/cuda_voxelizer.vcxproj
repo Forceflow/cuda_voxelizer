@@ -47,6 +47,7 @@
     <IncludePath>C:\libs\trimesh2\include;C:\libs\glm;$(IncludePath)</IncludePath>
     <LibraryPath>C:\libs\trimesh2\lib.Win64;$(LibraryPath)</LibraryPath>
     <CustomBuildAfterTargets>xcopy /y "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).exe" "$(BINARY_OUTPUT_DIR)$(ProjectName).exe"</CustomBuildAfterTargets>
+    <TargetName>$(ProjectName)_debug</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>C:\libs\trimesh2\include;C:\libs\glm;$(IncludePath)</IncludePath>
@@ -58,6 +59,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;WIN64;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <OpenMPSupport>true</OpenMPSupport>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -65,11 +67,9 @@
       <AdditionalDependencies>trimeshd.lib;cudart.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>echo copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"
-copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"
+      <Command>copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"
 copy "$(CudaToolkitBinDir)\cudart*.dll" "$(BINARY_OUTPUT_DIR)"
-echo copy /y "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).exe" "$(BINARY_OUTPUT_DIR)$(ProjectName).exe"
-copy /y "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).exe" "$(BINARY_OUTPUT_DIR)$(ProjectName).exe"</Command>
+copy /y "$(SolutionDir)$(Platform)\$(Configuration)\$(TargetName).exe" "$(BINARY_OUTPUT_DIR)$(TargetName).exe"</Command>
     </PostBuildEvent>
     <CudaCompile>
       <PtxAsOptionV>true</PtxAsOptionV>
@@ -85,6 +85,9 @@ copy /y "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).exe" "$(BINAR
       <PreprocessorDefinitions>WIN32;WIN64;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <OpenMPSupport>true</OpenMPSupport>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <FloatingPointModel>Strict</FloatingPointModel>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -94,11 +97,9 @@ copy /y "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).exe" "$(BINAR
       <AdditionalDependencies>trimesh.lib;cudart.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>echo copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"
-copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"
+      <Command>copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"
 copy "$(CudaToolkitBinDir)\cudart*.dll" "$(BINARY_OUTPUT_DIR)"
-echo copy /y "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).exe" "$(BINARY_OUTPUT_DIR)$(ProjectName).exe"
-copy /y "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).exe" "$(BINARY_OUTPUT_DIR)$(ProjectName).exe"</Command>
+copy /y "$(SolutionDir)$(Platform)\$(Configuration)\$(TargetName).exe" "$(BINARY_OUTPUT_DIR)$(TargetName).exe"</Command>
     </PostBuildEvent>
     <CudaCompile>
       <FastMath>true</FastMath>
@@ -107,6 +108,7 @@ copy /y "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).exe" "$(BINAR
   <ItemGroup>
     <CudaCompile Include="..\..\src/voxelize.cu" />
     <CudaCompile Include="..\..\src\thrust_operations.cu" />
+    <CudaCompile Include="..\..\src\voxelize_solid.cu" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\cpu_voxelizer.cpp" />

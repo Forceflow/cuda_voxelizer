@@ -1,4 +1,7 @@
 #include "cpu_voxelizer.h"
+#include <omp.h>
+
+#define float_error 0.000001
 
 namespace cpu_voxelizer {
 
@@ -7,8 +10,13 @@ namespace cpu_voxelizer {
 		size_t int_location = index / size_t(32);
 		uint32_t bit_pos = size_t(31) - (index % size_t(32)); // we count bit positions RtL, but array indices LtR
 		uint32_t mask = 1 << bit_pos | 0;
-		voxel_table[int_location] = (voxel_table[int_location] | mask);
+		#pragma omp critical 
+		{
+			voxel_table[int_location] = (voxel_table[int_location] | mask);
+		}
 	}
+
+
 
 	// Encode morton code using LUT table
 	uint64_t mortonEncode_LUT(unsigned int x, unsigned int y, unsigned int z) {
@@ -29,17 +37,18 @@ namespace cpu_voxelizer {
 
 	// Mesh voxelization method
 	void cpu_voxelize_mesh(voxinfo info, trimesh::TriMesh* themesh, unsigned int* voxel_table, bool morton_order) {
+		Timer cpu_voxelization_timer; cpu_voxelization_timer.start();
 		//// Common variables used in the voxelization process
 		//glm::vec3 delta_p(info.unit.x, info.unit.y, info.unit.z);
 		//glm::vec3 c(0.0f, 0.0f, 0.0f); // critical point
 		//glm::vec3 grid_max(info.gridsize.x - 1, info.gridsize.y - 1, info.gridsize.z - 1); // grid max (grid runs from 0 to gridsize-1)
 
-
 		// PREPASS
 		// Move all vertices to origin (can be done in parallel)
 		trimesh::vec3 move_min = glm_to_trimesh<trimesh::vec3>(info.bbox.min);
-#pragma omp for
-		for (uint64_t i = 0; i < themesh->vertices.size(); i++) {
+#pragma omp parallel for
+		for (int64_t i = 0; i < themesh->vertices.size(); i++) {
+			if (i == 0) { printf("[Info] Using %d threads \n", omp_get_num_threads()); }
 			themesh->vertices[i] = themesh->vertices[i] - move_min;
 		}
 
@@ -49,7 +58,9 @@ namespace cpu_voxelizer {
 		size_t debug_n_voxels_marked = 0;
 #endif
 
-		for (size_t i = 0; i < info.n_triangles; i++) {
+#pragma omp parallel for
+		
+		for (int64_t i = 0; i < info.n_triangles; i++) {
 			// Common variables used in the voxelization process
 			glm::vec3 delta_p(info.unit.x, info.unit.y, info.unit.z);
 			glm::vec3 c(0.0f, 0.0f, 0.0f); // critical point
@@ -173,10 +184,144 @@ namespace cpu_voxelizer {
 				}
 			}
 		}
+		cpu_voxelization_timer.stop(); fprintf(stdout, "[Perf] CPU voxelization time: %.1f ms \n", cpu_voxelization_timer.elapsed_time_milliseconds);
 #ifdef _DEBUG
 		printf("[Debug] Processed %llu triangles on the CPU \n", debug_n_triangles);
 		printf("[Debug] Tested %llu voxels for overlap on CPU \n", debug_n_voxels_tested);
 		printf("[Debug] Marked %llu voxels as filled (includes duplicates!) on CPU \n", debug_n_voxels_marked);
 #endif
+	}
+
+	// use Xor for voxels whose corresponding bits have to flipped
+	void setBitXor(unsigned int* voxel_table, size_t index) {
+		size_t int_location = index / size_t(32);
+		unsigned int bit_pos = size_t(31) - (index % size_t(32)); // we count bit positions RtL, but array indices LtR
+		unsigned int mask = 1 << bit_pos;
+		//#pragma omp critical 
+		{
+			voxel_table[int_location] = (voxel_table[int_location] ^ mask);
+		}
+	}
+
+	bool TopLeftEdge(glm::vec2 v0, glm::vec2 v1) {
+		return ((v1.y < v0.y) || (v1.y == v0.y && v0.x > v1.x));
+	}
+
+	//check the triangle is counterclockwise or not
+	bool checkCCW(glm::vec2 v0, glm::vec2 v1, glm::vec2 v2) {
+		glm::vec2 e0 = v1 - v0;
+		glm::vec2 e1 = v2 - v0;
+		float result = e0.x * e1.y - e1.x * e0.y;
+		if (result > 0)
+			return true;
+		else
+			return false;
+	}
+
+	//find the x coordinate of the voxel
+	float get_x_coordinate(glm::vec3 n, glm::vec3 v0, glm::vec2 point) {
+		return (-(n.y * (point.x - v0.y) + n.z * (point.y - v0.z)) / n.x + v0.x);
+	}
+
+
+	//check the location with point and triangle
+	int check_point_triangle(glm::vec2 v0, glm::vec2 v1, glm::vec2 v2, glm::vec2 point) {
+		glm::vec2 PA = point - v0;
+		glm::vec2 PB = point - v1;
+		glm::vec2 PC = point - v2;
+
+		float t1 = PA.x * PB.y - PA.y * PB.x;
+		if (std::fabs(t1) < float_error && PA.x * PB.x <= 0 && PA.y * PB.y <= 0)
+			return 1;
+
+		float t2 = PB.x * PC.y - PB.y * PC.x;
+		if (std::fabs(t2) < float_error && PB.x * PC.x <= 0 && PB.y * PC.y <= 0)
+			return 2;
+
+		float t3 = PC.x * PA.y - PC.y * PA.x;
+		if (std::fabs(t3) < float_error && PC.x * PA.x <= 0 && PC.y * PA.y <= 0)
+			return 3;
+
+		if (t1 * t2 > 0 && t1 * t3 > 0)
+			return 0;
+		else
+			return -1;
+	}
+
+	// Mesh voxelization method
+	void cpu_voxelize_mesh_solid(voxinfo info, trimesh::TriMesh* themesh, unsigned int* voxel_table, bool morton_order) {
+		Timer cpu_voxelization_timer; cpu_voxelization_timer.start();
+
+		// PREPASS
+		// Move all vertices to origin (can be done in parallel)
+		trimesh::vec3 move_min = glm_to_trimesh<trimesh::vec3>(info.bbox.min);
+		for (int64_t i = 0; i < themesh->vertices.size(); i++) {
+			if (i == 0) { printf("[Info] Using %d threads \n", omp_get_num_threads()); }
+			themesh->vertices[i] = themesh->vertices[i] - move_min;
+		}
+
+		for (int64_t i = 0; i < info.n_triangles; i++) {
+			glm::vec3 v0 = trimesh_to_glm<trimesh::point>(themesh->vertices[themesh->faces[i][0]]);
+			glm::vec3 v1 = trimesh_to_glm<trimesh::point>(themesh->vertices[themesh->faces[i][1]]);
+			glm::vec3 v2 = trimesh_to_glm<trimesh::point>(themesh->vertices[themesh->faces[i][2]]);
+
+			// Edge vectors
+			glm::vec3 e0 = v1 - v0;
+			glm::vec3 e1 = v2 - v1;
+			glm::vec3 e2 = v0 - v2;
+			// Normal vector pointing up from the triangle
+			glm::vec3 n = glm::normalize(glm::cross(e0, e1));
+			if (std::fabs(n.x) < float_error) {
+				continue;
+			}
+
+			//Calculate the projection of three point into yoz plane
+			glm::vec2 v0_yz = glm::vec2(v0.y, v0.z);
+			glm::vec2 v1_yz = glm::vec2(v1.y, v1.z);
+			glm::vec2 v2_yz = glm::vec2(v2.y, v2.z);
+
+			//set the triangle counterclockwise
+			if (!checkCCW(v0_yz, v1_yz, v2_yz))
+			{
+				glm::vec2 v3 = v1_yz;
+				v1_yz = v2_yz;
+				v2_yz = v3;
+			}
+
+			// COMPUTE TRIANGLE BBOX IN GRID
+			// Triangle bounding box in world coordinates is min(v0,v1,v2) and max(v0,v1,v2)
+			glm::vec2 bbox_max = glm::max(v0_yz, glm::max(v1_yz, v2_yz));
+			glm::vec2 bbox_min = glm::min(v0_yz, glm::min(v1_yz, v2_yz));
+
+			glm::vec2 bbox_max_grid = glm::vec2(floor(bbox_max.x / info.unit.y - 0.5), floor(bbox_max.y / info.unit.z - 0.5));
+			glm::vec2 bbox_min_grid = glm::vec2(ceil(bbox_min.x / info.unit.y - 0.5), ceil(bbox_min.y / info.unit.z - 0.5));
+
+			for (int y = bbox_min_grid.x; y <= bbox_max_grid.x; y++)
+			{
+				for (int z = bbox_min_grid.y; z <= bbox_max_grid.y; z++)
+				{
+					glm::vec2 point = glm::vec2((y + 0.5) * info.unit.y, (z + 0.5) * info.unit.z);
+					int checknum = check_point_triangle(v0_yz, v1_yz, v2_yz, point);
+					if ((checknum == 1 && TopLeftEdge(v0_yz, v1_yz)) || (checknum == 2 && TopLeftEdge(v1_yz, v2_yz)) || (checknum == 3 && TopLeftEdge(v2_yz, v0_yz)) || (checknum == 0))
+					{
+						unsigned int xmax = int(get_x_coordinate(n, v0, point) / info.unit.x - 0.5);
+						for (int x = 0; x <= xmax; x++)
+						{
+							if (morton_order) {
+								size_t location = mortonEncode_LUT(x, y, z);
+								setBitXor(voxel_table, location);
+							}
+							else {
+								size_t location = static_cast<size_t>(x) + (static_cast<size_t>(y) * static_cast<size_t>(info.gridsize.y)) + (static_cast<size_t>(z) * static_cast<size_t>(info.gridsize.y) * static_cast<size_t>(info.gridsize.z));
+								setBitXor(voxel_table, location);
+							}
+							continue;
+						}
+					}
+				}
+			}
+
+		}
+		cpu_voxelization_timer.stop(); fprintf(stdout, "[Perf] CPU voxelization time: %.1f ms \n", cpu_voxelization_timer.elapsed_time_milliseconds);
 	}
 }

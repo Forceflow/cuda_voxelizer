@@ -28,8 +28,8 @@ inline trimeshtype glm_to_trimesh(glm::vec3 a) {
 }
 
 // Check if a voxel in the voxel table is set
-__device__ __host__ inline bool checkVoxel(size_t x, size_t y, size_t z, size_t gridsize, const unsigned int* vtable){
-	size_t location = x + (y*gridsize) + (z*gridsize*gridsize);
+__device__ __host__ inline bool checkVoxel(size_t x, size_t y, size_t z, const glm::uvec3 gridsize, const unsigned int* vtable){
+	size_t location = x + (y*gridsize.y) + (z*gridsize.y*gridsize.z);
 	size_t int_location = location / size_t(32);
 	/*size_t max_index = (gridsize*gridsize*gridsize) / __int64(32);
 	if (int_location >= max_index){
