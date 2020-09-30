@@ -48,3 +48,4 @@ script:
   - ../cmake/bin/cmake --build . -j 2
 # Force CPU voxelization to test on Travis (we won't have a GPU here)
   - ./cuda_voxelizer -f ../test_models/bunny.OBJ -cpu
+  - ./cuda_voxelizer -f ../test_models/bunny.OBJ -cpu -solid

@@ -197,7 +197,7 @@ namespace cpu_voxelizer {
 		size_t int_location = index / size_t(32);
 		unsigned int bit_pos = size_t(31) - (index % size_t(32)); // we count bit positions RtL, but array indices LtR
 		unsigned int mask = 1 << bit_pos;
-		//#pragma omp critical 
+		#pragma omp critical 
 		{
 			voxel_table[int_location] = (voxel_table[int_location] ^ mask);
 		}
@@ -255,11 +255,13 @@ namespace cpu_voxelizer {
 		// PREPASS
 		// Move all vertices to origin (can be done in parallel)
 		trimesh::vec3 move_min = glm_to_trimesh<trimesh::vec3>(info.bbox.min);
+#pragma omp parallel for
 		for (int64_t i = 0; i < themesh->vertices.size(); i++) {
 			if (i == 0) { printf("[Info] Using %d threads \n", omp_get_num_threads()); }
 			themesh->vertices[i] = themesh->vertices[i] - move_min;
 		}
 
+#pragma omp parallel for
 		for (int64_t i = 0; i < info.n_triangles; i++) {
 			glm::vec3 v0 = trimesh_to_glm<trimesh::point>(themesh->vertices[themesh->faces[i][0]]);
 			glm::vec3 v1 = trimesh_to_glm<trimesh::point>(themesh->vertices[themesh->faces[i][1]]);
