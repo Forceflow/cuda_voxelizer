@@ -20,7 +20,7 @@
 #include "cpu_voxelizer.h"
 
 using namespace std;
-string version_number = "v0.4.9";
+string version_number = "v0.4.10";
 
 // Forward declaration of CUDA functions
 float* meshToGPU_thrust(const trimesh::TriMesh *mesh); // METHOD 3 to transfer triangles can be found in thrust_operations.cu(h)
@@ -152,7 +152,7 @@ void parseProgramParameters(int argc, char* argv[]){
 			else if (output == "obj"){outputformat = OutputFormat::output_obj_cubes;}
 			else if (output == "obj_points") { outputformat = OutputFormat::output_obj_points; }
 			else {
-				fprintf(stdout, "[Err] Unrecognized output format: %s, valid options are binvox (default) or morton \n", output.c_str());
+				fprintf(stdout, "[Err] Unrecognized output format: %s, valid options are binvox (default), morton, obj or obj_points \n", output.c_str());
 				exit(1);
 			}
 		}
