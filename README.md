@@ -92,6 +92,7 @@ A Visual Studio 2019 project solution is provided in the `msvc`folder. It is con
      * [thinvox](https://www.patrickmin.com/thinvox/): Thinning of voxel grids
    * [binvox-rw-py](https://github.com/dimatura/binvox-rw-py) is a Python module to interact with .binvox files
  * Thanks to [conceptclear](https://github.com/conceptclear) for implementing solid voxelization
+ * [Zarbuz](https://github.com/zarbuz)'s [FileToVox](https://github.com/Zarbuz/FileToVox) looks interesting as well
  * If you want a good customizable CPU-based voxelizer, I can recommend [VoxSurf](https://github.com/sylefeb/VoxSurf).
  * Another hackable voxel viewer is Sean Barrett's excellent [stb_voxel_render.h](https://github.com/nothings/stb/blob/master/stb_voxel_render.h).
  * Nvidia also has a voxel library called [GVDB](https://developer.nvidia.com/gvdb), that does a lot more than just voxelizing.
