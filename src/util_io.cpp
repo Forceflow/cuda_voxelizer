@@ -140,7 +140,10 @@ void write_obj_pointcloud(const unsigned int* vtable, const voxinfo v_info, cons
 	fprintf(stdout, "[I/O] Writing data in obj point cloud format to %s \n", filename_output.c_str());
 #endif
 	ofstream output(filename_output.c_str(), ios::out);
+	
+	// write stats
 	size_t voxels_written = 0;
+
 	assert(output);
 	for (size_t x = 0; x < v_info.gridsize.x; x++) {
 		for (size_t y = 0; y < v_info.gridsize.y; y++) {
