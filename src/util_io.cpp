@@ -106,18 +106,29 @@ void write_obj_cubes(const unsigned int* vtable, const voxinfo v_info, const std
 	//write_vertex_normal(output, glm::ivec3(0, -1, 0)); // bottom = 5
 	//write_vertex_normal(output, glm::ivec3(0, 1, 0)); // top = 6
 
+	// Write stats
+	size_t voxels_seen = 0;
+	const size_t write_stats_25 = (size_t(v_info.gridsize.x) * size_t(v_info.gridsize.y) * size_t(v_info.gridsize.z)) / 4.0f;
+	fprintf(stdout, "[I/O] Writing to file: 0%%...");
+
 	//size_t voxels_written = 0;
 	assert(output);
 	for (size_t x = 0; x < v_info.gridsize.x; x++) {
 		for (size_t y = 0; y < v_info.gridsize.y; y++) {
 			for (size_t z = 0; z < v_info.gridsize.z; z++) {
+				voxels_seen++;
+				if (voxels_seen == write_stats_25) {fprintf(stdout, "25%%...");}
+				else if (voxels_seen == write_stats_25 * size_t(2)) {fprintf(stdout, "50%%...");}
+				else if (voxels_seen == write_stats_25 * size_t(3)) {fprintf(stdout, "75%%...");
+				}
 				if (checkVoxel(x, y, z, v_info.gridsize, vtable)) {
 					//voxels_written += 1;
-					write_cube(x, y, z, output);
+					write_cube(x, y, z, output);	
 				}
 			}
 		}
 	}
+	fprintf(stdout, "100%% \n");
 	// std::cout << "written " << voxels_written << std::endl;
 
 	fprintf(stdout, "[I/O] Reordering / Optimizing mesh with Trimesh2 \n");
@@ -141,6 +152,11 @@ void write_obj_pointcloud(const unsigned int* vtable, const voxinfo v_info, cons
 #endif
 	ofstream output(filename_output.c_str(), ios::out);
 	
+	// Write stats
+	size_t voxels_seen = 0;
+	const size_t write_stats_25 = (size_t(v_info.gridsize.x) * size_t(v_info.gridsize.y) * size_t(v_info.gridsize.z)) / 4.0f;
+	fprintf(stdout, "[I/O] Writing to file: 0%%...");
+
 	// write stats
 	size_t voxels_written = 0;
 
@@ -148,6 +164,10 @@ void write_obj_pointcloud(const unsigned int* vtable, const voxinfo v_info, cons
 	for (size_t x = 0; x < v_info.gridsize.x; x++) {
 		for (size_t y = 0; y < v_info.gridsize.y; y++) {
 			for (size_t z = 0; z < v_info.gridsize.z; z++) {
+				voxels_seen++;
+				if (voxels_seen == write_stats_25) { fprintf(stdout, "25%%...");}
+				else if (voxels_seen == write_stats_25 * size_t(2)) { fprintf(stdout, "50%%...");}
+				else if (voxels_seen == write_stats_25 * size_t(3)) {fprintf(stdout, "75%%...");}
 				if (checkVoxel(x, y, z, v_info.gridsize, vtable)) {
 					voxels_written += 1;
 					output << "v " << (x+0.5) << " " << (y + 0.5) << " " << (z + 0.5) << endl; // +0.5 to put vertex in the middle of the voxel
@@ -155,7 +175,8 @@ void write_obj_pointcloud(const unsigned int* vtable, const voxinfo v_info, cons
 			}
 		}
 	}
-	std::cout << "written " << voxels_written << std::endl;
+	fprintf(stdout, "100%% \n");
+	// std::cout << "written " << voxels_written << std::endl;
 	output.close();
 }
 
