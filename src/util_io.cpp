@@ -29,17 +29,17 @@ void read_binary(void* data, const size_t length, const std::string base_filenam
 }
 
 // Helper function to write single vertex normal to OBJ file
-void write_vertex_normal(ofstream& output, const glm::ivec3& v) {
+static void write_vertex_normal(ofstream& output, const glm::ivec3& v) {
 	output << "vn " << v.x << " " << v.y << " " << v.z << endl;
 }
 
 // Helper function to write single vertex to OBJ file
-void write_vertex(ofstream& output, const glm::ivec3& v) {
+static void write_vertex(ofstream& output, const glm::ivec3& v) {
 	output << "v " << v.x << " " << v.y << " " << v.z << endl;
 }
 
 // Helper function to write single vertex
-void write_face(ofstream& output, const glm::ivec3& v) {
+static void write_face(ofstream& output, const glm::ivec3& v) {
 	output << "f " << v.x << " " << v.y << " " << v.z << endl;
 }
 
