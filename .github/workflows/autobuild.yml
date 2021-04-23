@@ -51,16 +51,16 @@ jobs:
   windows-build:
     runs-on: windows-2019
     env:
-      CUDA_PATH_V10_1: 'C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v10.1'
+      CUDA_PATH_V10_1: 'C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.3'
     
     steps:
     - name: Checkout
       uses: actions/checkout@v2
 
-    - name: Install CUDA 10.1
+    - name: Install CUDA 11.3
       run: |
-        (New-Object System.Net.WebClient).DownloadFile("http://developer.download.nvidia.com/compute/cuda/10.1/Prod/local_installers/cuda_10.1.243_426.00_win10.exe", ".\cuda.exe")
-        Start-Process -FilePath .\cuda.exe -ArgumentList "-s","nvcc_10.1","cudart_10.1","visual_studio_integration_10.1" -Wait -NoNewWindow
+        (New-Object System.Net.WebClient).DownloadFile("https://developer.download.nvidia.com/compute/cuda/11.3.0/local_installers/cuda_11.3.0_465.89_win10.exe", ".\cuda.exe")
+        Start-Process -FilePath .\cuda.exe -ArgumentList "-s","nvcc_11.3","cudart_11.3","visual_studio_integration_11.3" -Wait -NoNewWindow
         rm .\cuda.exe
 
     - name: Install GLM
