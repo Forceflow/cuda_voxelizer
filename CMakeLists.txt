@@ -6,7 +6,11 @@ IF(MSVC)
 ENABLE_LANGUAGE(CUDA)
 ENDIF()
 
-FIND_PACKAGE(glm REQUIRED)
+# FIND_PACKAGE(glm REQUIRED)
+
+find_package(glm CONFIG REQUIRED)
+target_link_libraries(main PRIVATE glm::glm)
+
 FIND_PACKAGE(OpenMP REQUIRED)
 
 IF(NOT MSVC)
