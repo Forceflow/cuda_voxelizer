@@ -6,7 +6,7 @@
 #include <string>
 #include <cstdio>
 // GLM for maths
-#define GLM_FORCE_PURE
+// #define GLM_FORCE_PURE GLM_FORCE_PURE (not needed anymore with recent GLM versions)
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 // Trimesh for model importing
