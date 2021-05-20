@@ -11,7 +11,7 @@ on:
       - dev
 
 env: 
-  CUDA_ARCH: 30
+  CUDA_ARCH: 60
 jobs:
   linux-build:
     runs-on: ubuntu-18.04
