@@ -60,7 +60,7 @@ jobs:
     - name: Install CUDA 11.3
       run: |
         (New-Object System.Net.WebClient).DownloadFile("https://developer.download.nvidia.com/compute/cuda/11.3.0/local_installers/cuda_11.3.0_465.89_win10.exe", ".\cuda.exe")
-        Start-Process -FilePath .\cuda.exe -ArgumentList "-s","nvcc_11.3","cudart_11.3","visual_studio_integration_11.3" -Wait -NoNewWindow
+        Start-Process -FilePath .\cuda.exe -ArgumentList "-s","nvcc_11.3","cudart_11.3","visual_studio_integration_11.3,"cuda_thrust_11.3" -Wait -NoNewWindow
         rm .\cuda.exe
 
     - name: Install GLM
