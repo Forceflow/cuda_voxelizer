@@ -128,9 +128,9 @@ __global__ void voxelize_triangle(voxinfo info, float* triangle_data, unsigned i
 			n_zx_e1 = -n_zx_e1;
 			n_zx_e2 = -n_zx_e2;
 		}
-		float d_xz_e0 = (-1.0f * glm::dot(n_zx_e0, glm::vec2(v0.z, v0.x))) + glm::max(0.0f, info.unit.x*n_zx_e0[0]) + glm::max(0.0f, info.unit.z*n_zx_e0[1]);
-		float d_xz_e1 = (-1.0f * glm::dot(n_zx_e1, glm::vec2(v1.z, v1.x))) + glm::max(0.0f, info.unit.x*n_zx_e1[0]) + glm::max(0.0f, info.unit.z*n_zx_e1[1]);
-		float d_xz_e2 = (-1.0f * glm::dot(n_zx_e2, glm::vec2(v2.z, v2.x))) + glm::max(0.0f, info.unit.x*n_zx_e2[0]) + glm::max(0.0f, info.unit.z*n_zx_e2[1]);
+		float d_xz_e0 = (-1.0f * glm::dot(n_zx_e0, glm::vec2(v0.z, v0.x))) + glm::max(0.0f, info.unit.z*n_zx_e0[0]) + glm::max(0.0f, info.unit.x*n_zx_e0[1]);
+		float d_xz_e1 = (-1.0f * glm::dot(n_zx_e1, glm::vec2(v1.z, v1.x))) + glm::max(0.0f, info.unit.z*n_zx_e1[0]) + glm::max(0.0f, info.unit.x*n_zx_e1[1]);
+		float d_xz_e2 = (-1.0f * glm::dot(n_zx_e2, glm::vec2(v2.z, v2.x))) + glm::max(0.0f, info.unit.z*n_zx_e2[0]) + glm::max(0.0f, info.unit.x*n_zx_e2[1]);
 
 		// test possible grid boxes for overlap
 		for (int z = t_bbox_grid.min.z; z <= t_bbox_grid.max.z; z++){
