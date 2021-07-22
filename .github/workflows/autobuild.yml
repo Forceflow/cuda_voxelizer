@@ -77,17 +77,21 @@ jobs:
         path: ${{ runner.workspace }}\trimesh2-build
         key: ${{ runner.os }}-build-trimesh2-cache-1
 
-
+    
+    # For unknown reason cuda installation with thrust subpackage lead to error 
     - uses: Jimver/cuda-toolkit@v0.2.4
       id: cuda-toolkit
       with:
-        method: 'local'
+        method: 'network'
         cuda: '${{ env.CUDA_MAJOR_VERSION }}.${{ env.CUDA_PATCH_VERSION }}'
-        sub-packages: '["nvcc", "cudart", "visual_studio_integration", "cuda_thrust"]'
+        sub-packages: '["nvcc", "cudart", "visual_studio_integration"]'
+
+    - name: Install NVIDIA thrust ${{ env.NVIDIA_TRUST_VERSION }}
+      run: |
+        git clone --recursive --depth 1 --single-branch -b ${{ env.NVIDIA_TRUST_VERSION }} https://github.com/NVIDIA/thrust.git ../thrust-repo
     
     - name: Install GLM
       run: |
-        ls $env:CUDA_PATH/include
         vcpkg.exe install glm:x64-windows
 
     - name: Build Trimesh2
@@ -112,6 +116,7 @@ jobs:
         -DTrimesh2_LINK_DIR:PATH="$trimeshDir\lib.Win64.vs142" `
         -DCUDA_ARCH:STRING=$env:CUDA_ARCH `
         -DCMAKE_BUILD_TYPE=Release `
+        -DThrust_DIR=${{ github.workspace }}\..\thrust-repo\thrust\cmake `
         -S . -B .\build
     
     - name: Build cuda_voxelizer
