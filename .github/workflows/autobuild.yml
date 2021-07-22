@@ -15,7 +15,7 @@ jobs:
     container: nvidia/cuda:11.3.0-devel-ubuntu20.04
     
     env: 
-      CUDA_ARCH: '60'
+      CUDAARCHS: '60'
       TRIMESH_VERSION: '2020.03.04'
       CMAKE_VERSION: '3.20.4'
 
@@ -63,7 +63,8 @@ jobs:
       CUDA_MAJOR_VERSION: '11.3'
       CUDA_PATCH_VERSION: '1'
       TRIMESH_VERSION: '2020.03.04'
-      CUDA_ARCH: '60'
+      CUDAARCHS: '60'
+      NVIDIA_TRUST_VERSION: cuda-11.3
     
     steps:
     - name: Checkout
@@ -80,16 +81,17 @@ jobs:
     - uses: Jimver/cuda-toolkit@v0.2.4
       id: cuda-toolkit
       with:
-        method: 'network'
+        method: 'local'
         cuda: '${{ env.CUDA_MAJOR_VERSION }}.${{ env.CUDA_PATCH_VERSION }}'
         sub-packages: '["nvcc", "cudart", "visual_studio_integration", "cuda_thrust"]'
     
     - name: Install GLM
       run: |
+        ls $env:CUDA_PATH/include
         vcpkg.exe install glm:x64-windows
 
     - name: Build Trimesh2
-      if: steps.trimesh2-cuda-cache.outputs.cache-hit != 'true'
+      if: steps.trimesh2-cache.outputs.cache-hit != 'true'
       run: |
         Install-Module VSSetup -Scope CurrentUser -Force
         git clone -b ${{ env.TRIMESH_VERSION }} --single-branch --depth 1 https://github.com/Forceflow/trimesh2.git ..\trimesh2
@@ -102,8 +104,6 @@ jobs:
         rm -Recurse -Force ..\trimesh2
 
     - name: Configure cuda_voxelizer
-      env: 
-        CUDAToolkit_ROOT: ${{ steps.cuda-toolkit.outputs.CUDA_PATH }}
       run: |
         $trimeshDir = "..\trimesh2-build"
         cmake -A x64 `

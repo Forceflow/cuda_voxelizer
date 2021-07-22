@@ -45,19 +45,20 @@ The project has the following build dependencies:
 After installing dependencies, do `mkdir build` and `cd build`, followed by:
 
 For Windows with Visual Studio 2019:
-```
-cmake -A x64 -DTrimesh2_INCLUDE_DIR:PATH="path_to_trimesh2_include" -DTrimesh2_LINK_DIR:PATH="path_to_trimesh2_library_dir" -DCUDA_ARCH:STRING="your_cuda_compute_capability" .. 
+```powershell
+$env:CUDAARCHS="your_cuda_compute_capability"
+cmake -A x64 -DTrimesh2_INCLUDE_DIR:PATH="path_to_trimesh2_include" -DTrimesh2_LINK_DIR:PATH="path_to_trimesh2_library_dir" .. 
 ```
 
 For Linux:
+```bash
+CUDAARCHS="your_cuda_compute_capability" cmake -DTrimesh2_INCLUDE_DIR:PATH="path_to_trimesh2_include" -DTrimesh2_LINK_DIR:PATH="path_to_trimesh2_library_dir" -DCUDA_ARCH:STRING="your_cuda_compute_capability" .. 
 ```
-cmake -DTrimesh2_INCLUDE_DIR:PATH="path_to_trimesh2_include" -DTrimesh2_LINK_DIR:PATH="path_to_trimesh2_library_dir" -DCUDA_ARCH:STRING="your_cuda_compute_capability" .. 
-```
-Where `your_cuda_compute_capability` is a string specifying your CUDA architecture ([more info here](https://docs.nvidia.com/cuda/archive/10.2/cuda-compiler-driver-nvcc/index.html#options-for-steering-gpu-code-generation-gpu-architecture)). For example: `-DCUDA_ARCH:STRING=61` or `-DCUDA_ARCH:STRING=60`.
+Where `your_cuda_compute_capability` is a string specifying your CUDA architecture ([more info here](https://docs.nvidia.com/cuda/archive/10.2/cuda-compiler-driver-nvcc/index.html#options-for-steering-gpu-code-generation-gpu-architecture) and [here CMake](https://cmake.org/cmake/help/v3.20/envvar/CUDAARCHS.html#envvar:CUDAARCHS)). For example: `CUDAARCHS="50;61"` or `CUDAARCHS="60"`.
 
 Finally, run
 ```
-cmake --build . -j number_of_cores
+cmake --build . --parallel number_of_cores
 ```
 
 ### Build using Visual Studio project (Windows)
