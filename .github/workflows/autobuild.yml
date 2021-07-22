@@ -60,9 +60,8 @@ jobs:
   windows-build:
     runs-on: windows-2019
     env:
-      CUDAToolkit_ROOT: 'C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v10.2\bin'
-      CUDA_MAJOR_VERSION: '10.2'
-      CUDA_PATCH_VERSION: '2'
+      CUDA_MAJOR_VERSION: '11.3'
+      CUDA_PATCH_VERSION: '1'
       TRIMESH_VERSION: '2020.03.04'
       CUDA_ARCH: '60'
     
@@ -70,27 +69,20 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
 
-    - name: Cache Trimesh2 and CUDA installer
-      id: trimesh2-cuda-cache
+    - name: Cache Trimesh2
+      id: trimesh2-cache
       uses: actions/cache@v2
       with:
-        path: |
-          ${{ runner.workspace }}\trimesh2-build
-          ${{ github.workspace }}\cuda.exe
+        path: ${{ runner.workspace }}\trimesh2-build
         key: ${{ runner.os }}-build-trimesh2-cache-1
 
-    - name: Download local CUDA installer
-      # if: steps.trimesh2-cuda-cache.outputs.cache-hit != 'true'
-      env:
-        CUDA_VERSION: '${{ env.CUDA_MAJOR_VERSION }}.${{ env.CUDA_PATCH_VERSION }}'
-      run: |
-        (New-Object System.Net.WebClient).DownloadFile("https://developer.download.nvidia.com/compute/cuda/${{ env.CUDA_MAJOR_VERSION }}/Prod/patches/2/cuda_${{ env.CUDA_VERSION}}_win10.exe", ".\cuda.exe")
 
-    - name: Install CUDA ${{ env.CUDA_MAJOR_VERSION }}.${{ env.CUDA_PATCH_VERSION }}
-      run: |
-        Start-Process -FilePath .\cuda.exe -ArgumentList "-s","nvcc_${{ env.CUDA_MAJOR_VERSION }}","cudart_${{ env.CUDA_MAJOR_VERSION }}","visual_studio_integration_${{ env.CUDA_MAJOR_VERSION }}","cuda_thrust_${{ env.CUDA_MAJOR_VERSION }}" -Wait -NoNewWindow
-
-        Write-Output "CUDA installer reported: $LASTEXITCODE"
+    - uses: Jimver/cuda-toolkit@v0.2.4
+      id: cuda-toolkit
+      with:
+        method: 'network'
+        cuda: '${{ env.CUDA_MAJOR_VERSION }}.${{ env.CUDA_PATCH_VERSION }}'
+        sub-packages: '["nvcc", "cudart", "visual_studio_integration", "cuda_thrust"]'
     
     - name: Install GLM
       run: |
@@ -110,12 +102,14 @@ jobs:
         rm -Recurse -Force ..\trimesh2
 
     - name: Configure cuda_voxelizer
+      env: 
+        CUDAToolkit_ROOT: ${{ steps.cuda-toolkit.outputs.CUDA_PATH }}
       run: |
         $trimeshDir = "..\trimesh2-build"
         cmake -A x64 `
         -DCMAKE_TOOLCHAIN_FILE:FILEPATH="C:\vcpkg\scripts\buildsystems\vcpkg.cmake" `
         -DTrimesh2_INCLUDE_DIR:PATH="$trimeshDir\include" `
-        -DTrimesh2_LINK_DIR:PATH="$trimeshDir\lib.Win64.vs142" ` 
+        -DTrimesh2_LINK_DIR:PATH="$trimeshDir\lib.Win64.vs142" `
         -DCUDA_ARCH:STRING=$env:CUDA_ARCH `
         -DCMAKE_BUILD_TYPE=Release `
         -S . -B .\build
