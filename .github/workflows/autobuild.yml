@@ -47,7 +47,10 @@ jobs:
     - name: Configure cuda_voxelizer
       run: |
         PATH=$PATH:"$HOME"/cmake/bin
-        cmake -GNinja -DTrimesh2_INCLUDE_DIR="../trimesh2/include" -DTrimesh2_LINK_DIR="../trimesh2/lib.Linux64" -DCUDA_ARCH=${CUDA_ARCH} -S . -B ./build
+        cmake -GNinja \
+        -DTrimesh2_INCLUDE_DIR="../trimesh2/include" \
+        -DTrimesh2_LINK_DIR="../trimesh2/lib.Linux64" \
+        -S . -B ./build
 
     - name: Build cuda_voxelizer
       run: |
@@ -60,8 +63,8 @@ jobs:
   windows-build:
     runs-on: windows-2019
     env:
-      CUDA_MAJOR_VERSION: '11.3'
-      CUDA_PATCH_VERSION: '1'
+      CUDA_MAJOR_VERSION: '11.4'
+      CUDA_PATCH_VERSION: '0'
       TRIMESH_VERSION: '2020.03.04'
       CUDAARCHS: '60'
       NVIDIA_TRUST_VERSION: cuda-11.3
@@ -78,17 +81,17 @@ jobs:
         key: ${{ runner.os }}-build-trimesh2-cache-1
 
     
-    # For unknown reason cuda installation with thrust subpackage lead to error 
+    # Older version then 11.4.0 of CUDA Toolkit does not have thrust option for installation in silent mode 
     - uses: Jimver/cuda-toolkit@v0.2.4
       id: cuda-toolkit
       with:
         method: 'network'
         cuda: '${{ env.CUDA_MAJOR_VERSION }}.${{ env.CUDA_PATCH_VERSION }}'
-        sub-packages: '["nvcc", "cudart", "visual_studio_integration"]'
+        sub-packages: '["nvcc", "cudart", "visual_studio_integration", "thrust"]'
 
-    - name: Install NVIDIA thrust ${{ env.NVIDIA_TRUST_VERSION }}
-      run: |
-        git clone --recursive --depth 1 --single-branch -b ${{ env.NVIDIA_TRUST_VERSION }} https://github.com/NVIDIA/thrust.git ../thrust-repo
+    # - name: Install NVIDIA thrust ${{ env.NVIDIA_TRUST_VERSION }}
+    #   run: |
+    #     git clone --recursive --depth 1 --single-branch -b ${{ env.NVIDIA_TRUST_VERSION }} https://github.com/NVIDIA/thrust.git ../thrust-repo
     
     - name: Install GLM
       run: |
@@ -114,9 +117,7 @@ jobs:
         -DCMAKE_TOOLCHAIN_FILE:FILEPATH="C:\vcpkg\scripts\buildsystems\vcpkg.cmake" `
         -DTrimesh2_INCLUDE_DIR:PATH="$trimeshDir\include" `
         -DTrimesh2_LINK_DIR:PATH="$trimeshDir\lib.Win64.vs142" `
-        -DCUDA_ARCH:STRING=$env:CUDA_ARCH `
         -DCMAKE_BUILD_TYPE=Release `
-        -DThrust_DIR=${{ github.workspace }}\..\thrust-repo\thrust\cmake `
         -S . -B .\build
     
     - name: Build cuda_voxelizer
