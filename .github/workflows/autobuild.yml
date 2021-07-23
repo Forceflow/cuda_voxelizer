@@ -67,7 +67,6 @@ jobs:
       CUDA_PATCH_VERSION: '0'
       TRIMESH_VERSION: '2020.03.04'
       CUDAARCHS: '60'
-      NVIDIA_TRUST_VERSION: cuda-11.3
     
     steps:
     - name: Checkout
@@ -89,10 +88,6 @@ jobs:
         cuda: '${{ env.CUDA_MAJOR_VERSION }}.${{ env.CUDA_PATCH_VERSION }}'
         sub-packages: '["nvcc", "cudart", "visual_studio_integration", "thrust"]'
 
-    # - name: Install NVIDIA thrust ${{ env.NVIDIA_TRUST_VERSION }}
-    #   run: |
-    #     git clone --recursive --depth 1 --single-branch -b ${{ env.NVIDIA_TRUST_VERSION }} https://github.com/NVIDIA/thrust.git ../thrust-repo
-    
     - name: Install GLM
       run: |
         vcpkg.exe install glm:x64-windows
