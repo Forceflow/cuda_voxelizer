@@ -2,12 +2,12 @@
 
 // Commun functions for both the solid and non-solid voxelization methods
 
-#include "cuda.h"
-#include "cuda_runtime.h"
-#include "device_launch_parameters.h"
+#include <cuda.h>
+#include <cuda_runtime.h>
+#include <device_launch_parameters.h>
 
 #define GLM_FORCE_CUDA
-#define GLM_FORCE_PURE
+// #define GLM_FORCE_PURE (not needed anymore with recent GLM versions)
 #include <glm/glm.hpp>
 
 #include <iostream>

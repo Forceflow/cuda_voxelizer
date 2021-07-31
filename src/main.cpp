@@ -6,7 +6,7 @@
 #include <string>
 #include <cstdio>
 // GLM for maths
-#define GLM_FORCE_PURE
+// #define GLM_FORCE_PURE GLM_FORCE_PURE (not needed anymore with recent GLM versions)
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 // Trimesh for model importing
@@ -20,7 +20,7 @@
 #include "cpu_voxelizer.h"
 
 using namespace std;
-string version_number = "v0.4.10";
+string version_number = "v0.4.11";
 
 // Forward declaration of CUDA functions
 float* meshToGPU_thrust(const trimesh::TriMesh *mesh); // METHOD 3 to transfer triangles can be found in thrust_operations.cu(h)
