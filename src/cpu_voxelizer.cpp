@@ -7,13 +7,11 @@ namespace cpu_voxelizer {
 
 	// Set specific bit in voxel table
 	void setBit(unsigned int* voxel_table, size_t index) {
-		size_t int_location = index / size_t(32);
-		uint32_t bit_pos = size_t(31) - (index % size_t(32)); // we count bit positions RtL, but array indices LtR
+		size_t int_location =  index >> 5;
+		uint32_t bit_pos = size_t(31) - (location & s31);
 		uint32_t mask = 1 << bit_pos | 0;
-		#pragma omp critical 
-		{
-			voxel_table[int_location] = (voxel_table[int_location] | mask);
-		}
+#pragma omp atomic 
+		voxel_table[int_location] |= mask;
 	}
 
 
@@ -194,13 +192,11 @@ namespace cpu_voxelizer {
 
 	// use Xor for voxels whose corresponding bits have to flipped
 	void setBitXor(unsigned int* voxel_table, size_t index) {
-		size_t int_location = index / size_t(32);
-		unsigned int bit_pos = size_t(31) - (index % size_t(32)); // we count bit positions RtL, but array indices LtR
+		size_t int_location = index >> 5;
+		unsigned int bit_pos = size_t(31) - (location & 31);
 		unsigned int mask = 1 << bit_pos;
-		#pragma omp critical 
-		{
-			voxel_table[int_location] = (voxel_table[int_location] ^ mask);
-		}
+#pragma omp atomic
+		voxel_table[int_location] ^= mask;
 	}
 
 	bool TopLeftEdge(glm::vec2 v0, glm::vec2 v1) {
