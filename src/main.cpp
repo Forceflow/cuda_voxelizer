@@ -209,7 +209,7 @@ int main(int argc, char* argv[]) {
 	voxinfo voxelization_info(createMeshBBCube<glm::vec3>(bbox_mesh), glm::uvec3(gridsize, gridsize, gridsize), themesh->faces.size());
 	voxelization_info.print();
 	// Compute space needed to hold voxel table (1 voxel / bit)
-	size_t vtable_size = static_cast<size_t>(ceil(static_cast<size_t>(voxelization_info.gridsize.x) * static_cast<size_t>(voxelization_info.gridsize.y) * static_cast<size_t>(voxelization_info.gridsize.z)) / 8.0f);
+	size_t vtable_size = static_cast<size_t>(ceil(static_cast<size_t>(voxelization_info.gridsize.x) * static_cast<size_t>(voxelization_info.gridsize.y) * static_cast<size_t>(voxelization_info.gridsize.z) / 32.0f) * 4);
 	unsigned int* vtable; // Both voxelization paths (GPU and CPU) need this
 
 	bool cuda_ok = false;
