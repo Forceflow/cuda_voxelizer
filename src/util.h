@@ -9,7 +9,7 @@
 #include <string>
 #include <fstream>
 
-//#define GLM_FORCE_CUDA
+#define GLM_FORCE_CUDA
 //#define GLM_FORCE_PURE
 #include <glm/glm.hpp>
 
@@ -146,5 +146,7 @@ inline std::string readableSize(size_t bytes) {
 // check if file exists
 inline bool file_exists(const std::string& name) {
 	std::ifstream f(name.c_str());
-	return f.good();
+	bool exists = f.good();
+	f.close();
+	return exists;
 }
