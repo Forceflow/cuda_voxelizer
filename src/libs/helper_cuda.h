@@ -869,7 +869,7 @@ inline int findCudaDevice(int argc, const char **argv) {
     int major = 0, minor = 0; 
     checkCudaErrors(cudaDeviceGetAttribute(&major, cudaDevAttrComputeCapabilityMajor, devID));
     checkCudaErrors(cudaDeviceGetAttribute(&minor, cudaDevAttrComputeCapabilityMinor, devID));
-    printf("GPU Device %d: \"%s\" with compute capability %d.%d\n\n",
+    printf("GPU Device %d: \"%s\" with compute capability %d.%d\n",
            devID, _ConvertSMVer2ArchName(major, minor), major, minor);
 
   }
