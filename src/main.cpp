@@ -82,18 +82,12 @@ float* meshToGPU_managed(const trimesh::TriMesh *mesh) {
 		memcpy((device_triangles)+j+6, glm::value_ptr(v2), sizeof(glm::vec3));
 	}
 	t.stop();fprintf(stdout, "[Perf] Mesh transfer time to GPU: %.1f ms \n", t.elapsed_time_milliseconds);
-
-	//for (size_t i = 0; i < mesh->faces.size(); i++) {
-	//	size_t t = i * 9;
-	//	std::cout << "Tri: " << device_triangles[t] << " " << device_triangles[t + 1] << " " << device_triangles[t + 2] << std::endl;
-	//	std::cout << "Tri: " << device_triangles[t + 3] << " " << device_triangles[t + 4] << " " << device_triangles[t + 5] << std::endl;
-	//	std::cout << "Tri: " << device_triangles[t + 6] << " " << device_triangles[t + 7] << " " << device_triangles[t + 8] << std::endl;
-	//}
-
 	return device_triangles;
 }
 
-//// METHOD 2: Helper function to transfer triangles to old-style, self-managed CUDA memory ( < CUDA 7.x )
+// METHOD 2: Helper function to transfer triangles to old-style, self-managed CUDA memory ( < CUDA 7.x )
+// Leaving this here for reference, the function above should be faster and better managed on all versions CUDA 7+
+// 
 //float* meshToGPU(const trimesh::TriMesh *mesh){
 //	size_t n_floats = sizeof(float) * 9 * (mesh->faces.size());
 //	float* pagelocktriangles;
@@ -116,8 +110,6 @@ float* meshToGPU_managed(const trimesh::TriMesh *mesh) {
 //	checkCudaErrors(cudaMemcpy((void *) device_triangles, (void*) pagelocktriangles, n_floats, cudaMemcpyDefault));
 //	return device_triangles;
 //}
-
-
 
 // Parse the program parameters and set them as global variables
 void parseProgramParameters(int argc, char* argv[]){
@@ -218,7 +210,7 @@ int main(int argc, char* argv[]) {
 		// SECTION: Try to figure out if we have a CUDA-enabled GPU
 		fprintf(stdout, "\n## CUDA INIT \n");
 		cuda_ok = initCuda();
-		cuda_ok ? fprintf(stdout, "[Info] CUDA GPU found\n") : fprintf(stdout, "[Info] CUDA GPU not found\n");
+		if (! cuda_ok ) fprintf(stdout, "[Info] CUDA GPU not found\n");
 	}
 
 	// SECTION: The actual voxelization
