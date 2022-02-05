@@ -20,7 +20,7 @@
 #include "cpu_voxelizer.h"
 
 using namespace std;
-string version_number = "v0.4.11";
+string version_number = "v0.4.12";
 
 // Forward declaration of CUDA functions
 float* meshToGPU_thrust(const trimesh::TriMesh *mesh); // METHOD 3 to transfer triangles can be found in thrust_operations.cu(h)
@@ -82,18 +82,12 @@ float* meshToGPU_managed(const trimesh::TriMesh *mesh) {
 		memcpy((device_triangles)+j+6, glm::value_ptr(v2), sizeof(glm::vec3));
 	}
 	t.stop();fprintf(stdout, "[Perf] Mesh transfer time to GPU: %.1f ms \n", t.elapsed_time_milliseconds);
-
-	//for (size_t i = 0; i < mesh->faces.size(); i++) {
-	//	size_t t = i * 9;
-	//	std::cout << "Tri: " << device_triangles[t] << " " << device_triangles[t + 1] << " " << device_triangles[t + 2] << std::endl;
-	//	std::cout << "Tri: " << device_triangles[t + 3] << " " << device_triangles[t + 4] << " " << device_triangles[t + 5] << std::endl;
-	//	std::cout << "Tri: " << device_triangles[t + 6] << " " << device_triangles[t + 7] << " " << device_triangles[t + 8] << std::endl;
-	//}
-
 	return device_triangles;
 }
 
-//// METHOD 2: Helper function to transfer triangles to old-style, self-managed CUDA memory ( < CUDA 7.x )
+// METHOD 2: Helper function to transfer triangles to old-style, self-managed CUDA memory ( < CUDA 7.x )
+// Leaving this here for reference, the function above should be faster and better managed on all versions CUDA 7+
+// 
 //float* meshToGPU(const trimesh::TriMesh *mesh){
 //	size_t n_floats = sizeof(float) * 9 * (mesh->faces.size());
 //	float* pagelocktriangles;
@@ -116,8 +110,6 @@ float* meshToGPU_managed(const trimesh::TriMesh *mesh) {
 //	checkCudaErrors(cudaMemcpy((void *) device_triangles, (void*) pagelocktriangles, n_floats, cudaMemcpyDefault));
 //	return device_triangles;
 //}
-
-
 
 // Parse the program parameters and set them as global variables
 void parseProgramParameters(int argc, char* argv[]){
@@ -180,14 +172,17 @@ void parseProgramParameters(int argc, char* argv[]){
 }
 
 int main(int argc, char* argv[]) {
+	// PRINT PROGRAM INFO
 	Timer t; t.start();
 	printHeader();
+
+	// PARSE PROGRAM PARAMETERS
 	fprintf(stdout, "\n## PROGRAM PARAMETERS \n");
 	parseProgramParameters(argc, argv);
 	fflush(stdout);
 	trimesh::TriMesh::set_verbose(false);
 
-	// SECTION: Read the mesh from disk using the TriMesh library
+	// READ THE MESH
 	fprintf(stdout, "\n## READ MESH \n");
 #ifdef _DEBUG
 	trimesh::TriMesh::set_verbose(true);
@@ -200,25 +195,25 @@ int main(int argc, char* argv[]) {
 	fprintf(stdout, "[Mesh] Computing bbox \n");
 	themesh->need_bbox(); // Trimesh: Compute the bounding box (in model coordinates)
 
-	// SECTION: Compute some information needed for voxelization (bounding box, unit vector, ...)
+	// COMPUTE BOUNDING BOX AND VOXELISATION PARAMETERS
 	fprintf(stdout, "\n## VOXELISATION SETUP \n");
-	// Initialize our own AABox
-	AABox<glm::vec3> bbox_mesh(trimesh_to_glm(themesh->bbox.min), trimesh_to_glm(themesh->bbox.max));
-	// Transform that AABox to a cubical box (by padding directions if needed)
-	// Create voxinfo struct, which handles all the rest
-	voxinfo voxelization_info(createMeshBBCube<glm::vec3>(bbox_mesh), glm::uvec3(gridsize, gridsize, gridsize), themesh->faces.size());
+	// Initialize our own AABox, pad it so it's a cube
+	AABox<glm::vec3> bbox_mesh_cubed = createMeshBBCube<glm::vec3>(AABox<glm::vec3>(trimesh_to_glm(themesh->bbox.min), trimesh_to_glm(themesh->bbox.max)));
+	// Create voxinfo struct and print all info
+	voxinfo voxelization_info(bbox_mesh_cubed, glm::uvec3(gridsize, gridsize, gridsize), themesh->faces.size());
 	voxelization_info.print();
 	// Compute space needed to hold voxel table (1 voxel / bit)
-	size_t vtable_size = static_cast<size_t>(ceil(static_cast<size_t>(voxelization_info.gridsize.x) * static_cast<size_t>(voxelization_info.gridsize.y) * static_cast<size_t>(voxelization_info.gridsize.z)) / 8.0f);
 	unsigned int* vtable; // Both voxelization paths (GPU and CPU) need this
+	size_t vtable_size = static_cast<size_t>(ceil(static_cast<size_t>(voxelization_info.gridsize.x) * static_cast<size_t>(voxelization_info.gridsize.y) * static_cast<size_t>(voxelization_info.gridsize.z) / 32.0f) * 4);
 
+	// CUDA initialization
 	bool cuda_ok = false;
 	if (!forceCPU)
 	{
 		// SECTION: Try to figure out if we have a CUDA-enabled GPU
 		fprintf(stdout, "\n## CUDA INIT \n");
 		cuda_ok = initCuda();
-		cuda_ok ? fprintf(stdout, "[Info] CUDA GPU found\n") : fprintf(stdout, "[Info] CUDA GPU not found\n");
+		if (! cuda_ok ) fprintf(stdout, "[Info] CUDA GPU not found\n");
 	}
 
 	// SECTION: The actual voxelization

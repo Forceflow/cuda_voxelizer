@@ -1,4 +1,5 @@
 #pragma once
+// This file contains various utility functions that are used throughout the program and didn't really belong in their own header
 
 #include <stdint.h>
 
@@ -9,27 +10,27 @@
 #include <fstream>
 
 #define GLM_FORCE_CUDA
-#define GLM_FORCE_PURE
+//#define GLM_FORCE_PURE
 #include <glm/glm.hpp>
 
 
 // Converting builtin TriMesh vectors to GLM vectors
-// We do this as soon as possible, because GLM is great and the builtin Vector math of TriMesh is okay, but not CUDA-compatible
+// We do this as soon as possible after importing models, because GLM is great and the builtin Vector math of TriMesh is okay, but not CUDA-compatible
 template<typename trimeshtype>
-inline glm::vec3 trimesh_to_glm(trimeshtype a) {
+inline glm::vec3 trimesh_to_glm(const trimeshtype a) {
 	return glm::vec3(a[0], a[1], a[2]);
 }
 
 // Converting GLM vectors to builtin TriMesh vectors
-// We do this as soon as possible, because GLM is great and the builtin Vector math of TriMesh is okay, but not CUDA-compatible
+// Very sporadically we *do* need to go back to TriMesh vectors
 template<typename trimeshtype>
-inline trimeshtype glm_to_trimesh(glm::vec3 a) {
+inline trimeshtype glm_to_trimesh(const glm::vec3 a) {
 	return trimeshtype(a[0], a[1], a[2]);
 }
 
 // Check if a voxel in the voxel table is set
 __device__ __host__ inline bool checkVoxel(size_t x, size_t y, size_t z, const glm::uvec3 gridsize, const unsigned int* vtable){
-	size_t location = x + (y*gridsize.y) + (z*gridsize.y*gridsize.z);
+	size_t location = x + (y*gridsize.x) + (z*gridsize.x*gridsize.y);
 	size_t int_location = location / size_t(32);
 	/*size_t max_index = (gridsize*gridsize*gridsize) / __int64(32);
 	if (int_location >= max_index){
@@ -43,7 +44,7 @@ __device__ __host__ inline bool checkVoxel(size_t x, size_t y, size_t z, const g
 	return false;
 }
 
-// An Axis Aligned box
+// An Axis Aligned Box (AAB) of a certain type - to be initialized with a min and max
 template <typename T>
 struct AABox {
 	T min;
@@ -59,7 +60,7 @@ struct voxinfo {
 	size_t n_triangles;
 	glm::vec3 unit;
 
-	voxinfo(AABox<glm::vec3> bbox, glm::uvec3 gridsize, size_t n_triangles)
+	voxinfo(const AABox<glm::vec3> bbox, const glm::uvec3 gridsize, const size_t n_triangles)
 		: gridsize(gridsize), bbox(bbox), n_triangles(n_triangles) {
 		unit.x = (bbox.max.x - bbox.min.x) / float(gridsize.x);
 		unit.y = (bbox.max.y - bbox.min.y) / float(gridsize.y);
@@ -145,5 +146,7 @@ inline std::string readableSize(size_t bytes) {
 // check if file exists
 inline bool file_exists(const std::string& name) {
 	std::ifstream f(name.c_str());
-	return f.good();
+	bool exists = f.good();
+	f.close();
+	return exists;
 }

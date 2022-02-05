@@ -14,8 +14,7 @@ bool initCuda(){
 	// Is there a CUDA device at all?
 	checkCudaErrors(cudaGetDeviceCount(&device_count));
 	if(device_count < 1){
-		fprintf(stderr, "[CUDA] No CUDA devices found. \n \n");
-		fprintf(stderr, "[CUDA] Make sure CUDA device is powered, connected and available. \n");
+		fprintf(stderr, "[CUDA] No CUDA devices found. Make sure CUDA device is powered, connected and available. \n \n");
 		fprintf(stderr, "[CUDA] On laptops: disable powersave/battery mode. \n");
 		fprintf(stderr, "[CUDA] Exiting... \n");
 		return false;
@@ -30,13 +29,14 @@ bool initCuda(){
 	cudaDeviceProp properties;
 	checkCudaErrors(cudaGetDeviceProperties(&properties,device));
 	fprintf(stdout, "[CUDA] Best device: %s \n", properties.name);
-	fprintf(stdout,"[CUDA] Available global device memory: %.0lf MB. \n", ((double) properties.totalGlobalMem / 1024 / 1024));
+	size_t free, total;
+	checkCudaErrors(cudaMemGetInfo(&free, &total));
+	fprintf(stdout,"[CUDA] Available device memory: %llu of %llu MB \n", (free >> 20), (total >> 20));
 
 	// Check compute capability
 	if (properties.major < 2){
-		fprintf(stderr, "[CUDA] Your cuda device has compute capability %i.%i. We need at least 2.0 for atomic operations. Exiting. \n", properties.major, properties.minor);
+		fprintf(stderr, "[CUDA] Your cuda device has compute capability %i.%i. We need at least 2.0 for atomic operations. \n", properties.major, properties.minor);
 		return false;
 	}
-
 	return true;
 }
