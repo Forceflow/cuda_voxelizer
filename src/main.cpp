@@ -172,14 +172,17 @@ void parseProgramParameters(int argc, char* argv[]){
 }
 
 int main(int argc, char* argv[]) {
+	// PRINT PROGRAM INFO
 	Timer t; t.start();
 	printHeader();
+
+	// PARSE PROGRAM PARAMETERS
 	fprintf(stdout, "\n## PROGRAM PARAMETERS \n");
 	parseProgramParameters(argc, argv);
 	fflush(stdout);
 	trimesh::TriMesh::set_verbose(false);
 
-	// SECTION: Read the mesh from disk using the TriMesh library
+	// READ THE MESH
 	fprintf(stdout, "\n## READ MESH \n");
 #ifdef _DEBUG
 	trimesh::TriMesh::set_verbose(true);
@@ -192,18 +195,18 @@ int main(int argc, char* argv[]) {
 	fprintf(stdout, "[Mesh] Computing bbox \n");
 	themesh->need_bbox(); // Trimesh: Compute the bounding box (in model coordinates)
 
-	// SECTION: Compute some information needed for voxelization (bounding box, unit vector, ...)
+	// COMPUTE BOUNDING BOX AND VOXELISATION PARAMETERS
 	fprintf(stdout, "\n## VOXELISATION SETUP \n");
-	// Initialize our own AABox
-	AABox<glm::vec3> bbox_mesh(trimesh_to_glm(themesh->bbox.min), trimesh_to_glm(themesh->bbox.max));
-	// Transform that AABox to a cubical box (by padding directions if needed)
-	// Create voxinfo struct, which handles all the rest
-	voxinfo voxelization_info(createMeshBBCube<glm::vec3>(bbox_mesh), glm::uvec3(gridsize, gridsize, gridsize), themesh->faces.size());
+	// Initialize our own AABox, pad it so it's a cube
+	AABox<glm::vec3> bbox_mesh_cubed = createMeshBBCube<glm::vec3>(AABox<glm::vec3>(trimesh_to_glm(themesh->bbox.min), trimesh_to_glm(themesh->bbox.max)));
+	// Create voxinfo struct and print all info
+	voxinfo voxelization_info(bbox_mesh_cubed, glm::uvec3(gridsize, gridsize, gridsize), themesh->faces.size());
 	voxelization_info.print();
 	// Compute space needed to hold voxel table (1 voxel / bit)
-	size_t vtable_size = static_cast<size_t>(ceil(static_cast<size_t>(voxelization_info.gridsize.x) * static_cast<size_t>(voxelization_info.gridsize.y) * static_cast<size_t>(voxelization_info.gridsize.z) / 32.0f) * 4);
 	unsigned int* vtable; // Both voxelization paths (GPU and CPU) need this
+	size_t vtable_size = static_cast<size_t>(ceil(static_cast<size_t>(voxelization_info.gridsize.x) * static_cast<size_t>(voxelization_info.gridsize.y) * static_cast<size_t>(voxelization_info.gridsize.z) / 32.0f) * 4);
 
+	// CUDA initialization
 	bool cuda_ok = false;
 	if (!forceCPU)
 	{

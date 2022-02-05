@@ -14,8 +14,7 @@ bool initCuda(){
 	// Is there a CUDA device at all?
 	checkCudaErrors(cudaGetDeviceCount(&device_count));
 	if(device_count < 1){
-		fprintf(stderr, "[CUDA] No CUDA devices found. \n \n");
-		fprintf(stderr, "[CUDA] Make sure CUDA device is powered, connected and available. \n");
+		fprintf(stderr, "[CUDA] No CUDA devices found. Make sure CUDA device is powered, connected and available. \n \n");
 		fprintf(stderr, "[CUDA] On laptops: disable powersave/battery mode. \n");
 		fprintf(stderr, "[CUDA] Exiting... \n");
 		return false;
