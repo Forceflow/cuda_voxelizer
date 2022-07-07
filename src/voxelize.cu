@@ -136,7 +136,6 @@ __global__ void voxelize_triangle(voxinfo info, float* triangle_data, unsigned i
 		for (int z = t_bbox_grid.min.z; z <= t_bbox_grid.max.z; z++){
 			for (int y = t_bbox_grid.min.y; y <= t_bbox_grid.max.y; y++){
 				for (int x = t_bbox_grid.min.x; x <= t_bbox_grid.max.x; x++){
-					// size_t location = x + (y*info.gridsize) + (z*info.gridsize*info.gridsize);
 					// if (checkBit(voxel_table, location)){ continue; }
 #ifdef _DEBUG
 					atomicAdd(&debug_d_n_voxels_tested, 1);
@@ -173,7 +172,10 @@ __global__ void voxelize_triangle(voxinfo info, float* triangle_data, unsigned i
 						size_t location = mortonEncode_LUT(x, y, z);
 						setBit(voxel_table, location);
 					} else {
-						size_t location = static_cast<size_t>(x) + (static_cast<size_t>(y)* static_cast<size_t>(info.gridsize.y)) + (static_cast<size_t>(z)* static_cast<size_t>(info.gridsize.y)* static_cast<size_t>(info.gridsize.z));
+						size_t location = 
+							static_cast<size_t>(x) + 
+							(static_cast<size_t>(y)* static_cast<size_t>(info.gridsize.x)) + 
+							(static_cast<size_t>(z)* (static_cast<size_t>(info.gridsize.y)* static_cast<size_t>(info.gridsize.x)));
 						setBit(voxel_table, location);
 					}
 					continue;
