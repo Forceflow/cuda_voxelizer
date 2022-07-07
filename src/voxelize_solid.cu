@@ -92,12 +92,12 @@ __global__ void voxelize_triangle_solid(voxinfo info, float* triangle_data, unsi
 		if (fabs(n.x) < float_error)
 			return;
 
-		//Calculate the projection of three point into yoz plane
+		// Calculate the projection of three point into yoz plane
 		glm::vec2 v0_yz = glm::vec2(v0.y, v0.z);
 		glm::vec2 v1_yz = glm::vec2(v1.y, v1.z);
 		glm::vec2 v2_yz = glm::vec2(v2.y, v2.z);
 
-		//set the triangle counterclockwise
+		// Set the triangle counterclockwise
 		if (!checkCCW(v0_yz, v1_yz, v2_yz))
 		{
 			glm::vec2 v3 = v1_yz;
@@ -128,7 +128,10 @@ __global__ void voxelize_triangle_solid(voxinfo info, float* triangle_data, unsi
 							size_t location = mortonEncode_LUT(x, y, z);
 							setBitXor(voxel_table, location);
 						} else {
-							size_t location = static_cast<size_t>(x) + (static_cast<size_t>(y)* static_cast<size_t>(info.gridsize.y)) + (static_cast<size_t>(z)* static_cast<size_t>(info.gridsize.y)* static_cast<size_t>(info.gridsize.z));
+							size_t location =
+								static_cast<size_t>(x) +
+								(static_cast<size_t>(y) * static_cast<size_t>(info.gridsize.x)) +
+								(static_cast<size_t>(z) * (static_cast<size_t>(info.gridsize.y) * static_cast<size_t>(info.gridsize.x))); 
 							setBitXor(voxel_table, location);
 						}
 						continue;
@@ -136,7 +139,6 @@ __global__ void voxelize_triangle_solid(voxinfo info, float* triangle_data, unsi
 				}
 			}
 		}
-
 		// sanity check: atomically count triangles
 		//atomicAdd(&triangles_seen_count, 1);
 		thread_id += stride;
