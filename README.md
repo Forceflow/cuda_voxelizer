@@ -30,8 +30,8 @@ Program options:
 ![output_examples](https://raw.githubusercontent.com/Forceflow/cuda_voxelizer/main/img/output_examples.jpg)
 
 ## Building
-The build process is aimed at 64-bit executables. It might be possible to build for 32-bit as well, but I'm not actively testing/supporting this.
-You can build using CMake, or using the provided Visual Studio project. Since November 2019, cuda_voxelizer also builds on [Travis CI](https://travis-ci.org/Forceflow/cuda_voxelizer), so check out the [yaml config file](https://github.com/Forceflow/cuda_voxelizer/blob/main/.travis.yml) for more Linux build support.
+The build process is aimed at 64-bit executables. It's probably possible to build for 32-bit as well, but I'm not actively testing/supporting this.
+You can build using CMake, or using the provided Visual Studio project. Since 2022, cuda_voxelizer builds via [Github Actions](https://github.com/Forceflow/cuda_voxelizer/actions) as well, check the .[yml config file](https://github.com/Forceflow/cuda_voxelizer/blob/main/.github/workflows/autobuild.yml) for more info.
 
 ### Dependencies
 The project has the following build dependencies:
@@ -44,7 +44,7 @@ The project has the following build dependencies:
 
 After installing dependencies, do `mkdir build` and `cd build`, followed by:
 
-For Windows with Visual Studio 2019:
+For Windows with Visual Studio:
 ```powershell
 $env:CUDAARCHS="your_cuda_compute_capability"
 cmake -A x64 -DTrimesh2_INCLUDE_DIR:PATH="path_to_trimesh2_include" -DTrimesh2_LINK_DIR:PATH="path_to_trimesh2_library_dir" .. 
@@ -63,7 +63,7 @@ cmake --build . --parallel number_of_cores
 
 ### Build using Visual Studio project (Windows)
 
-A Visual Studio 2019 project solution is provided in the `msvc`folder. It is configured for CUDA 11, but you can edit the project file to make it work with lower CUDA versions. You can edit the `custom_includes.props` file to configure the library locations, and specify a place where the resulting binaries should be placed.
+Project solutions for Visual Studio 2019 and 2022 are provided in the `msvc`folder. They are configured for CUDA 11, but you can edit the project file to make it work with lower CUDA versions. You can edit the `custom_includes.props` file to configure the library locations, and specify a place where the resulting binaries should be placed.
 
 ```
     <TRIMESH_DIR>C:\libs\trimesh2\</TRIMESH_DIR>
