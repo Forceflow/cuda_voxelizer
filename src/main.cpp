@@ -20,7 +20,7 @@
 #include "cpu_voxelizer.h"
 
 using namespace std;
-string version_number = "v0.4.13";
+string version_number = "v0.4.14";
 
 // Forward declaration of CUDA functions
 float* meshToGPU_thrust(const trimesh::TriMesh *mesh); // METHOD 3 to transfer triangles can be found in thrust_operations.cu(h)
@@ -44,7 +44,7 @@ bool solidVoxelization = false;
 void printHeader(){
 	fprintf(stdout, "## CUDA VOXELIZER \n");
 	cout << "CUDA Voxelizer " << version_number << " by Jeroen Baert" << endl; 
-	cout << "github.com/Forceflow/cuda_voxelizer - mail@jeroen-baert.be" << endl;
+	cout << "github.com/Forceflow/cuda_voxelizer - mail (at) jeroen-baert (dot) be" << endl;
 }
 
 void printExample() {
