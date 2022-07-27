@@ -118,11 +118,11 @@ copy /y "$(SolutionDir)$(Platform)\$(Configuration)\$(TargetName).exe" "$(BINARY
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\cpu_voxelizer.h" />
+    <ClInclude Include="..\..\src\libs\cuda\helper_cuda.h" />
+    <ClInclude Include="..\..\src\libs\cuda\helper_string.h" />
     <ClInclude Include="..\..\src\util_io.h" />
     <ClInclude Include="..\..\src\util.h" />
     <ClInclude Include="..\..\src\util_cuda.h" />
-    <ClInclude Include="..\..\src\libs\helper_cuda.h" />
-    <ClInclude Include="..\..\src\libs\helper_string.h" />
     <ClInclude Include="..\..\src\morton_LUTs.h" />
     <ClInclude Include="..\..\src\thrust_operations.cuh" />
     <ClInclude Include="..\..\src\timer.h" />

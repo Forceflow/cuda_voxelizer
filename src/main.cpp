@@ -222,16 +222,17 @@ int main(int argc, char* argv[]) {
 		fprintf(stdout, "\n## TRIANGLES TO GPU TRANSFER \n");
 
 		float* device_triangles;
-		// Transfer triangles to GPU using either thrust or managed cuda memory
+
+		// Transfer triangle data to GPU
 		if (useThrustPath) { device_triangles = meshToGPU_thrust(themesh); }
 		else { device_triangles = meshToGPU_managed(themesh); }
 
+		// Allocate memory for voxel grid
 		if (!useThrustPath) {
 			fprintf(stdout, "[Voxel Grid] Allocating %s of CUDA-managed UNIFIED memory for Voxel Grid\n", readableSize(vtable_size).c_str());
 			checkCudaErrors(cudaMallocManaged((void**)&vtable, vtable_size));
 		}
 		else {
-			// ALLOCATE MEMORY ON HOST
 			fprintf(stdout, "[Voxel Grid] Allocating %s kB of page-locked HOST memory for Voxel Grid\n", readableSize(vtable_size).c_str());
 			checkCudaErrors(cudaHostAlloc((void**)&vtable, vtable_size, cudaHostAllocDefault));
 		}

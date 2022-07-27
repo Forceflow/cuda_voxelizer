@@ -16,12 +16,6 @@
     <ClCompile Include="..\..\src\cpu_voxelizer.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\src\libs\helper_cuda.h">
-      <Filter>cuda</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\libs\helper_string.h">
-      <Filter>cuda</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\voxelize.cuh" />
     <ClInclude Include="..\..\src\thrust_operations.cuh" />
     <ClInclude Include="..\..\src\morton_LUTs.h">
@@ -37,9 +31,13 @@
     <ClInclude Include="..\..\src\util.h">
       <Filter>util</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\cpu_voxelizer.h">
-      <Filter>util</Filter>
+    <ClInclude Include="..\..\src\libs\cuda\helper_cuda.h">
+      <Filter>libs\cuda</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\libs\cuda\helper_string.h">
+      <Filter>libs\cuda</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\cpu_voxelizer.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\..\src\todo.txt" />
@@ -48,7 +46,10 @@
     <Filter Include="util">
       <UniqueIdentifier>{a0232da8-2097-49f4-9412-0e4223c7ba4d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="cuda">
+    <Filter Include="libs">
+      <UniqueIdentifier>{f8ccb03d-e5cc-438b-96d6-5f9b5fb54160}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\cuda">
       <UniqueIdentifier>{ea2a8fd1-3d76-496e-9ad4-123e8f208140}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
