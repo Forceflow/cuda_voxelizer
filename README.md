@@ -63,7 +63,7 @@ cmake --build . --parallel number_of_cores
 
 ### Build using Visual Studio project (Windows)
 
-Project solutions for Visual Studio 2019 and 2022 are provided in the `msvc`folder. They are configured for CUDA 11, but you can edit the project file to make it work with lower CUDA versions. You can edit the `custom_includes.props` file to configure the library locations, and specify a place where the resulting binaries should be placed.
+A project solution for Visual Studio 2022 is provided in the `msvc`folder. It is configured for CUDA 11, but you can edit the project file to make it work with lower CUDA versions. You can edit the `custom_includes.props` file to configure the library locations, and specify a place where the resulting binaries should be placed.
 
 ```
     <TRIMESH_DIR>C:\libs\trimesh2\</TRIMESH_DIR>
