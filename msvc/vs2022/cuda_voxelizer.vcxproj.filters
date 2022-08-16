@@ -14,6 +14,9 @@
       <Filter>util</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\cpu_voxelizer.cpp" />
+    <ClCompile Include="..\..\src\libs\magicavoxel_file_writer\VoxWriter.cpp">
+      <Filter>libs\magicavoxel_file_writer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\voxelize.cuh" />
@@ -38,6 +41,9 @@
       <Filter>libs\cuda</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\cpu_voxelizer.h" />
+    <ClInclude Include="..\..\src\libs\magicavoxel_file_writer\VoxWriter.h">
+      <Filter>libs\magicavoxel_file_writer</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\..\src\todo.txt" />
@@ -51,6 +57,9 @@
     </Filter>
     <Filter Include="libs\cuda">
       <UniqueIdentifier>{ea2a8fd1-3d76-496e-9ad4-123e8f208140}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\magicavoxel_file_writer">
+      <UniqueIdentifier>{e8008c56-21a7-481c-9d07-a2e13e61a713}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

@@ -1,6 +1,7 @@
 #include "util.h"
 #include "util_io.h"
 #include "TriMesh_algo.h"
+#include "libs/magicavoxel_file_writer/VoxWriter.h"
 
 using namespace std;
 

@@ -112,6 +112,7 @@ copy /y "$(SolutionDir)$(Platform)\$(Configuration)\$(TargetName).exe" "$(BINARY
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\cpu_voxelizer.cpp" />
+    <ClCompile Include="..\..\src\libs\magicavoxel_file_writer\VoxWriter.cpp" />
     <ClCompile Include="..\..\src\util_io.cpp" />
     <ClCompile Include="..\..\src\util_cuda.cpp" />
     <ClCompile Include="..\..\src\main.cpp" />
@@ -120,6 +121,7 @@ copy /y "$(SolutionDir)$(Platform)\$(Configuration)\$(TargetName).exe" "$(BINARY
     <ClInclude Include="..\..\src\cpu_voxelizer.h" />
     <ClInclude Include="..\..\src\libs\cuda\helper_cuda.h" />
     <ClInclude Include="..\..\src\libs\cuda\helper_string.h" />
+    <ClInclude Include="..\..\src\libs\magicavoxel_file_writer\VoxWriter.h" />
     <ClInclude Include="..\..\src\util_io.h" />
     <ClInclude Include="..\..\src\util.h" />
     <ClInclude Include="..\..\src\util_cuda.h" />
