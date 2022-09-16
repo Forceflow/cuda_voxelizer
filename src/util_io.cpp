@@ -236,3 +236,23 @@ void write_binvox(const unsigned int* vtable, const voxinfo v_info, const std::s
 	output.write((char*)&current_seen, 1);
 	output.close();
 }
+
+// Experimental MagicaVoxel file format output
+void write_vox(const unsigned int* vtable, const voxinfo v_info, const std::string base_filename) {
+	string filename_output = base_filename + string("_") + to_string(v_info.gridsize.x) + string(".vox");
+	vox::VoxWriter voxwriter;
+	voxwriter.AddColor(255, 255, 255,0, 0);
+
+	for (size_t x = 0; x < v_info.gridsize.x; x++) {
+		for (size_t y = 0; y < v_info.gridsize.z; y++) {
+			for (size_t z = 0; z < v_info.gridsize.y; z++) {
+				if (checkVoxel(x, y, z, v_info.gridsize, vtable)) {
+					// Somehow, this makes the vox model come out correct way up. Some axes probably got switched along the way
+					voxwriter.AddVoxel(x, -z + v_info.gridsize.z, y-1, 1);
+				}
+			}
+		}
+	}
+
+	voxwriter.SaveToFile(filename_output);
+}

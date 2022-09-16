@@ -29,8 +29,8 @@ void voxelize(const voxinfo & v, float* triangle_data, unsigned int* vtable, boo
 void voxelize_solid(const voxinfo& v, float* triangle_data, unsigned int* vtable, bool useThrustPath, bool morton_code);
 
 // Output formats
-enum class OutputFormat { output_binvox = 0, output_morton = 1, output_obj_points = 2, output_obj_cubes = 3};
-char *OutputFormats[] = { "binvox file", "morton encoded blob", "obj file (pointcloud)", "obj file (cubes)"};
+enum class OutputFormat { output_binvox = 0, output_morton = 1, output_obj_points = 2, output_obj_cubes = 3, output_vox = 4};
+char *OutputFormats[] = { "binvox file", "morton encoded blob", "obj file (pointcloud)", "obj file (cubes)", "magicavoxel file"};
 
 // Default options
 string filename = "";
@@ -56,7 +56,7 @@ void printHelp(){
 	cout << "Program options: " << endl << endl;
 	cout << " -f <path to model file: .ply, .obj, .3ds> (required)" << endl;
 	cout << " -s <voxelization grid size, power of 2: 8 -> 512, 1024, ... (default: 256)>" << endl;
-	cout << " -o <output format: binvox, obj, obj_points or morton (default: binvox)>" << endl;
+	cout << " -o <output format: vox, binvox, obj, obj_points or morton (default: binvox)>" << endl;
 	cout << " -thrust : Force using CUDA Thrust Library (possible speedup / throughput improvement)" << endl;
 	cout << " -cpu : Force CPU-based voxelization (slow, but works if no compatible GPU can be found)" << endl;
 	cout << " -solid : Force solid voxelization (experimental, needs watertight model)" << endl << endl;
@@ -143,6 +143,7 @@ void parseProgramParameters(int argc, char* argv[]){
 			else if (output == "morton"){outputformat = OutputFormat::output_morton;}
 			else if (output == "obj"){outputformat = OutputFormat::output_obj_cubes;}
 			else if (output == "obj_points") { outputformat = OutputFormat::output_obj_points; }
+			else if (output == "vox") { outputformat = OutputFormat::output_vox; }
 			else {
 				fprintf(stdout, "[Err] Unrecognized output format: %s, valid options are binvox (default), morton, obj or obj_points \n", output.c_str());
 				exit(1);
@@ -275,6 +276,9 @@ int main(int argc, char* argv[]) {
 	}
 	else if (outputformat == OutputFormat::output_obj_cubes) {
 		write_obj_cubes(vtable, voxelization_info, filename);
+	}
+	else if (outputformat == OutputFormat::output_vox) {
+		write_vox(vtable, voxelization_info, filename);
 	}
 
 	if (useThrustPath) {
