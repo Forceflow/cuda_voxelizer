@@ -46,6 +46,7 @@ SET(CUDA_VOXELIZER_SRCS
   ./src/util_cuda.cpp
   ./src/util_io.cpp
   ./src/cpu_voxelizer.cpp
+  ./src/libs/magicavoxel_file_writer/VoxWriter.cpp
 )
 SET(CUDA_VOXELIZER_SRCS_CU
   ./src/voxelize.cu
