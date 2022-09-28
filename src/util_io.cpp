@@ -94,10 +94,16 @@ void write_cube(const size_t& x, const size_t& y, const size_t& z, ofstream& out
 
 void write_obj_cubes(const unsigned int* vtable, const voxinfo v_info, const std::string base_filename) {
 	string filename_output = base_filename + string("_") + to_string(v_info.gridsize.x) + string("_voxels.obj");
+	ofstream output(filename_output.c_str(), ios::out);
+
 #ifndef SILENT
 	fprintf(stdout, "[I/O] Writing data in obj voxels format to file %s \n", filename_output.c_str());
+	// Write stats
+	size_t voxels_seen = 0;
+	const size_t write_stats_25 = (size_t(v_info.gridsize.x) * size_t(v_info.gridsize.y) * size_t(v_info.gridsize.z)) / 4.0f;
+	fprintf(stdout, "[I/O] Writing to file: 0%%...");
 #endif
-	ofstream output(filename_output.c_str(), ios::out);
+	
 
 	// Write vertex normals once
 	//write_vertex_normal(output, glm::ivec3(0, 0, -1)); // forward = 1
@@ -106,22 +112,18 @@ void write_obj_cubes(const unsigned int* vtable, const voxinfo v_info, const std
 	//write_vertex_normal(output, glm::ivec3(1, 0, 0)); // right = 4
 	//write_vertex_normal(output, glm::ivec3(0, -1, 0)); // bottom = 5
 	//write_vertex_normal(output, glm::ivec3(0, 1, 0)); // top = 6
-
-	// Write stats
-	size_t voxels_seen = 0;
-	const size_t write_stats_25 = (size_t(v_info.gridsize.x) * size_t(v_info.gridsize.y) * size_t(v_info.gridsize.z)) / 4.0f;
-	fprintf(stdout, "[I/O] Writing to file: 0%%...");
-
 	//size_t voxels_written = 0;
+
 	assert(output);
 	for (size_t x = 0; x < v_info.gridsize.x; x++) {
 		for (size_t y = 0; y < v_info.gridsize.y; y++) {
 			for (size_t z = 0; z < v_info.gridsize.z; z++) {
+#ifndef SILENT
 				voxels_seen++;
 				if (voxels_seen == write_stats_25) {fprintf(stdout, "25%%...");}
 				else if (voxels_seen == write_stats_25 * size_t(2)) {fprintf(stdout, "50%%...");}
-				else if (voxels_seen == write_stats_25 * size_t(3)) {fprintf(stdout, "75%%...");
-				}
+				else if (voxels_seen == write_stats_25 * size_t(3)) {fprintf(stdout, "75%%...");}
+#endif
 				if (checkVoxel(x, y, z, v_info.gridsize, vtable)) {
 					//voxels_written += 1;
 					write_cube(x, y, z, output);	
@@ -129,10 +131,14 @@ void write_obj_cubes(const unsigned int* vtable, const voxinfo v_info, const std
 			}
 		}
 	}
+#ifndef SILENT
 	fprintf(stdout, "100%% \n");
+#endif
 	// std::cout << "written " << voxels_written << std::endl;
 
+#ifndef SILENT
 	fprintf(stdout, "[I/O] Reordering / Optimizing mesh with Trimesh2 \n");
+#endif
 	// Load the file using TriMesh2
 	trimesh::TriMesh* temp_mesh = trimesh::TriMesh::read(filename_output.c_str());	
 	trimesh::reorder_verts(temp_mesh);
@@ -140,7 +146,9 @@ void write_obj_cubes(const unsigned int* vtable, const voxinfo v_info, const std
 	//trimesh::edgeflip(temp_mesh);
 	//temp_mesh->clear_normals();
 	//temp_mesh->need_normals();
+#ifndef SILENT
 	fprintf(stdout, "[I/O] Writing final mesh to file %s \n", filename_output.c_str());
+#endif
 	temp_mesh->write(filename_output.c_str());
 
 	output.close();
@@ -148,15 +156,14 @@ void write_obj_cubes(const unsigned int* vtable, const voxinfo v_info, const std
 
 void write_obj_pointcloud(const unsigned int* vtable, const voxinfo v_info, const std::string base_filename) {
 	string filename_output = base_filename + string("_") + to_string(v_info.gridsize.x) + string("_pointcloud.obj");
+	ofstream output(filename_output.c_str(), ios::out);
+
 #ifndef SILENT
 	fprintf(stdout, "[I/O] Writing data in obj point cloud format to %s \n", filename_output.c_str());
-#endif
-	ofstream output(filename_output.c_str(), ios::out);
-	
-	// Write stats
 	size_t voxels_seen = 0;
 	const size_t write_stats_25 = (size_t(v_info.gridsize.x) * size_t(v_info.gridsize.y) * size_t(v_info.gridsize.z)) / 4.0f;
 	fprintf(stdout, "[I/O] Writing to file: 0%%...");
+#endif
 
 	// write stats
 	size_t voxels_written = 0;
@@ -165,10 +172,12 @@ void write_obj_pointcloud(const unsigned int* vtable, const voxinfo v_info, cons
 	for (size_t x = 0; x < v_info.gridsize.x; x++) {
 		for (size_t y = 0; y < v_info.gridsize.y; y++) {
 			for (size_t z = 0; z < v_info.gridsize.z; z++) {
+#ifndef SILENT
 				voxels_seen++;
 				if (voxels_seen == write_stats_25) { fprintf(stdout, "25%%...");}
 				else if (voxels_seen == write_stats_25 * size_t(2)) { fprintf(stdout, "50%%...");}
 				else if (voxels_seen == write_stats_25 * size_t(3)) {fprintf(stdout, "75%%...");}
+#endif
 				if (checkVoxel(x, y, z, v_info.gridsize, vtable)) {
 					voxels_written += 1;
 					output << "v " << (x+0.5) << " " << (y + 0.5) << " " << (z + 0.5) << endl; // +0.5 to put vertex in the middle of the voxel
@@ -176,7 +185,9 @@ void write_obj_pointcloud(const unsigned int* vtable, const voxinfo v_info, cons
 			}
 		}
 	}
+#ifndef SILENT
 	fprintf(stdout, "100%% \n");
+#endif
 	// std::cout << "written " << voxels_written << std::endl;
 	output.close();
 }
@@ -243,16 +254,35 @@ void write_vox(const unsigned int* vtable, const voxinfo v_info, const std::stri
 	vox::VoxWriter voxwriter;
 	voxwriter.AddColor(255, 255, 255,0, 0);
 
+#ifndef SILENT
+	fprintf(stdout, "[I/O] Writing data in vox format to %s \n", filename_output.c_str());
+
+	// Write stats
+	size_t voxels_seen = 0;
+	const size_t write_stats_25 = (size_t(v_info.gridsize.x) * size_t(v_info.gridsize.y) * size_t(v_info.gridsize.z)) / 4.0f;
+	fprintf(stdout, "[I/O] Writing to file: 0%%...");
+	size_t voxels_written = 0;
+#endif
+
 	for (size_t x = 0; x < v_info.gridsize.x; x++) {
 		for (size_t y = 0; y < v_info.gridsize.z; y++) {
 			for (size_t z = 0; z < v_info.gridsize.y; z++) {
+#ifndef SILENT
+				// Progress stats
+				voxels_seen++;
+				if (voxels_seen == write_stats_25) { fprintf(stdout, "25%%..."); }
+				else if (voxels_seen == write_stats_25 * size_t(2)) { fprintf(stdout, "50%%..."); }
+				else if (voxels_seen == write_stats_25 * size_t(3)) { fprintf(stdout, "75%%..."); }
+#endif
 				if (checkVoxel(x, y, z, v_info.gridsize, vtable)) {
 					// Somehow, this makes the vox model come out correct way up. Some axes probably got switched along the way
-					voxwriter.AddVoxel(x, -z + v_info.gridsize.z, y-1, 1);
+					voxwriter.AddVoxel(x, -z + v_info.gridsize.z, y, 1);
 				}
 			}
 		}
 	}
-
+#ifndef SILENT
+	fprintf(stdout, "100%% \n");
+#endif
 	voxwriter.SaveToFile(filename_output);
 }
