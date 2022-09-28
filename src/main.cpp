@@ -44,7 +44,7 @@ bool solidVoxelization = false;
 void printHeader(){
 	fprintf(stdout, "## CUDA VOXELIZER \n");
 	cout << "CUDA Voxelizer " << version_number << " by Jeroen Baert" << endl; 
-	cout << "github.com/Forceflow/cuda_voxelizer - mail (at) jeroen-baert (dot) be" << endl;
+	cout << "https://github.com/Forceflow/cuda_voxelizer - mail (at) jeroen-baert (dot) be" << endl;
 }
 
 void printExample() {
