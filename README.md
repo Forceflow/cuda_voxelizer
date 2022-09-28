@@ -98,7 +98,7 @@ A project solution for Visual Studio 2022 is provided in the `msvc`folder. It is
  * Nvidia also has a voxel library called [GVDB](https://developer.nvidia.com/gvdb), that does a lot more than just voxelizing.
 
 ## Todo / Possible future work
-This is on my list of nice things to add. Don't hesistate to crack one of these yourself and make a PR!
+This is on my list of "nice things to add".
 
  * Noncubic grid support
  * Memory limits test
