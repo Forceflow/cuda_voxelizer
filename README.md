@@ -10,8 +10,8 @@ A command-line tool to convert polygon meshes to (annotated) voxel grids.
 ## Usage
 Program options:
  * `-f <path to model file>`: **(required)** A path to a polygon-based 3D model file. 
- * `-s <voxel grid length>`: The length of the cubical voxel grid. Default: 256, resulting in a 256 x 256 x 256 voxelization grid.  The tool will automatically select the tightest cubical bounding box around the model.
- * `-o <output format>`: The output format for voxelized models, default: *binvox*. Output files are saved in the same folder as the input file.
+ * `-s <voxel grid length>`: **(default: 256)** The length of the cubical voxel grid. The process will construct the tightest possible cubical bounding box around the input model.
+ * `-o <output format>`: The output format for voxelized models, default: *binvox*. Output files are saved in the same folder as the input file, in the format `<original file name>_<grid_size>.extension`.
    * `vox`: **(default)** A [vox](https://github.com/ephtracy/voxel-model/blob/master/MagicaVoxel-file-format-vox.txt) file, which is the native format of and can be viewed with the excellent [MagicaVoxel](https://ephtracy.github.io/).
    * `binvox`: A [binvox](http://www.patrickmin.com/binvox/binvox.html) file. Can be viewed using [viewvox](http://www.patrickmin.com/viewvox/).
    * `obj`: A mesh containing actual cubes (made up of triangle faces) for each voxel.
@@ -29,8 +29,8 @@ Program options:
 ![output_examples](https://raw.githubusercontent.com/Forceflow/cuda_voxelizer/main/img/output_examples.jpg)
 
 ## Building
-The build process is aimed at 64-bit executables. It's probably possible to build for 32-bit as well, but I'm not actively testing/supporting this.
-You can build using CMake, or using the provided Visual Studio project. Since 2022, cuda_voxelizer builds via [Github Actions](https://github.com/Forceflow/cuda_voxelizer/actions) as well, check the .[yml config file](https://github.com/Forceflow/cuda_voxelizer/blob/main/.github/workflows/autobuild.yml) for more info.
+The build process is aimed at 64-bit executables. It's possible to build for 32-bit as well, but I'm not actively testing/supporting this.
+You can build using CMake or using the provided Visual Studio project. Since 2022, cuda_voxelizer builds via [Github Actions](https://github.com/Forceflow/cuda_voxelizer/actions) as well, check the .[yml config file](https://github.com/Forceflow/cuda_voxelizer/blob/main/.github/workflows/autobuild.yml) for more info.
 
 ### Dependencies
 The project has the following build dependencies:
@@ -62,7 +62,7 @@ cmake --build . --parallel number_of_cores
 
 ### Build using Visual Studio project (Windows)
 
-A project solution for Visual Studio 2022 is provided in the `msvc`folder. It is configured for CUDA 11, but you can edit the project file to make it work with lower CUDA versions. You can edit the `custom_includes.props` file to configure the library locations, and specify a place where the resulting binaries should be placed.
+A project solution for Visual Studio 2022 is provided in the `msvc` folder. It is configured for CUDA 11, but you can edit the project file to make it work with other CUDA versions. You can edit the `custom_includes.props` file to configure the library locations, and specify a place where the resulting binaries should be placed.
 
 ```
     <TRIMESH_DIR>C:\libs\trimesh2\</TRIMESH_DIR>
@@ -85,13 +85,17 @@ A project solution for Visual Studio 2022 is provided in the `msvc`folder. It is
 | 1024³    | 8.6 ms | 1047.5 ms |
 | 2048³    | 44.6 ms | 4147.4 ms |
 
-## Notes / See Also
+## Thanks
+ * The [MagicaVoxel](https://ephtracy.github.io/) I/O was implemented using [MagicaVoxel File Writer](https://github.com/aiekick/MagicaVoxel_File_Writer) by [aiekick](https://github.com/aiekick).
+* Thanks to [conceptclear](https://github.com/conceptclear) for implementing solid voxelization.
+
+## See also
+
  * The [.binvox file format](https://www.patrickmin.com/binvox/binvox.html) was created by Michael Kazhdan. 
    * [Patrick Min](https://www.patrickmin.com/binvox/) wrote some interesting tools to work with it:
      * [viewvox](https://www.patrickmin.com/viewvox/): Visualization of voxel grids (a copy of this tool is included in cuda_voxelizer releases)
      * [thinvox](https://www.patrickmin.com/thinvox/): Thinning of voxel grids
    * [binvox-rw-py](https://github.com/dimatura/binvox-rw-py) is a Python module to interact with .binvox files
- * Thanks to [conceptclear](https://github.com/conceptclear) for implementing solid voxelization
  * [Zarbuz](https://github.com/zarbuz)'s [FileToVox](https://github.com/Zarbuz/FileToVox) looks interesting as well
  * If you want a good customizable CPU-based voxelizer, I can recommend [VoxSurf](https://github.com/sylefeb/VoxSurf).
  * Another hackable voxel viewer is Sean Barrett's excellent [stb_voxel_render.h](https://github.com/nothings/stb/blob/master/stb_voxel_render.h).
