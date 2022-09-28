@@ -1,9 +1,9 @@
 [![Build Status](https://travis-ci.org/Forceflow/cuda_voxelizer.svg?branch=master)](https://travis-ci.org/Forceflow/cuda_voxelizer) ![](https://img.shields.io/github/license/Forceflow/cuda_voxelizer.svg) [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.me/Forceflow)
 
-# cuda_voxelizer v0.4.14
+# cuda_voxelizer v0.5
 A command-line tool to convert polygon meshes to (annotated) voxel grids.
  * Supported input formats: .ply, .off, .obj, .3DS, .SM and RAY
- * Supported output formats: .binvox, .obj, morton ordered grid
+ * Supported output formats: .vox, .binvox, .obj cubes and point cloud, morton ordered grid
  * Requires a CUDA-compatible video card. Compute Capability 2.0 or higher (Nvidia Fermi or better).
    * Since v0.4.4, the voxelizer reverts to a (slower) CPU voxelization method when no CUDA device is found
 
@@ -12,18 +12,17 @@ Program options:
  * `-f <path to model file>`: **(required)** A path to a polygon-based 3D model file. 
  * `-s <voxel grid length>`: The length of the cubical voxel grid. Default: 256, resulting in a 256 x 256 x 256 voxelization grid.  The tool will automatically select the tightest cubical bounding box around the model.
  * `-o <output format>`: The output format for voxelized models, default: *binvox*. Output files are saved in the same folder as the input file.
-   * `binvox`: A [binvox](http://www.patrickmin.com/binvox/binvox.html) file (default). Can be viewed using [viewvox](http://www.patrickmin.com/viewvox/).
+   * `vox`: **(default)** A [vox](https://github.com/ephtracy/voxel-model/blob/master/MagicaVoxel-file-format-vox.txt) file, which is the native format of and can be viewed with the excellent [MagicaVoxel](https://ephtracy.github.io/).
+   * `binvox`: A [binvox](http://www.patrickmin.com/binvox/binvox.html) file. Can be viewed using [viewvox](http://www.patrickmin.com/viewvox/).
    * `obj`: A mesh containing actual cubes (made up of triangle faces) for each voxel.
    * `obj_points`: A mesh containing a point cloud, with a vertex for each voxel. Can be viewed using any compatible viewer that can just display vertices, like [Blender](https://www.blender.org/) or [Meshlab](https://www.meshlab.net/).
-   * `morton`: a binary file containing a Morton-ordered grid. This is a format I personally use for other tools.
- * `-cpu`: Force voxelization on the CPU instead of GPU. For when a CUDA device is not detected/compatible, or for very small models where GPU call overhead is not worth it. This is done multi-threaded, but will be slower for large models / grid sizes.
+   * `morton`: a binary file containing a Morton-ordered grid. This is an internal format I use for other tools.
+ * `-cpu`: Force multi-threaded voxelization on the CPU instead of GPU. Can be used when a CUDA device is not detected/compatible, or for very small models where GPU call overhead is not worth it.
  * `-thrust` : Use Thrust library for copying the model data to the GPU, for a possible speed / throughput improvement. I found this to be very system-dependent. Default: disabled.
  * `-solid` : (Experimental) Use solid voxelization instead of voxelizing the mesh faces. Needs a watertight input mesh.
 
-  
 ## Examples
-
-`cuda_voxelizer -f bunny.ply -s 256` generates a 256 x 256 x 256 binvox-based voxel model which will be stored in `bunny_256.binvox`. 
+`cuda_voxelizer -f bunny.ply -s 256` generates a 256 x 256 x 256 vox-based voxel model which will be stored in `bunny_256.vox`. 
 
 `cuda_voxelizer -f torus.ply -s 64 -o obj -thrust -solid` generates a solid (filled) 64 x 64 x 64 .obj voxel model which will be stored in `torus_64.obj`. During voxelization, the Cuda Thrust library will be used for a possible speedup, but YMMV.
 
@@ -38,7 +37,7 @@ The project has the following build dependencies:
  * [Nvidia Cuda 8.0 Toolkit (or higher)](https://developer.nvidia.com/cuda-toolkit) for CUDA + Thrust libraries (standard included)
  * [Trimesh2](https://github.com/Forceflow/trimesh2) for model importing. Latest version recommended.
  * [GLM](http://glm.g-truc.net/0.9.8/index.html) for vector math. Any recent version will do.
- * [OpenMP](https://www.openmp.org/)
+ * [OpenMP](https://www.openmp.org/) for multi-threading.
 
 ### Build using CMake (Windows, Linux)
 
@@ -103,7 +102,6 @@ This is on my list of nice things to add. Don't hesistate to crack one of these 
 
  * Noncubic grid support
  * Memory limits test
- * Output to more popular voxel formats like MagicaVoxel, Minecraft
  * Implement partitioning for larger models
  * Do a pre-pass to categorize triangles
  * Implement capture of normals / color / texture data
