@@ -20,7 +20,7 @@
 #include "cpu_voxelizer.h"
 
 using namespace std;
-string version_number = "v0.4.14";
+string version_number = "v0.5";
 
 // Forward declaration of CUDA functions
 float* meshToGPU_thrust(const trimesh::TriMesh *mesh); // METHOD 3 to transfer triangles can be found in thrust_operations.cu(h)
@@ -35,7 +35,7 @@ char *OutputFormats[] = { "binvox file", "morton encoded blob", "obj file (point
 // Default options
 string filename = "";
 string filename_base = "";
-OutputFormat outputformat = OutputFormat::output_binvox;
+OutputFormat outputformat = OutputFormat::output_vox;
 unsigned int gridsize = 256;
 bool useThrustPath = false;
 bool forceCPU = false;
@@ -56,7 +56,7 @@ void printHelp(){
 	cout << "Program options: " << endl << endl;
 	cout << " -f <path to model file: .ply, .obj, .3ds> (required)" << endl;
 	cout << " -s <voxelization grid size, power of 2: 8 -> 512, 1024, ... (default: 256)>" << endl;
-	cout << " -o <output format: vox, binvox, obj, obj_points or morton (default: binvox)>" << endl;
+	cout << " -o <output format: vox, binvox, obj, obj_points or morton (default: vox)>" << endl;
 	cout << " -thrust : Force using CUDA Thrust Library (possible speedup / throughput improvement)" << endl;
 	cout << " -cpu : Force CPU-based voxelization (slow, but works if no compatible GPU can be found)" << endl;
 	cout << " -solid : Force solid voxelization (experimental, needs watertight model)" << endl << endl;
