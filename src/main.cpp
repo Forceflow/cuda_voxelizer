@@ -20,7 +20,7 @@
 #include "cpu_voxelizer.h"
 
 using namespace std;
-string version_number = "v0.4.14";
+string version_number = "v0.5";
 
 // Forward declaration of CUDA functions
 float* meshToGPU_thrust(const trimesh::TriMesh *mesh); // METHOD 3 to transfer triangles can be found in thrust_operations.cu(h)
@@ -29,13 +29,13 @@ void voxelize(const voxinfo & v, float* triangle_data, unsigned int* vtable, boo
 void voxelize_solid(const voxinfo& v, float* triangle_data, unsigned int* vtable, bool useThrustPath, bool morton_code);
 
 // Output formats
-enum class OutputFormat { output_binvox = 0, output_morton = 1, output_obj_points = 2, output_obj_cubes = 3};
-char *OutputFormats[] = { "binvox file", "morton encoded blob", "obj file (pointcloud)", "obj file (cubes)"};
+enum class OutputFormat { output_binvox = 0, output_morton = 1, output_obj_points = 2, output_obj_cubes = 3, output_vox = 4};
+char *OutputFormats[] = { "binvox file", "morton encoded blob", "obj file (pointcloud)", "obj file (cubes)", "magicavoxel file"};
 
 // Default options
 string filename = "";
 string filename_base = "";
-OutputFormat outputformat = OutputFormat::output_binvox;
+OutputFormat outputformat = OutputFormat::output_vox;
 unsigned int gridsize = 256;
 bool useThrustPath = false;
 bool forceCPU = false;
@@ -44,7 +44,7 @@ bool solidVoxelization = false;
 void printHeader(){
 	fprintf(stdout, "## CUDA VOXELIZER \n");
 	cout << "CUDA Voxelizer " << version_number << " by Jeroen Baert" << endl; 
-	cout << "github.com/Forceflow/cuda_voxelizer - mail (at) jeroen-baert (dot) be" << endl;
+	cout << "https://github.com/Forceflow/cuda_voxelizer - mail (at) jeroen-baert (dot) be" << endl;
 }
 
 void printExample() {
@@ -56,7 +56,7 @@ void printHelp(){
 	cout << "Program options: " << endl << endl;
 	cout << " -f <path to model file: .ply, .obj, .3ds> (required)" << endl;
 	cout << " -s <voxelization grid size, power of 2: 8 -> 512, 1024, ... (default: 256)>" << endl;
-	cout << " -o <output format: binvox, obj, obj_points or morton (default: binvox)>" << endl;
+	cout << " -o <output format: vox, binvox, obj, obj_points or morton (default: vox)>" << endl;
 	cout << " -thrust : Force using CUDA Thrust Library (possible speedup / throughput improvement)" << endl;
 	cout << " -cpu : Force CPU-based voxelization (slow, but works if no compatible GPU can be found)" << endl;
 	cout << " -solid : Force solid voxelization (experimental, needs watertight model)" << endl << endl;
@@ -143,6 +143,7 @@ void parseProgramParameters(int argc, char* argv[]){
 			else if (output == "morton"){outputformat = OutputFormat::output_morton;}
 			else if (output == "obj"){outputformat = OutputFormat::output_obj_cubes;}
 			else if (output == "obj_points") { outputformat = OutputFormat::output_obj_points; }
+			else if (output == "vox") { outputformat = OutputFormat::output_vox; }
 			else {
 				fprintf(stdout, "[Err] Unrecognized output format: %s, valid options are binvox (default), morton, obj or obj_points \n", output.c_str());
 				exit(1);
@@ -222,16 +223,17 @@ int main(int argc, char* argv[]) {
 		fprintf(stdout, "\n## TRIANGLES TO GPU TRANSFER \n");
 
 		float* device_triangles;
-		// Transfer triangles to GPU using either thrust or managed cuda memory
+
+		// Transfer triangle data to GPU
 		if (useThrustPath) { device_triangles = meshToGPU_thrust(themesh); }
 		else { device_triangles = meshToGPU_managed(themesh); }
 
+		// Allocate memory for voxel grid
 		if (!useThrustPath) {
 			fprintf(stdout, "[Voxel Grid] Allocating %s of CUDA-managed UNIFIED memory for Voxel Grid\n", readableSize(vtable_size).c_str());
 			checkCudaErrors(cudaMallocManaged((void**)&vtable, vtable_size));
 		}
 		else {
-			// ALLOCATE MEMORY ON HOST
 			fprintf(stdout, "[Voxel Grid] Allocating %s kB of page-locked HOST memory for Voxel Grid\n", readableSize(vtable_size).c_str());
 			checkCudaErrors(cudaHostAlloc((void**)&vtable, vtable_size, cudaHostAllocDefault));
 		}
@@ -274,6 +276,9 @@ int main(int argc, char* argv[]) {
 	}
 	else if (outputformat == OutputFormat::output_obj_cubes) {
 		write_obj_cubes(vtable, voxelization_info, filename);
+	}
+	else if (outputformat == OutputFormat::output_vox) {
+		write_vox(vtable, voxelization_info, filename);
 	}
 
 	if (useThrustPath) {

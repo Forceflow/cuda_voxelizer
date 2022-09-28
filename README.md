@@ -1,44 +1,43 @@
 [![Build Status](https://travis-ci.org/Forceflow/cuda_voxelizer.svg?branch=master)](https://travis-ci.org/Forceflow/cuda_voxelizer) ![](https://img.shields.io/github/license/Forceflow/cuda_voxelizer.svg) [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.me/Forceflow)
 
-# cuda_voxelizer v0.4.14
+# cuda_voxelizer v0.5
 A command-line tool to convert polygon meshes to (annotated) voxel grids.
  * Supported input formats: .ply, .off, .obj, .3DS, .SM and RAY
- * Supported output formats: .binvox, .obj, morton ordered grid
+ * Supported output formats: .vox, .binvox, .obj cubes and point cloud, morton ordered grid
  * Requires a CUDA-compatible video card. Compute Capability 2.0 or higher (Nvidia Fermi or better).
    * Since v0.4.4, the voxelizer reverts to a (slower) CPU voxelization method when no CUDA device is found
 
 ## Usage
 Program options:
  * `-f <path to model file>`: **(required)** A path to a polygon-based 3D model file. 
- * `-s <voxel grid length>`: The length of the cubical voxel grid. Default: 256, resulting in a 256 x 256 x 256 voxelization grid.  The tool will automatically select the tightest cubical bounding box around the model.
- * `-o <output format>`: The output format for voxelized models, default: *binvox*. Output files are saved in the same folder as the input file.
-   * `binvox`: A [binvox](http://www.patrickmin.com/binvox/binvox.html) file (default). Can be viewed using [viewvox](http://www.patrickmin.com/viewvox/).
+ * `-s <voxel grid length>`: **(default: 256)** The length of the cubical voxel grid. The process will construct the tightest possible cubical bounding box around the input model.
+ * `-o <output format>`: The output format for voxelized models, default: *binvox*. Output files are saved in the same folder as the input file, in the format `<original file name>_<grid_size>.extension`.
+   * `vox`: **(default)** A [vox](https://github.com/ephtracy/voxel-model/blob/master/MagicaVoxel-file-format-vox.txt) file, which is the native format of and can be viewed with the excellent [MagicaVoxel](https://ephtracy.github.io/).
+   * `binvox`: A [binvox](http://www.patrickmin.com/binvox/binvox.html) file. Can be viewed using [viewvox](http://www.patrickmin.com/viewvox/).
    * `obj`: A mesh containing actual cubes (made up of triangle faces) for each voxel.
    * `obj_points`: A mesh containing a point cloud, with a vertex for each voxel. Can be viewed using any compatible viewer that can just display vertices, like [Blender](https://www.blender.org/) or [Meshlab](https://www.meshlab.net/).
-   * `morton`: a binary file containing a Morton-ordered grid. This is a format I personally use for other tools.
- * `-cpu`: Force voxelization on the CPU instead of GPU. For when a CUDA device is not detected/compatible, or for very small models where GPU call overhead is not worth it. This is done multi-threaded, but will be slower for large models / grid sizes.
+   * `morton`: a binary file containing a Morton-ordered grid. This is an internal format I use for other tools.
+ * `-cpu`: Force multi-threaded voxelization on the CPU instead of GPU. Can be used when a CUDA device is not detected/compatible, or for very small models where GPU call overhead is not worth it.
  * `-thrust` : Use Thrust library for copying the model data to the GPU, for a possible speed / throughput improvement. I found this to be very system-dependent. Default: disabled.
  * `-solid` : (Experimental) Use solid voxelization instead of voxelizing the mesh faces. Needs a watertight input mesh.
 
-  
 ## Examples
-
-`cuda_voxelizer -f bunny.ply -s 256` generates a 256 x 256 x 256 binvox-based voxel model which will be stored in `bunny_256.binvox`. 
+`cuda_voxelizer -f bunny.ply -s 256` generates a 256 x 256 x 256 vox-based voxel model which will be stored in `bunny_256.vox`. 
 
 `cuda_voxelizer -f torus.ply -s 64 -o obj -thrust -solid` generates a solid (filled) 64 x 64 x 64 .obj voxel model which will be stored in `torus_64.obj`. During voxelization, the Cuda Thrust library will be used for a possible speedup, but YMMV.
 
 ![output_examples](https://raw.githubusercontent.com/Forceflow/cuda_voxelizer/main/img/output_examples.jpg)
 
 ## Building
-The build process is aimed at 64-bit executables. It's probably possible to build for 32-bit as well, but I'm not actively testing/supporting this.
-You can build using CMake, or using the provided Visual Studio project. Since 2022, cuda_voxelizer builds via [Github Actions](https://github.com/Forceflow/cuda_voxelizer/actions) as well, check the .[yml config file](https://github.com/Forceflow/cuda_voxelizer/blob/main/.github/workflows/autobuild.yml) for more info.
+The build process is aimed at 64-bit executables. It's possible to build for 32-bit as well, but I'm not actively testing/supporting this.
+You can build using CMake or using the provided Visual Studio project. Since 2022, cuda_voxelizer builds via [Github Actions](https://github.com/Forceflow/cuda_voxelizer/actions) as well, check the .[yml config file](https://github.com/Forceflow/cuda_voxelizer/blob/main/.github/workflows/autobuild.yml) for more info.
 
 ### Dependencies
 The project has the following build dependencies:
  * [Nvidia Cuda 8.0 Toolkit (or higher)](https://developer.nvidia.com/cuda-toolkit) for CUDA + Thrust libraries (standard included)
  * [Trimesh2](https://github.com/Forceflow/trimesh2) for model importing. Latest version recommended.
  * [GLM](http://glm.g-truc.net/0.9.8/index.html) for vector math. Any recent version will do.
- * [OpenMP](https://www.openmp.org/)
+ * [OpenMP](https://www.openmp.org/) for multi-threading.
 
 ### Build using CMake (Windows, Linux)
 
@@ -63,7 +62,7 @@ cmake --build . --parallel number_of_cores
 
 ### Build using Visual Studio project (Windows)
 
-Project solutions for Visual Studio 2019 and 2022 are provided in the `msvc`folder. They are configured for CUDA 11, but you can edit the project file to make it work with lower CUDA versions. You can edit the `custom_includes.props` file to configure the library locations, and specify a place where the resulting binaries should be placed.
+A project solution for Visual Studio 2022 is provided in the `msvc` folder. It is configured for CUDA 11, but you can edit the project file to make it work with other CUDA versions. You can edit the `custom_includes.props` file to configure the library locations, and specify a place where the resulting binaries should be placed.
 
 ```
     <TRIMESH_DIR>C:\libs\trimesh2\</TRIMESH_DIR>
@@ -86,24 +85,27 @@ Project solutions for Visual Studio 2019 and 2022 are provided in the `msvc`fold
 | 1024³    | 8.6 ms | 1047.5 ms |
 | 2048³    | 44.6 ms | 4147.4 ms |
 
-## Notes / See Also
+## Thanks
+ * The [MagicaVoxel](https://ephtracy.github.io/) I/O was implemented using [MagicaVoxel File Writer](https://github.com/aiekick/MagicaVoxel_File_Writer) by [aiekick](https://github.com/aiekick).
+* Thanks to [conceptclear](https://github.com/conceptclear) for implementing solid voxelization.
+
+## See also
+
  * The [.binvox file format](https://www.patrickmin.com/binvox/binvox.html) was created by Michael Kazhdan. 
    * [Patrick Min](https://www.patrickmin.com/binvox/) wrote some interesting tools to work with it:
      * [viewvox](https://www.patrickmin.com/viewvox/): Visualization of voxel grids (a copy of this tool is included in cuda_voxelizer releases)
      * [thinvox](https://www.patrickmin.com/thinvox/): Thinning of voxel grids
    * [binvox-rw-py](https://github.com/dimatura/binvox-rw-py) is a Python module to interact with .binvox files
- * Thanks to [conceptclear](https://github.com/conceptclear) for implementing solid voxelization
  * [Zarbuz](https://github.com/zarbuz)'s [FileToVox](https://github.com/Zarbuz/FileToVox) looks interesting as well
  * If you want a good customizable CPU-based voxelizer, I can recommend [VoxSurf](https://github.com/sylefeb/VoxSurf).
  * Another hackable voxel viewer is Sean Barrett's excellent [stb_voxel_render.h](https://github.com/nothings/stb/blob/master/stb_voxel_render.h).
  * Nvidia also has a voxel library called [GVDB](https://developer.nvidia.com/gvdb), that does a lot more than just voxelizing.
 
 ## Todo / Possible future work
-This is on my list of nice things to add. Don't hesistate to crack one of these yourself and make a PR!
+This is on my list of "nice things to add".
 
  * Noncubic grid support
  * Memory limits test
- * Output to more popular voxel formats like MagicaVoxel, Minecraft
  * Implement partitioning for larger models
  * Do a pre-pass to categorize triangles
  * Implement capture of normals / color / texture data
