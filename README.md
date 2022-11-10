@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/Forceflow/cuda_voxelizer.svg?branch=master)](https://travis-ci.org/Forceflow/cuda_voxelizer) ![](https://img.shields.io/github/license/Forceflow/cuda_voxelizer.svg) [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.me/Forceflow)
 
-# cuda_voxelizer v0.5.1
+# cuda_voxelizer v0.5.2
 A command-line tool to convert polygon meshes to (annotated) voxel grids.
  * Supported input formats: .ply, .off, .obj, .3DS, .SM and RAY
  * Supported output formats: .vox, .binvox, .obj cubes and point cloud, morton ordered grid
