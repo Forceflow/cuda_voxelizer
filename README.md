@@ -40,7 +40,6 @@ The project has the following build dependencies:
  * [OpenMP](https://www.openmp.org/) for multi-threading.
 
 ### Build using CMake (Windows, Linux)
-
 After installing dependencies, do `mkdir build` and `cd build`, followed by:
 
 For Windows with Visual Studio:
@@ -61,7 +60,6 @@ cmake --build . --parallel number_of_cores
 ```
 
 ### Build using Visual Studio project (Windows)
-
 A project solution for Visual Studio 2022 is provided in the `msvc` folder. It is configured for CUDA 11, but you can edit the project file to make it work with other CUDA versions. You can edit the `custom_includes.props` file to configure the library locations, and specify a place where the resulting binaries should be placed.
 
 ```
@@ -120,3 +118,9 @@ howpublished = "\url{https://github.com/Forceflow/cuda_voxelizer}",
 year = "2017"}
 </pre>
 If you end up using cuda_voxelizer in something cool, drop me an e-mail: **mail (at) jeroen-baert.be**
+
+## Donate
+cuda_voxelizer is developed in my free time. If you want to support the project, you can do so through:
+* [Paypal](https://www.paypal.me/Forceflow)
+* BTC: 3GX3b7BZK2nhsneBG8eTqEchgCQ8FDfwZq 
+* ETH: 3GX3b7BZK2nhsneBG8eTqEchgCQ8FDfwZq
