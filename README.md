@@ -1,4 +1,6 @@
-[![Build Status](https://travis-ci.org/Forceflow/cuda_voxelizer.svg?branch=master)](https://travis-ci.org/Forceflow/cuda_voxelizer) ![](https://img.shields.io/github/license/Forceflow/cuda_voxelizer.svg) [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.me/Forceflow)
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/Z8Z7GFNW3) <br>
+[![Build Status](https://travis-ci.org/Forceflow/cuda_voxelizer.svg?branch=master)](https://travis-ci.org/Forceflow/cuda_voxelizer) ![](https://img.shields.io/github/license/Forceflow/cuda_voxelizer.svg)
+
 
 # cuda_voxelizer v0.5.2
 A command-line tool to convert polygon meshes to (annotated) voxel grids.
@@ -121,6 +123,6 @@ If you end up using cuda_voxelizer in something cool, drop me an e-mail: **mail 
 
 ## Donate
 cuda_voxelizer is developed in my free time. If you want to support the project, you can do so through:
-* [Paypal](https://www.paypal.me/Forceflow)
+* [Kofi](https://ko-fi.com/jbaert)
 * BTC: 3GX3b7BZK2nhsneBG8eTqEchgCQ8FDfwZq 
 * ETH: 0x7C9e97D2bBC2dFDd93EF56C77f626e802BA56860
