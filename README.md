@@ -123,4 +123,4 @@ If you end up using cuda_voxelizer in something cool, drop me an e-mail: **mail 
 cuda_voxelizer is developed in my free time. If you want to support the project, you can do so through:
 * [Paypal](https://www.paypal.me/Forceflow)
 * BTC: 3GX3b7BZK2nhsneBG8eTqEchgCQ8FDfwZq 
-* ETH: 3GX3b7BZK2nhsneBG8eTqEchgCQ8FDfwZq
+* ETH: 0x7C9e97D2bBC2dFDd93EF56C77f626e802BA56860
