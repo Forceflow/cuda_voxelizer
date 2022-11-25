@@ -103,9 +103,9 @@ inline AABox<T> createMeshBBCube(AABox<T> box) {
 	// Suspected cause: If a triangle is axis-aligned and lies perfectly on a voxel edge, it sometimes gets counted / not counted
 	// Probably due to a numerical instability (division by zero?)
 	// Ugly fix: we pad the bounding box on all sides by 1/10001th of its total length, bringing all triangles ever so slightly off-grid
-	glm::vec3 epsilon = (answer.max - answer.min) / 10001.0f;
-	answer.min -= epsilon;
-	answer.max += epsilon;
+	// glm::vec3 epsilon = (answer.max - answer.min) / 10001.0f;
+	// answer.min -= epsilon;
+	// answer.max += epsilon;
 	return answer;
 }
 
