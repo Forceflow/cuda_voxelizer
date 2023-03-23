@@ -5,14 +5,10 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
-
-#define GLM_FORCE_CUDA
-// #define GLM_FORCE_PURE (not needed anymore with recent GLM versions)
-#include <glm/glm.hpp>
-
 #include <iostream>
 #include "util.h"
 #include "util_cuda.h"
+#include "libs/cuda/helper_math.h"
 #include "morton_LUTs.h"
 
 // Morton LUTs for when we need them
