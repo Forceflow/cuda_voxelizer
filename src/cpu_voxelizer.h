@@ -1,6 +1,5 @@
 #pragma once
 
-// GLM for maths
 #include <TriMesh.h>
 #include <cstdio>
 #include <cmath> 

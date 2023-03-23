@@ -73,7 +73,7 @@ namespace cpu_voxelizer {
 
 			// COMPUTE TRIANGLE BBOX IN GRID
 			// Triangle bounding box in world coordinates is min(v0,v1,v2) and max(v0,v1,v2)
-			AABox<float3> t_bbox_world(min(v0, min(v1, v2)), max(v0, max(v1, v2)));
+			AABox<float3> t_bbox_world(fminf(v0, fminf(v1, v2)), fmaxf(v0, fmaxf(v1, v2)));
 			// Triangle bounding box in voxel grid coordinates is the world bounding box divided by the grid unit vector
 			AABox<int3> t_bbox_grid;
 			t_bbox_grid.min = clamp(float3_to_int3(t_bbox_world.min / info.unit), make_int3(0, 0, 0), grid_max);
@@ -279,8 +279,8 @@ namespace cpu_voxelizer {
 
 			// COMPUTE TRIANGLE BBOX IN GRID
 			// Triangle bounding box in world coordinates is min(v0,v1,v2) and max(v0,v1,v2)
-			float2 bbox_max = max(v0_yz, max(v1_yz, v2_yz));
-			float2 bbox_min = min(v0_yz, min(v1_yz, v2_yz));
+			float2 bbox_max = fmaxf(v0_yz, fmaxf(v1_yz, v2_yz));
+			float2 bbox_min = fminf(v0_yz, fminf(v1_yz, v2_yz));
 
 			float2 bbox_max_grid = make_float2(floor(bbox_max.x / info.unit.y - 0.5), floor(bbox_max.y / info.unit.z - 0.5));
 			float2 bbox_min_grid = make_float2(ceil(bbox_min.x / info.unit.y - 0.5), ceil(bbox_min.y / info.unit.z - 0.5));
