@@ -44,6 +44,9 @@
     <ClInclude Include="..\..\src\libs\magicavoxel_file_writer\VoxWriter.h">
       <Filter>libs\magicavoxel_file_writer</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\libs\cuda\helper_math.h">
+      <Filter>libs\cuda</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\..\src\todo.txt" />

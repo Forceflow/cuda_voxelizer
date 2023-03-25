@@ -31,7 +31,7 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
-    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 11.8.props" />
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 12.1.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -122,6 +122,7 @@ copy /y "$(SolutionDir)$(Platform)\$(Configuration)\$(TargetName).exe" "$(BINARY
   <ItemGroup>
     <ClInclude Include="..\..\src\cpu_voxelizer.h" />
     <ClInclude Include="..\..\src\libs\cuda\helper_cuda.h" />
+    <ClInclude Include="..\..\src\libs\cuda\helper_math.h" />
     <ClInclude Include="..\..\src\libs\cuda\helper_string.h" />
     <ClInclude Include="..\..\src\libs\magicavoxel_file_writer\VoxWriter.h" />
     <ClInclude Include="..\..\src\util_io.h" />
@@ -137,6 +138,6 @@ copy /y "$(SolutionDir)$(Platform)\$(Configuration)\$(TargetName).exe" "$(BINARY
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
-    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 11.8.targets" />
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 12.1.targets" />
   </ImportGroup>
 </Project>
