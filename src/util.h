@@ -2,7 +2,6 @@
 // This file contains various utility functions that are used throughout the program and didn't really belong in their own header
 
 #include <stdint.h>
-
 #include "TriMesh.h"
 #include "cuda.h"
 #include "cuda_runtime.h"
@@ -23,7 +22,7 @@ __host__ __device__ inline int3 float3_to_int3(const float3 a) {
 }
 
 // Check if a voxel in the voxel table is set
-__host__ __device__ inline bool checkVoxel(size_t x, size_t y, size_t z, const glm::uvec3 gridsize, const unsigned int* vtable){
+__host__ __device__ inline bool checkVoxel(size_t x, size_t y, size_t z, const uint3 gridsize, const unsigned int* vtable){
 	size_t location = x + (y*gridsize.x) + (z*gridsize.x*gridsize.y);
 	size_t int_location = location / size_t(32);
 	/*size_t max_index = (gridsize*gridsize*gridsize) / __int64(32);
@@ -83,14 +82,21 @@ inline AABox<T> createMeshBBCube(AABox<T> box) {
 	AABox<T> answer(box.min, box.max); // initialize answer
 	float3 lengths = box.max - box.min; // check length of given bbox in every direction
 	float max_length = std::max(lengths.x, std::max(lengths.y, lengths.z)); // find max length
-	for (unsigned int i = 0; i < 3; i++) { // for every direction (X,Y,Z)
-		if (max_length == lengths[i]){
-			continue;
-		} else {
-			float delta = max_length - lengths[i]; // compute difference between largest length and current (X,Y or Z) length
-			answer.min[i] = box.min[i] - (delta / 2.0f); // pad with half the difference before current min
-			answer.max[i] = box.max[i] + (delta / 2.0f); // pad with half the difference behind current max
-		}
+
+	if (max_length != lengths.x) {
+		float delta = max_length - lengths.x; // compute difference between largest length and current (X,Y or Z) length
+		answer.min.x = box.min.x - (delta / 2.0f); // pad with half the difference before current min
+		answer.max.x = box.max.x + (delta / 2.0f); // pad with half the difference behind current max
+	}
+	if (max_length != lengths.y) {
+		float delta = max_length - lengths.y; // compute difference between largest length and current (X,Y or Z) length
+		answer.min.y = box.min.y - (delta / 2.0f); // pad with half the difference before current min
+		answer.max.y = box.max.y + (delta / 2.0f); // pad with half the difference behind current max
+	}
+	if (max_length != lengths.z) {
+		float delta = max_length - lengths.z; // compute difference between largest length and current (X,Y or Z) length
+		answer.min.z = box.min.z - (delta / 2.0f); // pad with half the difference before current min
+		answer.max.z = box.max.z + (delta / 2.0f); // pad with half the difference behind current max
 	}
 
 	// Next snippet adresses the problem reported here: https://github.com/Forceflow/cuda_voxelizer/issues/7
