@@ -9,27 +9,21 @@
 #include <string>
 #include <fstream>
 
-#define GLM_FORCE_CUDA
-//#define GLM_FORCE_PURE
-#include <glm/glm.hpp>
-
-
-// Converting builtin TriMesh vectors to GLM vectors
-// We do this as soon as possible after importing models, because GLM is great and the builtin Vector math of TriMesh is okay, but not CUDA-compatible
 template<typename trimeshtype>
-inline glm::vec3 trimesh_to_glm(const trimeshtype a) {
-	return glm::vec3(a[0], a[1], a[2]);
+inline float3 trimesh_to_float3(const trimeshtype a) {
+	return make_float3(a.x, a.y, a.z);
+}
+template<typename trimeshtype>
+inline trimeshtype float3_to_trimesh(const float3 a) {
+	return trimeshtype(a.x, a.y, a.z);
 }
 
-// Converting GLM vectors to builtin TriMesh vectors
-// Very sporadically we *do* need to go back to TriMesh vectors
-template<typename trimeshtype>
-inline trimeshtype glm_to_trimesh(const glm::vec3 a) {
-	return trimeshtype(a[0], a[1], a[2]);
+__host__ __device__ inline int3 float3_to_int3(const float3 a) {
+	return make_int3(static_cast<int>(a.x), static_cast<int>(a.y), static_cast<int>(a.z));
 }
 
 // Check if a voxel in the voxel table is set
-__device__ __host__ inline bool checkVoxel(size_t x, size_t y, size_t z, const glm::uvec3 gridsize, const unsigned int* vtable){
+__host__ __device__ inline bool checkVoxel(size_t x, size_t y, size_t z, const glm::uvec3 gridsize, const unsigned int* vtable){
 	size_t location = x + (y*gridsize.x) + (z*gridsize.x*gridsize.y);
 	size_t int_location = location / size_t(32);
 	/*size_t max_index = (gridsize*gridsize*gridsize) / __int64(32);
@@ -55,12 +49,12 @@ struct AABox {
 
 // Voxelisation info (global parameters for the voxelization process)
 struct voxinfo {
-	AABox<glm::vec3> bbox;
-	glm::uvec3 gridsize;
+	AABox<float3> bbox;
+	uint3 gridsize;
 	size_t n_triangles;
-	glm::vec3 unit;
+	float3 unit;
 
-	voxinfo(const AABox<glm::vec3> bbox, const glm::uvec3 gridsize, const size_t n_triangles)
+	voxinfo(const AABox<float3> bbox, const uint3 gridsize, const size_t n_triangles)
 		: gridsize(gridsize), bbox(bbox), n_triangles(n_triangles) {
 		unit.x = (bbox.max.x - bbox.min.x) / float(gridsize.x);
 		unit.y = (bbox.max.y - bbox.min.y) / float(gridsize.y);
@@ -87,8 +81,8 @@ struct voxinfo {
 template <typename T>
 inline AABox<T> createMeshBBCube(AABox<T> box) {
 	AABox<T> answer(box.min, box.max); // initialize answer
-	glm::vec3 lengths = box.max - box.min; // check length of given bbox in every direction
-	float max_length = glm::max(lengths.x, glm::max(lengths.y, lengths.z)); // find max length
+	float3 lengths = box.max - box.min; // check length of given bbox in every direction
+	float max_length = std::max(lengths.x, std::max(lengths.y, lengths.z)); // find max length
 	for (unsigned int i = 0; i < 3; i++) { // for every direction (X,Y,Z)
 		if (max_length == lengths[i]){
 			continue;
@@ -103,7 +97,7 @@ inline AABox<T> createMeshBBCube(AABox<T> box) {
 	// Suspected cause: If a triangle is axis-aligned and lies perfectly on a voxel edge, it sometimes gets counted / not counted
 	// Probably due to a numerical instability (division by zero?)
 	// Ugly fix: we pad the bounding box on all sides by 1/10001th of its total length, bringing all triangles ever so slightly off-grid
-	glm::vec3 epsilon = (answer.max - answer.min) / 10001.0f;
+	float3 epsilon = (answer.max - answer.min) / 10001.0f;
 	answer.min -= epsilon;
 	answer.max += epsilon;
 	return answer;
