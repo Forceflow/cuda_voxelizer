@@ -23,11 +23,11 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2 
 
-    - name: Install GLM, OpenMP and other libraries
+    - name: Install OpenMP and other libraries
       run: | 
         apt update
         apt install -y --no-install-recommends apt-utils
-        apt install -y libglm-dev libgomp1 git mesa-common-dev libglu1-mesa-dev libxi-dev wget ninja-build
+        apt install -y libgomp1 git mesa-common-dev libglu1-mesa-dev libxi-dev wget ninja-build
     
     - name: Install CMake
       run: |
@@ -87,10 +87,6 @@ jobs:
         method: 'network'
         cuda: '${{ env.CUDA_MAJOR_VERSION }}.${{ env.CUDA_PATCH_VERSION }}'
         sub-packages: '["nvcc", "cudart", "visual_studio_integration", "thrust"]'
-
-    - name: Install GLM
-      run: |
-        vcpkg.exe install glm:x64-windows
 
     - name: Build Trimesh2
       if: steps.trimesh2-cache.outputs.cache-hit != 'true'
