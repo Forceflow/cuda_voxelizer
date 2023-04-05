@@ -1,7 +1,6 @@
 ![Build Status](https://github.com/Forceflow/cuda_voxelizer/actions/workflows/autobuild.yml/badge.svg) ![license](https://img.shields.io/github/license/Forceflow/cuda_voxelizer.svg)<br>
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/Z8Z7GFNW3) 
 
-
 # cuda_voxelizer v0.5.2
 A command-line tool to convert polygon meshes to (annotated) voxel grids.
  * Supported input formats: .ply, .off, .obj, .3DS, .SM and RAY
