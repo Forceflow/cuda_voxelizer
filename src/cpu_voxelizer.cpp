@@ -282,14 +282,14 @@ namespace cpu_voxelizer {
 			float2 bbox_max = fmaxf(v0_yz, fmaxf(v1_yz, v2_yz));
 			float2 bbox_min = fminf(v0_yz, fminf(v1_yz, v2_yz));
 
-			float2 bbox_max_grid = make_float2(floor(bbox_max.x / info.unit.y - 0.5), floor(bbox_max.y / info.unit.z - 0.5));
-			float2 bbox_min_grid = make_float2(ceil(bbox_min.x / info.unit.y - 0.5), ceil(bbox_min.y / info.unit.z - 0.5));
+			float2 bbox_max_grid = make_float2(floor(bbox_max.x / info.unit.y - 0.5f), floor(bbox_max.y / info.unit.z - 0.5f));
+			float2 bbox_min_grid = make_float2(ceil(bbox_min.x / info.unit.y - 0.5f), ceil(bbox_min.y / info.unit.z - 0.5f));
 
-			for (int y = bbox_min_grid.x; y <= bbox_max_grid.x; y++)
+			for (int y = static_cast<int>(bbox_min_grid.x); y <= bbox_max_grid.x; y++)
 			{
-				for (int z = bbox_min_grid.y; z <= bbox_max_grid.y; z++)
+				for (int z = static_cast<int>(bbox_min_grid.y); z <= bbox_max_grid.y; z++)
 				{
-					float2 point = make_float2((y + 0.5) * info.unit.y, (z + 0.5) * info.unit.z);
+					float2 point = make_float2((y + 0.5f) * info.unit.y, (z + 0.5f) * info.unit.z);
 					int checknum = check_point_triangle(v0_yz, v1_yz, v2_yz, point);
 					if ((checknum == 1 && TopLeftEdge(v0_yz, v1_yz)) || (checknum == 2 && TopLeftEdge(v1_yz, v2_yz)) || (checknum == 3 && TopLeftEdge(v2_yz, v0_yz)) || (checknum == 0))
 					{
