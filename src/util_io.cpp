@@ -1,7 +1,4 @@
-#include "util.h"
 #include "util_io.h"
-#include "TriMesh_algo.h"
-#include "libs/magicavoxel_file_writer/VoxWriter.h"
 
 using namespace std;
 
@@ -30,17 +27,17 @@ void read_binary(void* data, const size_t length, const std::string base_filenam
 }
 
 // Helper function to write single vertex normal to OBJ file
-static void write_vertex_normal(ofstream& output, const glm::ivec3& v) {
+static void write_vertex_normal(ofstream& output, const int3& v) {
 	output << "vn " << v.x << " " << v.y << " " << v.z << endl;
 }
 
 // Helper function to write single vertex to OBJ file
-static void write_vertex(ofstream& output, const glm::ivec3& v) {
+static void write_vertex(ofstream& output, const int3& v) {
 	output << "v " << v.x << " " << v.y << " " << v.z << endl;
 }
 
 // Helper function to write single vertex
-static void write_face(ofstream& output, const glm::ivec3& v) {
+static void write_face(ofstream& output, const int3& v) {
 	output << "f " << v.x << " " << v.y << " " << v.z << endl;
 }
 
@@ -54,14 +51,14 @@ void write_cube(const size_t& x, const size_t& y, const size_t& z, ofstream& out
 	//	| /     | /
 	//	5-------6
     // Create vertices
-	glm::ivec3 v1(x+1, y+1, z + 1);
-	glm::ivec3 v2(x, y+1, z + 1);
-	glm::ivec3 v3(x+1, y, z + 1);
-	glm::ivec3 v4(x, y, z + 1);
-	glm::ivec3 v5(x, y, z);
-	glm::ivec3 v6(x+1, y, z);
-	glm::ivec3 v7(x, y+1, z);
-	glm::ivec3 v8(x+1, y+1, z);
+	int3 v1 = make_int3(x+1, y+1, z + 1);
+	int3 v2 = make_int3(x, y+1, z + 1);
+	int3 v3 = make_int3(x+1, y, z + 1);
+	int3 v4 = make_int3(x, y, z + 1);
+	int3 v5 = make_int3(x, y, z);
+	int3 v6 = make_int3(x+1, y, z);
+	int3 v7 = make_int3(x, y+1, z);
+	int3 v8 = make_int3(x+1, y+1, z);
 	// write them in reverse order, so relative position is -i for v_i
 	write_vertex(output, v8);
 	write_vertex(output, v7);
@@ -73,23 +70,23 @@ void write_cube(const size_t& x, const size_t& y, const size_t& z, ofstream& out
 	write_vertex(output, v1);
 	// create faces
 	// back
-	write_face(output, glm::ivec3(-1, -3, -4));
-	write_face(output, glm::ivec3(-1, -4, -2));
+	write_face(output, make_int3(-1, -3, -4));
+	write_face(output, make_int3(-1, -4, -2));
 	// bottom
-	write_face(output, glm::ivec3(-4, -3, -6));
-	write_face(output, glm::ivec3(-4, -6, -5));
+	write_face(output, make_int3(-4, -3, -6));
+	write_face(output, make_int3(-4, -6, -5));
 	// right
-	write_face(output, glm::ivec3(-3, -1, -8));
-	write_face(output, glm::ivec3(-3, -8, -6));
+	write_face(output, make_int3(-3, -1, -8));
+	write_face(output, make_int3(-3, -8, -6));
 	// top
-	write_face(output, glm::ivec3(-1, -2, -7));
-	write_face(output, glm::ivec3(-1, -7, -8));
+	write_face(output, make_int3(-1, -2, -7));
+	write_face(output, make_int3(-1, -7, -8));
 	// left
-	write_face(output, glm::ivec3(-2, -4, -5));
-	write_face(output, glm::ivec3(-2, -5, -7));
+	write_face(output, make_int3(-2, -4, -5));
+	write_face(output, make_int3(-2, -5, -7));
 	// front
-	write_face(output, glm::ivec3(-5, -6, -8));
-	write_face(output, glm::ivec3(-5, -8, -7));
+	write_face(output, make_int3(-5, -6, -8));
+	write_face(output, make_int3(-5, -8, -7));
 }
 
 void write_obj_cubes(const unsigned int* vtable, const voxinfo v_info, const std::string base_filename) {
