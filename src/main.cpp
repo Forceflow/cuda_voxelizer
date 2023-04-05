@@ -5,10 +5,12 @@
 // Standard libs
 #include <string>
 #include <cstdio>
-// GLM for maths
-// #define GLM_FORCE_PURE GLM_FORCE_PURE (not needed anymore with recent GLM versions)
-#include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
+
+//// GLM for maths
+//// #define GLM_FORCE_PURE GLM_FORCE_PURE (not needed anymore with recent GLM versions)
+//#include <glm/glm.hpp>
+//#include <glm/gtc/type_ptr.hpp>
+
 // Trimesh for model importing
 #include "TriMesh.h"
 // Util
@@ -73,13 +75,14 @@ float* meshToGPU_managed(const trimesh::TriMesh *mesh) {
 	checkCudaErrors(cudaMallocManaged((void**) &device_triangles, n_floats)); // managed memory
 	fprintf(stdout, "[Mesh] Copy %llu triangles to CUDA-managed UNIFIED memory \n", (size_t)(mesh->faces.size()));
 	for (size_t i = 0; i < mesh->faces.size(); i++) {
-		glm::vec3 v0 = trimesh_to_glm<trimesh::point>(mesh->vertices[mesh->faces[i][0]]);
-		glm::vec3 v1 = trimesh_to_glm<trimesh::point>(mesh->vertices[mesh->faces[i][1]]);
-		glm::vec3 v2 = trimesh_to_glm<trimesh::point>(mesh->vertices[mesh->faces[i][2]]);
+		float3 v0 = trimesh_to_float3<trimesh::point>(mesh->vertices[mesh->faces[i][0]]);
+		float3 v1 = trimesh_to_float3<trimesh::point>(mesh->vertices[mesh->faces[i][1]]);
+		float3 v2 = trimesh_to_float3<trimesh::point>(mesh->vertices[mesh->faces[i][2]]);
 		size_t j = i * 9;
-		memcpy((device_triangles)+j, glm::value_ptr(v0), sizeof(glm::vec3));
-		memcpy((device_triangles)+j+3, glm::value_ptr(v1), sizeof(glm::vec3));
-		memcpy((device_triangles)+j+6, glm::value_ptr(v2), sizeof(glm::vec3));
+		// Memcpy assuming the floats are laid out next to eachother
+		memcpy((device_triangles)+j, &v0.x, 3*sizeof(float)); 
+		memcpy((device_triangles)+j+3, &v1.x, 3*sizeof(float));
+		memcpy((device_triangles)+j+6, &v2.x, 3*sizeof(float));
 	}
 	t.stop();fprintf(stdout, "[Perf] Mesh transfer time to GPU: %.1f ms \n", t.elapsed_time_milliseconds);
 	return device_triangles;
@@ -199,9 +202,9 @@ int main(int argc, char* argv[]) {
 	// COMPUTE BOUNDING BOX AND VOXELISATION PARAMETERS
 	fprintf(stdout, "\n## VOXELISATION SETUP \n");
 	// Initialize our own AABox, pad it so it's a cube
-	AABox<glm::vec3> bbox_mesh_cubed = createMeshBBCube<glm::vec3>(AABox<glm::vec3>(trimesh_to_glm(themesh->bbox.min), trimesh_to_glm(themesh->bbox.max)));
+	AABox<float3> bbox_mesh_cubed = createMeshBBCube<float3>(AABox<float3>(trimesh_to_float3(themesh->bbox.min), trimesh_to_float3(themesh->bbox.max)));
 	// Create voxinfo struct and print all info
-	voxinfo voxelization_info(bbox_mesh_cubed, glm::uvec3(gridsize, gridsize, gridsize), themesh->faces.size());
+	voxinfo voxelization_info(bbox_mesh_cubed, make_uint3(gridsize, gridsize, gridsize), themesh->faces.size());
 	voxelization_info.print();
 	// Compute space needed to hold voxel table (1 voxel / bit)
 	unsigned int* vtable; // Both voxelization paths (GPU and CPU) need this
