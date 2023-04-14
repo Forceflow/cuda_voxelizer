@@ -40,6 +40,15 @@ The project has the following build dependencies:
  * [GLM](http://glm.g-truc.net/0.9.8/index.html) for vector math. Any recent version will do.
  * [OpenMP](https://www.openmp.org/) for multi-threading.
 
+### Docker Compose
+1. Install Docker & Docker Compose 
+
+Then you can use the app like this:
+```bash
+docker compose run cuda_voxelizer cuda_voxelizer -o binvox -thrust -f ./test_models/bunny.OBJ -s 256
+
+```
+
 ### Build using CMake (Windows, Linux)
 
 After installing dependencies, do `mkdir build` and `cd build`, followed by:
