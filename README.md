@@ -41,7 +41,8 @@ The project has the following build dependencies:
  * [OpenMP](https://www.openmp.org/) for multi-threading.
 
 ### Docker Compose
-1. Install Docker & Docker Compose 
+1. Install [Docker](https://docs.docker.com/get-docker/) & [Docker Compose](https://docs.docker.com/compose/)
+2. Install the [NVIDIA Container Toolkit](https://github.com/NVIDIA/nvidia-docker)
 
 Then you can use the app like this:
 ```bash
