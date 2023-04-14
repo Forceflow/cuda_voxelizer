@@ -48,6 +48,12 @@ Then you can use the app like this:
 docker compose run cuda_voxelizer cuda_voxelizer -o binvox -thrust -f ./test_models/bunny.OBJ -s 256
 
 ```
+This should create a binvox file in the test_models folder. 
+If you have a cuda enabled gpu it will use it(maybe you have to lower the cuda arch variable in the Dockerfile).
+You can always add more folders inside of the docker-compose.yml.
+
+With this way, you dont have to install all the dependencies yourself.
+In the following ways you have to do the steps described in the Dockerfile yourself.
 
 ### Build using CMake (Windows, Linux)
 
