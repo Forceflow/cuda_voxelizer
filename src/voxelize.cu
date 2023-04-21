@@ -214,7 +214,7 @@ void voxelize(const voxinfo& v, float* triangle_data, unsigned int* vtable, bool
 	int gridSize;    // The actual grid size needed, based on input size 
 	cudaOccupancyMaxPotentialBlockSize(&minGridSize, &blockSize, voxelize_triangle, 0, 0);
 	// Round up according to array size 
-	gridSize = (v.n_triangles + blockSize - 1) / blockSize;
+	gridSize = static_cast<int>((v.n_triangles + blockSize - 1) / blockSize);
 
 	if (useThrustPath) { // We're not using UNIFIED memory
 		vtable_size = ((size_t)v.gridsize.x * v.gridsize.y * v.gridsize.z) / (size_t) 8.0;

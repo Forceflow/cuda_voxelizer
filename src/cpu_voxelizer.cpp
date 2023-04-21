@@ -294,7 +294,7 @@ namespace cpu_voxelizer {
 					if ((checknum == 1 && TopLeftEdge(v0_yz, v1_yz)) || (checknum == 2 && TopLeftEdge(v1_yz, v2_yz)) || (checknum == 3 && TopLeftEdge(v2_yz, v0_yz)) || (checknum == 0))
 					{
 						unsigned int xmax = int(get_x_coordinate(n, v0, point) / info.unit.x - 0.5);
-						for (int x = 0; x <= xmax; x++)
+						for (unsigned int x = 0; x <= xmax; x++)
 						{
 							if (morton_order) {
 								size_t location = mortonEncode_LUT(x, y, z);
