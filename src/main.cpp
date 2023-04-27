@@ -70,7 +70,7 @@ void printHelp(){
 float* meshToGPU_managed(const trimesh::TriMesh *mesh) {
 	Timer t; t.start();
 	size_t n_floats = sizeof(float) * 9 * (mesh->faces.size());
-	float* device_triangles;
+	float* device_triangles = 0;
 	fprintf(stdout, "[Mesh] Allocating %s of CUDA-managed UNIFIED memory for triangle data \n", (readableSize(n_floats)).c_str());
 	checkCudaErrors(cudaMallocManaged((void**) &device_triangles, n_floats)); // managed memory
 	fprintf(stdout, "[Mesh] Copy %llu triangles to CUDA-managed UNIFIED memory \n", (size_t)(mesh->faces.size()));
@@ -207,7 +207,7 @@ int main(int argc, char* argv[]) {
 	voxinfo voxelization_info(bbox_mesh_cubed, make_uint3(gridsize, gridsize, gridsize), themesh->faces.size());
 	voxelization_info.print();
 	// Compute space needed to hold voxel table (1 voxel / bit)
-	unsigned int* vtable; // Both voxelization paths (GPU and CPU) need this
+	unsigned int* vtable = 0; // Both voxelization paths (GPU and CPU) need this
 	size_t vtable_size = static_cast<size_t>(ceil(static_cast<size_t>(voxelization_info.gridsize.x) * static_cast<size_t>(voxelization_info.gridsize.y) * static_cast<size_t>(voxelization_info.gridsize.z) / 32.0f) * 4);
 
 	// CUDA initialization
