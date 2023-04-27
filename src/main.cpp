@@ -22,7 +22,7 @@
 #include "cpu_voxelizer.h"
 
 using namespace std;
-string version_number = "v0.5.2";
+string version_number = "v0.6";
 
 // Forward declaration of CUDA functions
 float* meshToGPU_thrust(const trimesh::TriMesh *mesh); // METHOD 3 to transfer triangles can be found in thrust_operations.cu(h)
