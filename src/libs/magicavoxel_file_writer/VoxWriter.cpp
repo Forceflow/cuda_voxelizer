@@ -507,7 +507,7 @@ namespace vox
 		m_MaxVoxelPerCubeZ = ct::clamp<int32_t>(vMaxVoxelPerCubeZ, 0, 126);
 
 		maxVolume.lowerBound = 1e7f;
-		maxVolume.upperBound = 0.0f;
+		maxVolume.upperBound = -1e7f;
 	}
 
 	VoxWriter::~VoxWriter()
@@ -671,7 +671,7 @@ namespace vox
 
 	bool VoxWriter::OpenFileForWriting(const std::string& vFilePathName)
 	{
-#ifdef MSVC
+#if _MSC_VER
 		lastError = fopen_s(&m_File, vFilePathName.c_str(), "wb");
 #else
         m_File = fopen(vFilePathName.c_str(), "wb");
@@ -718,6 +718,17 @@ namespace vox
 		return cubesId[vX][vY][vZ];
 	}
 
+	// Wrap a position inside a particular cube dimension
+	inline uint8_t Wrap(int v, int lim)
+	{
+		v = v % lim;
+		if (v < 0)
+		{
+			v += lim;
+		}
+		return (uint8_t)v;
+	}
+
 	void VoxWriter::MergeVoxelInCube(const int32_t& vX, const int32_t& vY, const int32_t& vZ, const uint8_t& vColorIndex, VoxCube *vCube)
 	{
 		maxVolume.Combine(ct::dvec3((double)vX, (double)vY, (double)vZ));
@@ -737,12 +748,12 @@ namespace vox
 
 		if (exist == false)
 		{
-			vCube->xyzi.voxels.push_back((uint8_t)(vX % m_MaxVoxelPerCubeX)); // x
-			vCube->xyzi.voxels.push_back((uint8_t)(vY % m_MaxVoxelPerCubeY)); // y
-			vCube->xyzi.voxels.push_back((uint8_t)(vZ % m_MaxVoxelPerCubeZ)); // z
+			vCube->xyzi.voxels.push_back(Wrap(vX, m_MaxVoxelPerCubeX)); // x
+			vCube->xyzi.voxels.push_back(Wrap(vY, m_MaxVoxelPerCubeY)); // y
+			vCube->xyzi.voxels.push_back(Wrap(vZ, m_MaxVoxelPerCubeZ)); // z
 
 			// correspond a la loc de la couleur du voxel en question
-			voxelId[vX][vY][vZ] = vCube->xyzi.voxels.size();
+			voxelId[vX][vY][vZ] = (int)vCube->xyzi.voxels.size();
 
 			vCube->xyzi.voxels.push_back(vColorIndex); // color index
 		}
