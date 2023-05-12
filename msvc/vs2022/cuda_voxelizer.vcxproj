@@ -72,7 +72,7 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(BINARY_OUTPUT_DIR)"
 copy /y "$(SolutionDir)$(Platform)\$(Configuration)\$(TargetName).exe" "$(BINARY_OUTPUT_DIR)$(TargetName).exe"</Command>
     </PostBuildEvent>
     <CudaCompile>
-      <PtxAsOptionV>true</PtxAsOptionV>
+      <PtxAsOptionV>false</PtxAsOptionV>
       <AdditionalOptions>--source-in-ptx %(AdditionalOptions)</AdditionalOptions>
       <CodeGeneration>compute_52,sm_52;compute_60,sm_60;compute_61,sm_61;compute_70,sm_70;compute_75,sm_75;compute_80,sm_80</CodeGeneration>
     </CudaCompile>
