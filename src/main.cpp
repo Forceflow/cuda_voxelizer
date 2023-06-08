@@ -25,10 +25,8 @@ using namespace std;
 string version_number = "v0.6";
 
 // Forward declaration of CUDA functions
-float* meshToGPU_thrust(const trimesh::TriMesh *mesh); // METHOD 3 to transfer triangles can be found in thrust_operations.cu(h)
-void cleanup_thrust();
-void voxelize(const voxinfo & v, float* triangle_data, unsigned int* vtable, bool useThrustPath, bool morton_code);
-void voxelize_solid(const voxinfo& v, float* triangle_data, unsigned int* vtable, bool useThrustPath, bool morton_code);
+void voxelize(const voxinfo & v, float* triangle_data, unsigned int* vtable, bool morton_code);
+void voxelize_solid(const voxinfo& v, float* triangle_data, unsigned int* vtable, bool morton_code);
 
 // Output formats
 enum class OutputFormat { output_binvox = 0, output_morton = 1, output_obj_points = 2, output_obj_cubes = 3, output_vox = 4};
@@ -39,7 +37,6 @@ string filename = "";
 string filename_base = "";
 OutputFormat outputformat = OutputFormat::output_vox;
 unsigned int gridsize = 256;
-bool useThrustPath = false;
 bool forceCPU = false;
 bool solidVoxelization = false;
 
@@ -59,7 +56,6 @@ void printHelp(){
 	cout << " -f <path to model file: .ply, .obj, .3ds> (required)" << endl;
 	cout << " -s <voxelization grid size, power of 2: 8 -> 512, 1024, ... (default: 256)>" << endl;
 	cout << " -o <output format: vox, binvox, obj, obj_points or morton (default: vox)>" << endl;
-	cout << " -thrust : Force using CUDA Thrust Library (possible speedup / throughput improvement)" << endl;
 	cout << " -cpu : Force CPU-based voxelization (slow, but works if no compatible GPU can be found)" << endl;
 	cout << " -solid : Force solid voxelization (experimental, needs watertight model)" << endl << endl;
 	printExample();
@@ -152,9 +148,6 @@ void parseProgramParameters(int argc, char* argv[]){
 				exit(1);
 			}
 		}
-		else if (string(argv[i]) == "-thrust") {
-			useThrustPath = true;
-		}
 		else if (string(argv[i]) == "-cpu") {
 			forceCPU = true;
 		}
@@ -170,7 +163,6 @@ void parseProgramParameters(int argc, char* argv[]){
 	fprintf(stdout, "[Info] Filename: %s \n", filename.c_str());
 	fprintf(stdout, "[Info] Grid size: %i \n", gridsize);
 	fprintf(stdout, "[Info] Output format: %s \n", OutputFormats[int(outputformat)]);
-	fprintf(stdout, "[Info] Using CUDA Thrust: %s (default: No)\n", useThrustPath ? "Yes" : "No");
 	fprintf(stdout, "[Info] Using CPU-based voxelization: %s (default: No)\n", forceCPU ? "Yes" : "No");
 	fprintf(stdout, "[Info] Using Solid Voxelization: %s (default: No)\n", solidVoxelization ? "Yes" : "No");
 }
@@ -228,24 +220,18 @@ int main(int argc, char* argv[]) {
 		float* device_triangles;
 
 		// Transfer triangle data to GPU
-		if (useThrustPath) { device_triangles = meshToGPU_thrust(themesh); }
-		else { device_triangles = meshToGPU_managed(themesh); }
+		device_triangles = meshToGPU_managed(themesh);
 
 		// Allocate memory for voxel grid
-		if (!useThrustPath) {
-			fprintf(stdout, "[Voxel Grid] Allocating %s of CUDA-managed UNIFIED memory for Voxel Grid\n", readableSize(vtable_size).c_str());
-			checkCudaErrors(cudaMallocManaged((void**)&vtable, vtable_size));
-		}
-		else {
-			fprintf(stdout, "[Voxel Grid] Allocating %s kB of page-locked HOST memory for Voxel Grid\n", readableSize(vtable_size).c_str());
-			checkCudaErrors(cudaHostAlloc((void**)&vtable, vtable_size, cudaHostAllocDefault));
-		}
+		fprintf(stdout, "[Voxel Grid] Allocating %s of CUDA-managed UNIFIED memory for Voxel Grid\n", readableSize(vtable_size).c_str());
+		checkCudaErrors(cudaMallocManaged((void**)&vtable, vtable_size));
+		
 		fprintf(stdout, "\n## GPU VOXELISATION \n");
 		if (solidVoxelization){
-			voxelize_solid(voxelization_info, device_triangles, vtable, useThrustPath, (outputformat == OutputFormat::output_morton));
+			voxelize_solid(voxelization_info, device_triangles, vtable, (outputformat == OutputFormat::output_morton));
 		}
 		else{
-			voxelize(voxelization_info, device_triangles, vtable, useThrustPath, (outputformat == OutputFormat::output_morton));
+			voxelize(voxelization_info, device_triangles, vtable, (outputformat == OutputFormat::output_morton));
 		}
 	} else { 
 		// CPU VOXELIZATION FALLBACK
@@ -282,10 +268,6 @@ int main(int argc, char* argv[]) {
 	}
 	else if (outputformat == OutputFormat::output_vox) {
 		write_vox(vtable, voxelization_info, filename);
-	}
-
-	if (useThrustPath) {
-		cleanup_thrust();
 	}
 
 	fprintf(stdout, "\n## STATS \n");

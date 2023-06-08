@@ -109,7 +109,6 @@ copy /y "$(SolutionDir)$(Platform)\$(Configuration)\$(TargetName).exe" "$(BINARY
   </ItemDefinitionGroup>
   <ItemGroup>
     <CudaCompile Include="..\..\src/voxelize.cu" />
-    <CudaCompile Include="..\..\src\thrust_operations.cu" />
     <CudaCompile Include="..\..\src\voxelize_solid.cu" />
   </ItemGroup>
   <ItemGroup>
@@ -129,7 +128,6 @@ copy /y "$(SolutionDir)$(Platform)\$(Configuration)\$(TargetName).exe" "$(BINARY
     <ClInclude Include="..\..\src\util.h" />
     <ClInclude Include="..\..\src\util_cuda.h" />
     <ClInclude Include="..\..\src\morton_LUTs.h" />
-    <ClInclude Include="..\..\src\thrust_operations.cuh" />
     <ClInclude Include="..\..\src\timer.h" />
     <ClInclude Include="..\..\src\voxelize.cuh" />
   </ItemGroup>

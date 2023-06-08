@@ -144,12 +144,8 @@ __global__ void voxelize_triangle_solid(voxinfo info, float* triangle_data, unsi
 	}
 }
 
-void voxelize_solid(const voxinfo& v, float* triangle_data, unsigned int* vtable, bool useThrustPath, bool morton_code) {
-	float   elapsedTime;
-
-	// These are only used when we're not using UNIFIED memory
-	unsigned int* dev_vtable; // DEVICE pointer to voxel_data
-	size_t vtable_size; // vtable size
+void voxelize_solid(const voxinfo& v, float* triangle_data, unsigned int* vtable, bool morton_code) {
+	float elapsedTime;
 	
 	// Create timers, set start time
 	cudaEvent_t start_vox, stop_vox;
@@ -171,33 +167,14 @@ void voxelize_solid(const voxinfo& v, float* triangle_data, unsigned int* vtable
 	// Round up according to array size 
 	gridSize = static_cast<int>((v.n_triangles + blockSize - 1) / blockSize);
 
-	if (useThrustPath) { // We're not using UNIFIED memory
-		vtable_size = ((size_t)v.gridsize.x * v.gridsize.y * v.gridsize.z) / (size_t) 8.0;
-		fprintf(stdout, "[Voxel Grid] Allocating %llu kB of DEVICE memory for Voxel Grid\n", size_t(vtable_size / 1024.0f));
-		checkCudaErrors(cudaMalloc(&dev_vtable, vtable_size));
-		checkCudaErrors(cudaMemset(dev_vtable, 0, vtable_size));
-		// Start voxelization
-		checkCudaErrors(cudaEventRecord(start_vox, 0));
-		voxelize_triangle_solid << <gridSize, blockSize >> > (v, triangle_data, dev_vtable, morton_code);
-	}
-	else { // UNIFIED MEMORY 
-		checkCudaErrors(cudaEventRecord(start_vox, 0));
-		voxelize_triangle_solid << <gridSize, blockSize >> > (v, triangle_data, vtable, morton_code);
-	}
+	checkCudaErrors(cudaEventRecord(start_vox, 0));
+	voxelize_triangle_solid << <gridSize, blockSize >> > (v, triangle_data, vtable, morton_code);
 
 	cudaDeviceSynchronize();
 	checkCudaErrors(cudaEventRecord(stop_vox, 0));
 	checkCudaErrors(cudaEventSynchronize(stop_vox));
 	checkCudaErrors(cudaEventElapsedTime(&elapsedTime, start_vox, stop_vox));
 	printf("[Perf] Voxelization GPU time: %.1f ms\n", elapsedTime);
-
-	// If we're not using UNIFIED memory, copy the voxel table back and free all
-	if (useThrustPath){
-		fprintf(stdout, "[Voxel Grid] Copying %llu kB to page-locked HOST memory\n", size_t(vtable_size / 1024.0f));
-		checkCudaErrors(cudaMemcpy((void*)vtable, dev_vtable, vtable_size, cudaMemcpyDefault));
-		fprintf(stdout, "[Voxel Grid] Freeing %llu kB of DEVICE memory\n", size_t(vtable_size / 1024.0f));
-		checkCudaErrors(cudaFree(dev_vtable));
-	}
 
 	// SANITY CHECKS
 #ifdef _DEBUG
