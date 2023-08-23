@@ -105,6 +105,7 @@ A project solution for Visual Studio 2022 is provided in the `msvc` folder. It i
 ## Todo / Possible future work
 This is on my list of "nice things to add".
 
+ * Better output filename control
  * Noncubic grid support
  * Memory limits test
  * Implement partitioning for larger models
