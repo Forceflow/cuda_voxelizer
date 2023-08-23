@@ -118,18 +118,14 @@ void parseProgramParameters(int argc, char* argv[]){
 			filename = argv[i + 1];
 			filename_base = filename.substr(0, filename.find_last_of("."));
 			filegiven = true;
-			if (!file_exists(filename)) {
-				fprintf(stdout, "[Err] File does not exist / cannot access: %s \n", filename.c_str());
-				exit(1);
-			}
+			if (!file_exists(filename)) {fprintf(stdout, "[Err] File does not exist / cannot access: %s \n", filename.c_str());exit(1);}
 			i++;
 		}
 		else if (string(argv[i]) == "-s") {
 			gridsize = atoi(argv[i + 1]);
 			i++;
 		} else if (string(argv[i]) == "-h") {
-			printHelp();
-			exit(0);
+			printHelp(); exit(0);
 		} else if (string(argv[i]) == "-o") {
 			string output = (argv[i + 1]);
 			transform(output.begin(), output.end(), output.begin(), ::tolower); // to lowercase
@@ -138,10 +134,7 @@ void parseProgramParameters(int argc, char* argv[]){
 			else if (output == "obj"){outputformat = OutputFormat::output_obj_cubes;}
 			else if (output == "obj_points") { outputformat = OutputFormat::output_obj_points; }
 			else if (output == "vox") { outputformat = OutputFormat::output_vox; }
-			else {
-				fprintf(stdout, "[Err] Unrecognized output format: %s, valid options are binvox (default), morton, obj or obj_points \n", output.c_str());
-				exit(1);
-			}
+			else {fprintf(stdout, "[Err] Unrecognized output format: %s, valid options are binvox (default), morton, obj or obj_points \n", output.c_str());exit(1);}
 		}
 		else if (string(argv[i]) == "-cpu") {
 			forceCPU = true;
@@ -152,8 +145,7 @@ void parseProgramParameters(int argc, char* argv[]){
 	}
 	if (!filegiven) {
 		fprintf(stdout, "[Err] You didn't specify a file using -f (path). This is required. Exiting. \n");
-		printExample();
-		exit(1);
+		printExample(); exit(1);
 	}
 	fprintf(stdout, "[Info] Filename: %s \n", filename.c_str());
 	fprintf(stdout, "[Info] Grid size: %i \n", gridsize);
