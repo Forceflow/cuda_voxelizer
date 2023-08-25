@@ -81,7 +81,7 @@ jobs:
 
     
     # Older version then 11.4.0 of CUDA Toolkit does not have thrust option for installation in silent mode 
-    - uses: Jimver/cuda-toolkit@latest
+    - uses: Jimver/cuda-toolkit@v0.2.11
       id: cuda-toolkit
       with:
         method: 'network'
