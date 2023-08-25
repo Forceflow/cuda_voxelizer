@@ -39,7 +39,7 @@ namespace cpu_voxelizer {
 		// Move all vertices to origin (can be done in parallel)
 		trimesh::vec3 move_min = float3_to_trimesh<trimesh::vec3>(info.bbox.min);
 #pragma omp parallel for
-		for (int64_t i = 0; i < themesh->vertices.size(); i++) {
+		for (int64_t i = 0; i < (int64_t) themesh->vertices.size(); i++) {
 			if (i == 0) { printf("[Info] Using %d threads \n", omp_get_num_threads()); }
 			themesh->vertices[i] = themesh->vertices[i] - move_min;
 		}
@@ -51,7 +51,7 @@ namespace cpu_voxelizer {
 #endif
 
 #pragma omp parallel for
-		for (int64_t i = 0; i < info.n_triangles; i++) {
+		for (int64_t i = 0; i < (int64_t) info.n_triangles; i++) {
 			// Common variables used in the voxelization process
 			float3 delta_p = make_float3(info.unit.x, info.unit.y, info.unit.z);
 			float3 c = make_float3(0.0f, 0.0f, 0.0f); // critical point
@@ -245,13 +245,13 @@ namespace cpu_voxelizer {
 		// Move all vertices to origin (can be done in parallel)
 		trimesh::vec3 move_min = float3_to_trimesh<trimesh::vec3>(info.bbox.min);
 #pragma omp parallel for
-		for (int64_t i = 0; i < themesh->vertices.size(); i++) {
+		for (int64_t i = 0; i < (int64_t) themesh->vertices.size(); i++) {
 			if (i == 0) { printf("[Info] Using %d threads \n", omp_get_num_threads()); }
 			themesh->vertices[i] = themesh->vertices[i] - move_min;
 		}
 
 #pragma omp parallel for
-		for (int64_t i = 0; i < info.n_triangles; i++) {
+		for (int64_t i = 0; i < (int64_t) info.n_triangles; i++) {
 			// Triangle vertices
 			float3 v0 = trimesh_to_float3<trimesh::point>(themesh->vertices[themesh->faces[i][0]]);
 			float3 v1 = trimesh_to_float3<trimesh::point>(themesh->vertices[themesh->faces[i][1]]);
