@@ -16,7 +16,7 @@ jobs:
     
     env: 
       CUDAARCHS: '60'
-      TRIMESH_VERSION: '2022/03/04'
+      TRIMESH_VERSION: '2022.03.04'
       CMAKE_VERSION: '3.20.4'
 
     steps:
@@ -65,7 +65,7 @@ jobs:
     env:
       CUDA_MAJOR_VERSION: '12.2'
       CUDA_PATCH_VERSION: '0'
-      TRIMESH_VERSION: '2022/03/04'
+      TRIMESH_VERSION: '2022.03.04'
       CUDAARCHS: '60'
     
     steps:
