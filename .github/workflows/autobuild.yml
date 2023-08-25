@@ -86,7 +86,7 @@ jobs:
       with:
         method: 'network'
         cuda: '${{ env.CUDA_MAJOR_VERSION }}.${{ env.CUDA_PATCH_VERSION }}'
-        sub-packages: '["nvcc", "cudart", "visual_studio_integration", "thrust"]'
+        sub-packages: '["nvcc", "cudart", "visual_studio_integration"]'
 
     - name: Build Trimesh2
       if: steps.trimesh2-cache.outputs.cache-hit != 'true'
