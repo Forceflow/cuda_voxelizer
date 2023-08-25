@@ -63,7 +63,7 @@ jobs:
   windows-build:
     runs-on: windows-2019
     env:
-      CUDA_MAJOR_VERSION: '12.2.0'
+      CUDA_MAJOR_VERSION: '12.2'
       CUDA_PATCH_VERSION: '0'
       TRIMESH_VERSION: '2022/03/04'
       CUDAARCHS: '60'
@@ -81,7 +81,7 @@ jobs:
 
     
     # Older version then 11.4.0 of CUDA Toolkit does not have thrust option for installation in silent mode 
-    - uses: Jimver/cuda-toolkit@v0.2.11
+    - uses: Jimver/cuda-toolkit@latest
       id: cuda-toolkit
       with:
         method: 'network'
