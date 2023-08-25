@@ -42,7 +42,7 @@ static void write_face(ofstream& output, const int3& v) {
 }
 
 // Helper function to write full cube (using relative vertex positions in the OBJ file - support for this should be widespread by now)
-void write_cube(const size_t& x, const size_t& y, const size_t& z, ofstream& output) {
+void write_cube(const int x, const int y, const int z, ofstream& output) {
 	//	   2-------1
 	//	  /|      /|
 	//	 / |     / |
@@ -123,7 +123,7 @@ void write_obj_cubes(const unsigned int* vtable, const voxinfo v_info, const std
 #endif
 				if (checkVoxel(x, y, z, v_info.gridsize, vtable)) {
 					//voxels_written += 1;
-					write_cube(x, y, z, output);	
+					write_cube(static_cast<int>(x), static_cast<int>(y), static_cast<int>(z), output);
 				}
 			}
 		}
