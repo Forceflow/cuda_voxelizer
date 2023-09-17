@@ -22,13 +22,12 @@ Program options:
    * `obj_points`: A mesh containing a point cloud, with a vertex for each voxel. Can be viewed using any compatible viewer that can just display vertices, like [Blender](https://www.blender.org/) or [Meshlab](https://www.meshlab.net/).
    * `morton`: a binary file containing a Morton-ordered grid. This is an internal format I use for other tools.
  * `-cpu`: Force multi-threaded voxelization on the CPU instead of GPU. Can be used when a CUDA device is not detected/compatible, or for very small models where GPU call overhead is not worth it.
- * `-thrust` : Use Thrust library for copying the model data to the GPU, for a possible speed / throughput improvement. I found this to be very system-dependent. Default: disabled.
  * `-solid` : (Experimental) Use solid voxelization instead of voxelizing the mesh faces. Needs a watertight input mesh.
 
 ## Examples
 `cuda_voxelizer -f bunny.ply -s 256` generates a 256 x 256 x 256 vox-based voxel model which will be stored in `bunny_256.vox`. 
 
-`cuda_voxelizer -f torus.ply -s 64 -o obj -thrust -solid` generates a solid (filled) 64 x 64 x 64 .obj voxel model which will be stored in `torus_64.obj`. During voxelization, the Cuda Thrust library will be used for a possible speedup, but YMMV.
+`cuda_voxelizer -f torus.ply -s 64 -o obj -solid` generates a solid (filled) 64 x 64 x 64 .obj voxel model which will be stored in `torus_64.obj`. 
 
 ![output_examples](https://raw.githubusercontent.com/Forceflow/cuda_voxelizer/main/img/output_examples.jpg)
 
@@ -38,7 +37,7 @@ You can build using CMake or using the provided Visual Studio project. Since 202
 
 ### Dependencies
 The project has the following build dependencies:
- * [Nvidia Cuda 8.0 Toolkit (or higher)](https://developer.nvidia.com/cuda-toolkit) for CUDA + Thrust libraries (standard included)
+ * [Nvidia Cuda 8.0 Toolkit (or higher)](https://developer.nvidia.com/cuda-toolkit) for CUDA
  * [Trimesh2](https://github.com/Forceflow/trimesh2) for model importing. Latest version recommended.
  * [OpenMP](https://www.openmp.org/) for multi-threading.
 
