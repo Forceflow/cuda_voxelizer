@@ -1,12 +1,15 @@
 ![Build Status](https://github.com/Forceflow/cuda_voxelizer/actions/workflows/autobuild.yml/badge.svg) ![license](https://img.shields.io/github/license/Forceflow/cuda_voxelizer.svg)<br>
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/Z8Z7GFNW3) 
 
-# cuda_voxelizer v0.5.2
+# cuda_voxelizer v0.6
+
 A command-line tool to convert polygon meshes to (annotated) voxel grids.
  * Supported input formats: .ply, .off, .obj, .3DS, .SM and RAY
  * Supported output formats: .vox, .binvox, .obj cubes and point cloud, morton ordered grid
  * Requires a CUDA-compatible video card. Compute Capability 2.0 or higher (Nvidia Fermi or better).
    * Since v0.4.4, the voxelizer reverts to a (slower) CPU voxelization method when no CUDA device is found
+   
+**Important:** _In v0.6 I replaced all GLM math types with builtin CUDA types, removing an external dependency. This is a big change. I've tested the release as well as I can, but if you encounter any weirdness, it's advised to check if you can reproduce the problem with an older version. Thanks!_
 
 ## Usage
 Program options:
@@ -37,11 +40,9 @@ You can build using CMake or using the provided Visual Studio project. Since 202
 The project has the following build dependencies:
  * [Nvidia Cuda 8.0 Toolkit (or higher)](https://developer.nvidia.com/cuda-toolkit) for CUDA + Thrust libraries (standard included)
  * [Trimesh2](https://github.com/Forceflow/trimesh2) for model importing. Latest version recommended.
- * [GLM](http://glm.g-truc.net/0.9.8/index.html) for vector math. Any recent version will do.
  * [OpenMP](https://www.openmp.org/) for multi-threading.
 
 ### Build using CMake (Windows, Linux)
-
 After installing dependencies, do `mkdir build` and `cd build`, followed by:
 
 For Windows with Visual Studio:
@@ -62,8 +63,7 @@ cmake --build . --parallel number_of_cores
 ```
 
 ### Build using Visual Studio project (Windows)
-
-A project solution for Visual Studio 2022 is provided in the `msvc` folder. It is configured for CUDA 11, but you can edit the project file to make it work with other CUDA versions. You can edit the `custom_includes.props` file to configure the library locations, and specify a place where the resulting binaries should be placed.
+A project solution for Visual Studio 2022 is provided in the `msvc` folder. It is configured for CUDA 12.1, but you can edit the project file to make it work with other CUDA versions. You can edit the `custom_includes.props` file to configure the library locations, and specify a place where the resulting binaries should be placed.
 
 ```
     <TRIMESH_DIR>C:\libs\trimesh2\</TRIMESH_DIR>
@@ -105,6 +105,7 @@ A project solution for Visual Studio 2022 is provided in the `msvc` folder. It i
 ## Todo / Possible future work
 This is on my list of "nice things to add".
 
+ * Better output filename control
  * Noncubic grid support
  * Memory limits test
  * Implement partitioning for larger models
@@ -121,3 +122,9 @@ howpublished = "\url{https://github.com/Forceflow/cuda_voxelizer}",
 year = "2017"}
 </pre>
 If you end up using cuda_voxelizer in something cool, drop me an e-mail: **mail (at) jeroen-baert.be**
+
+## Donate
+cuda_voxelizer is developed in my free time. If you want to support the project, you can do so through:
+* [Kofi](https://ko-fi.com/jbaert)
+* BTC: 3GX3b7BZK2nhsneBG8eTqEchgCQ8FDfwZq 
+* ETH: 0x7C9e97D2bBC2dFDd93EF56C77f626e802BA56860

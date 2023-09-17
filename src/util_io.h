@@ -1,9 +1,12 @@
 #pragma once
-
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <assert.h>
 #include "util.h"
+#include "TriMesh_algo.h"
+#include "util.h"
+#include "libs/magicavoxel_file_writer/VoxWriter.h"
 
 size_t get_file_length(const std::string base_filename);
 void read_binary(void* data, const size_t length, const std::string base_filename);

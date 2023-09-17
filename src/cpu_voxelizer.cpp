@@ -1,6 +1,4 @@
 #include "cpu_voxelizer.h"
-#include <omp.h>
-
 #define float_error 0.000001
 
 namespace cpu_voxelizer {
@@ -15,8 +13,6 @@ namespace cpu_voxelizer {
 			voxel_table[int_location] = (voxel_table[int_location] | mask);
 		}
 	}
-
-
 
 	// Encode morton code using LUT table
 	uint64_t mortonEncode_LUT(unsigned int x, unsigned int y, unsigned int z) {
@@ -38,16 +34,12 @@ namespace cpu_voxelizer {
 	// Mesh voxelization method
 	void cpu_voxelize_mesh(voxinfo info, trimesh::TriMesh* themesh, unsigned int* voxel_table, bool morton_order) {
 		Timer cpu_voxelization_timer; cpu_voxelization_timer.start();
-		//// Common variables used in the voxelization process
-		//glm::vec3 delta_p(info.unit.x, info.unit.y, info.unit.z);
-		//glm::vec3 c(0.0f, 0.0f, 0.0f); // critical point
-		//glm::vec3 grid_max(info.gridsize.x - 1, info.gridsize.y - 1, info.gridsize.z - 1); // grid max (grid runs from 0 to gridsize-1)
 
 		// PREPASS
 		// Move all vertices to origin (can be done in parallel)
-		trimesh::vec3 move_min = glm_to_trimesh<trimesh::vec3>(info.bbox.min);
+		trimesh::vec3 move_min = float3_to_trimesh<trimesh::vec3>(info.bbox.min);
 #pragma omp parallel for
-		for (int64_t i = 0; i < themesh->vertices.size(); i++) {
+		for (int64_t i = 0; i < (int64_t) themesh->vertices.size(); i++) {
 			if (i == 0) { printf("[Info] Using %d threads \n", omp_get_num_threads()); }
 			themesh->vertices[i] = themesh->vertices[i] - move_min;
 		}
@@ -59,80 +51,78 @@ namespace cpu_voxelizer {
 #endif
 
 #pragma omp parallel for
-		
-		for (int64_t i = 0; i < info.n_triangles; i++) {
+		for (int64_t i = 0; i < (int64_t) info.n_triangles; i++) {
 			// Common variables used in the voxelization process
-			glm::vec3 delta_p(info.unit.x, info.unit.y, info.unit.z);
-			glm::vec3 c(0.0f, 0.0f, 0.0f); // critical point
-			glm::vec3 grid_max(info.gridsize.x - 1, info.gridsize.y - 1, info.gridsize.z - 1); // grid max (grid runs from 0 to gridsize-1)
+			float3 delta_p = make_float3(info.unit.x, info.unit.y, info.unit.z);
+			float3 c = make_float3(0.0f, 0.0f, 0.0f); // critical point
+			int3 grid_max = make_int3(info.gridsize.x - 1, info.gridsize.y - 1, info.gridsize.z - 1); // grid max (grid runs from 0 to gridsize-1)
 #ifdef _DEBUG
 			debug_n_triangles++;
 #endif
 			// COMPUTE COMMON TRIANGLE PROPERTIES
-			// Move vertices to origin using bbox
-			glm::vec3 v0 = trimesh_to_glm<trimesh::point>(themesh->vertices[themesh->faces[i][0]]);
-			glm::vec3 v1 = trimesh_to_glm<trimesh::point>(themesh->vertices[themesh->faces[i][1]]);
-			glm::vec3 v2 = trimesh_to_glm<trimesh::point>(themesh->vertices[themesh->faces[i][2]]);
+			float3 v0 = trimesh_to_float3<trimesh::point>(themesh->vertices[themesh->faces[i][0]]);
+			float3 v1 = trimesh_to_float3<trimesh::point>(themesh->vertices[themesh->faces[i][1]]);
+			float3 v2 = trimesh_to_float3<trimesh::point>(themesh->vertices[themesh->faces[i][2]]);
 
 			// Edge vectors
-			glm::vec3 e0 = v1 - v0;
-			glm::vec3 e1 = v2 - v1;
-			glm::vec3 e2 = v0 - v2;
+			float3 e0 = v1-v0;
+			float3 e1 = v2-v1;
+			float3 e2 = v0-v2;
 			// Normal vector pointing up from the triangle
-			glm::vec3 n = glm::normalize(glm::cross(e0, e1));
+			float3 n = normalize(cross(e0, e1));
 
 			// COMPUTE TRIANGLE BBOX IN GRID
 			// Triangle bounding box in world coordinates is min(v0,v1,v2) and max(v0,v1,v2)
-			AABox<glm::vec3> t_bbox_world(glm::min(v0, glm::min(v1, v2)), glm::max(v0, glm::max(v1, v2)));
+			AABox<float3> t_bbox_world(fminf(v0, fminf(v1, v2)), fmaxf(v0, fmaxf(v1, v2)));
 			// Triangle bounding box in voxel grid coordinates is the world bounding box divided by the grid unit vector
-			AABox<glm::ivec3> t_bbox_grid;
-			t_bbox_grid.min = glm::clamp(t_bbox_world.min / info.unit, glm::vec3(0.0f, 0.0f, 0.0f), grid_max);
-			t_bbox_grid.max = glm::clamp(t_bbox_world.max / info.unit, glm::vec3(0.0f, 0.0f, 0.0f), grid_max);
+			AABox<int3> t_bbox_grid;
+			t_bbox_grid.min = clamp(float3_to_int3(t_bbox_world.min / info.unit), make_int3(0, 0, 0), grid_max);
+			t_bbox_grid.max = clamp(float3_to_int3(t_bbox_world.max / info.unit), make_int3(0, 0, 0), grid_max);
 
 			// PREPARE PLANE TEST PROPERTIES
 			if (n.x > 0.0f) { c.x = info.unit.x; }
 			if (n.y > 0.0f) { c.y = info.unit.y; }
 			if (n.z > 0.0f) { c.z = info.unit.z; }
-			float d1 = glm::dot(n, (c - v0));
-			float d2 = glm::dot(n, ((delta_p - c) - v0));
+			float d1 = dot(n, (c - v0));
+			float d2 = dot(n, ((delta_p - c) - v0));
 
 			// PREPARE PROJECTION TEST PROPERTIES
 			// XY plane
-			glm::vec2 n_xy_e0(-1.0f * e0.y, e0.x);
-			glm::vec2 n_xy_e1(-1.0f * e1.y, e1.x);
-			glm::vec2 n_xy_e2(-1.0f * e2.y, e2.x);
+			float2 n_xy_e0 = make_float2(-1.0f * e0.y, e0.x);
+			float2 n_xy_e1 = make_float2(-1.0f * e1.y, e1.x);
+			float2 n_xy_e2 = make_float2(-1.0f * e2.y, e2.x);
 			if (n.z < 0.0f) {
 				n_xy_e0 = -n_xy_e0;
 				n_xy_e1 = -n_xy_e1;
 				n_xy_e2 = -n_xy_e2;
 			}
-			float d_xy_e0 = (-1.0f * glm::dot(n_xy_e0, glm::vec2(v0.x, v0.y))) + glm::max(0.0f, info.unit.x * n_xy_e0[0]) + glm::max(0.0f, info.unit.y * n_xy_e0[1]);
-			float d_xy_e1 = (-1.0f * glm::dot(n_xy_e1, glm::vec2(v1.x, v1.y))) + glm::max(0.0f, info.unit.x * n_xy_e1[0]) + glm::max(0.0f, info.unit.y * n_xy_e1[1]);
-			float d_xy_e2 = (-1.0f * glm::dot(n_xy_e2, glm::vec2(v2.x, v2.y))) + glm::max(0.0f, info.unit.x * n_xy_e2[0]) + glm::max(0.0f, info.unit.y * n_xy_e2[1]);
+			float d_xy_e0 = (-1.0f * dot(n_xy_e0, make_float2(v0.x, v0.y))) + max(0.0f, info.unit.x * n_xy_e0.x) + max(0.0f, info.unit.y * n_xy_e0.y);
+			float d_xy_e1 = (-1.0f * dot(n_xy_e1, make_float2(v1.x, v1.y))) + max(0.0f, info.unit.x * n_xy_e1.x) + max(0.0f, info.unit.y * n_xy_e1.y);
+			float d_xy_e2 = (-1.0f * dot(n_xy_e2, make_float2(v2.x, v2.y))) + max(0.0f, info.unit.x * n_xy_e2.x) + max(0.0f, info.unit.y * n_xy_e2.y);
 			// YZ plane
-			glm::vec2 n_yz_e0(-1.0f * e0.z, e0.y);
-			glm::vec2 n_yz_e1(-1.0f * e1.z, e1.y);
-			glm::vec2 n_yz_e2(-1.0f * e2.z, e2.y);
+			float2 n_yz_e0 = make_float2(-1.0f * e0.z, e0.y);
+			float2 n_yz_e1 = make_float2(-1.0f * e1.z, e1.y);
+			float2 n_yz_e2 = make_float2(-1.0f * e2.z, e2.y);
 			if (n.x < 0.0f) {
 				n_yz_e0 = -n_yz_e0;
 				n_yz_e1 = -n_yz_e1;
 				n_yz_e2 = -n_yz_e2;
 			}
-			float d_yz_e0 = (-1.0f * glm::dot(n_yz_e0, glm::vec2(v0.y, v0.z))) + glm::max(0.0f, info.unit.y * n_yz_e0[0]) + glm::max(0.0f, info.unit.z * n_yz_e0[1]);
-			float d_yz_e1 = (-1.0f * glm::dot(n_yz_e1, glm::vec2(v1.y, v1.z))) + glm::max(0.0f, info.unit.y * n_yz_e1[0]) + glm::max(0.0f, info.unit.z * n_yz_e1[1]);
-			float d_yz_e2 = (-1.0f * glm::dot(n_yz_e2, glm::vec2(v2.y, v2.z))) + glm::max(0.0f, info.unit.y * n_yz_e2[0]) + glm::max(0.0f, info.unit.z * n_yz_e2[1]);
+			float d_yz_e0 = (-1.0f * dot(n_yz_e0, make_float2(v0.y, v0.z))) + max(0.0f, info.unit.y * n_yz_e0.x) + max(0.0f, info.unit.z * n_yz_e0.y);
+			float d_yz_e1 = (-1.0f * dot(n_yz_e1, make_float2(v1.y, v1.z))) + max(0.0f, info.unit.y * n_yz_e1.x) + max(0.0f, info.unit.z * n_yz_e1.y);
+			float d_yz_e2 = (-1.0f * dot(n_yz_e2, make_float2(v2.y, v2.z))) + max(0.0f, info.unit.y * n_yz_e2.x) + max(0.0f, info.unit.z * n_yz_e2.y);
 			// ZX plane
-			glm::vec2 n_zx_e0(-1.0f * e0.x, e0.z);
-			glm::vec2 n_zx_e1(-1.0f * e1.x, e1.z);
-			glm::vec2 n_zx_e2(-1.0f * e2.x, e2.z);
+			float2 n_zx_e0 = make_float2(-1.0f * e0.x, e0.z);
+			float2 n_zx_e1 = make_float2(-1.0f * e1.x, e1.z);
+			float2 n_zx_e2 = make_float2(-1.0f * e2.x, e2.z);
 			if (n.y < 0.0f) {
 				n_zx_e0 = -n_zx_e0;
 				n_zx_e1 = -n_zx_e1;
 				n_zx_e2 = -n_zx_e2;
 			}
-			float d_xz_e0 = (-1.0f * glm::dot(n_zx_e0, glm::vec2(v0.z, v0.x))) + glm::max(0.0f, info.unit.x * n_zx_e0[0]) + glm::max(0.0f, info.unit.z * n_zx_e0[1]);
-			float d_xz_e1 = (-1.0f * glm::dot(n_zx_e1, glm::vec2(v1.z, v1.x))) + glm::max(0.0f, info.unit.x * n_zx_e1[0]) + glm::max(0.0f, info.unit.z * n_zx_e1[1]);
-			float d_xz_e2 = (-1.0f * glm::dot(n_zx_e2, glm::vec2(v2.z, v2.x))) + glm::max(0.0f, info.unit.x * n_zx_e2[0]) + glm::max(0.0f, info.unit.z * n_zx_e2[1]);
+			float d_xz_e0 = (-1.0f * dot(n_zx_e0, make_float2(v0.z, v0.x))) + max(0.0f, info.unit.x * n_zx_e0.x) + max(0.0f, info.unit.z * n_zx_e0.y);
+			float d_xz_e1 = (-1.0f * dot(n_zx_e1, make_float2(v1.z, v1.x))) + max(0.0f, info.unit.x * n_zx_e1.x) + max(0.0f, info.unit.z * n_zx_e1.y);
+			float d_xz_e2 = (-1.0f * dot(n_zx_e2, make_float2(v2.z, v2.x))) + max(0.0f, info.unit.x * n_zx_e2.x) + max(0.0f, info.unit.z * n_zx_e2.y);
 
 			// test possible grid boxes for overlap
 			for (int z = t_bbox_grid.min.z; z <= t_bbox_grid.max.z; z++) {
@@ -145,28 +135,28 @@ namespace cpu_voxelizer {
 #endif
 
 						// TRIANGLE PLANE THROUGH BOX TEST
-						glm::vec3 p(x * info.unit.x, y * info.unit.y, z * info.unit.z);
-						float nDOTp = glm::dot(n, p);
+						float3 p = make_float3(x * info.unit.x, y * info.unit.y, z * info.unit.z);
+						float nDOTp = dot(n, p);
 						if (((nDOTp + d1) * (nDOTp + d2)) > 0.0f) { continue; }
 
 						// PROJECTION TESTS
 						// XY
-						glm::vec2 p_xy(p.x, p.y);
-						if ((glm::dot(n_xy_e0, p_xy) + d_xy_e0) < 0.0f) { continue; }
-						if ((glm::dot(n_xy_e1, p_xy) + d_xy_e1) < 0.0f) { continue; }
-						if ((glm::dot(n_xy_e2, p_xy) + d_xy_e2) < 0.0f) { continue; }
+						float2 p_xy = make_float2(p.x, p.y);
+						if ((dot(n_xy_e0, p_xy) + d_xy_e0) < 0.0f) { continue; }
+						if ((dot(n_xy_e1, p_xy) + d_xy_e1) < 0.0f) { continue; }
+						if ((dot(n_xy_e2, p_xy) + d_xy_e2) < 0.0f) { continue; }
 
 						// YZ
-						glm::vec2 p_yz(p.y, p.z);
-						if ((glm::dot(n_yz_e0, p_yz) + d_yz_e0) < 0.0f) { continue; }
-						if ((glm::dot(n_yz_e1, p_yz) + d_yz_e1) < 0.0f) { continue; }
-						if ((glm::dot(n_yz_e2, p_yz) + d_yz_e2) < 0.0f) { continue; }
+						float2 p_yz = make_float2(p.y, p.z);
+						if ((dot(n_yz_e0, p_yz) + d_yz_e0) < 0.0f) { continue; }
+						if ((dot(n_yz_e1, p_yz) + d_yz_e1) < 0.0f) { continue; }
+						if ((dot(n_yz_e2, p_yz) + d_yz_e2) < 0.0f) { continue; }
 
 						// XZ	
-						glm::vec2 p_zx(p.z, p.x);
-						if ((glm::dot(n_zx_e0, p_zx) + d_xz_e0) < 0.0f) { continue; }
-						if ((glm::dot(n_zx_e1, p_zx) + d_xz_e1) < 0.0f) { continue; }
-						if ((glm::dot(n_zx_e2, p_zx) + d_xz_e2) < 0.0f) { continue; }
+						float2 p_zx = make_float2(p.z, p.x);
+						if ((dot(n_zx_e0, p_zx) + d_xz_e0) < 0.0f) { continue; }
+						if ((dot(n_zx_e1, p_zx) + d_xz_e1) < 0.0f) { continue; }
+						if ((dot(n_zx_e2, p_zx) + d_xz_e2) < 0.0f) { continue; }
 #ifdef _DEBUG
 						debug_n_voxels_marked += 1;
 #endif
@@ -184,7 +174,7 @@ namespace cpu_voxelizer {
 				}
 			}
 		}
-		cpu_voxelization_timer.stop(); fprintf(stdout, "[Perf] CPU voxelization time: %.1f ms \n", cpu_voxelization_timer.elapsed_time_milliseconds);
+		cpu_voxelization_timer.stop(); std::fprintf(stdout, "[Perf] CPU voxelization time: %.1f ms \n", cpu_voxelization_timer.elapsed_time_milliseconds);
 #ifdef _DEBUG
 		printf("[Debug] Processed %llu triangles on the CPU \n", debug_n_triangles);
 		printf("[Debug] Tested %llu voxels for overlap on CPU \n", debug_n_voxels_tested);
@@ -203,14 +193,14 @@ namespace cpu_voxelizer {
 		}
 	}
 
-	bool TopLeftEdge(glm::vec2 v0, glm::vec2 v1) {
+	bool TopLeftEdge(float2 v0, float2 v1) {
 		return ((v1.y < v0.y) || (v1.y == v0.y && v0.x > v1.x));
 	}
 
 	//check the triangle is counterclockwise or not
-	bool checkCCW(glm::vec2 v0, glm::vec2 v1, glm::vec2 v2) {
-		glm::vec2 e0 = v1 - v0;
-		glm::vec2 e1 = v2 - v0;
+	bool checkCCW(float2 v0, float2 v1, float2 v2) {
+		float2 e0 = v1 - v0;
+		float2 e1 = v2 - v0;
 		float result = e0.x * e1.y - e1.x * e0.y;
 		if (result > 0)
 			return true;
@@ -219,16 +209,15 @@ namespace cpu_voxelizer {
 	}
 
 	//find the x coordinate of the voxel
-	float get_x_coordinate(glm::vec3 n, glm::vec3 v0, glm::vec2 point) {
+	float get_x_coordinate(float3 n, float3 v0, float2 point) {
 		return (-(n.y * (point.x - v0.y) + n.z * (point.y - v0.z)) / n.x + v0.x);
 	}
 
-
 	//check the location with point and triangle
-	int check_point_triangle(glm::vec2 v0, glm::vec2 v1, glm::vec2 v2, glm::vec2 point) {
-		glm::vec2 PA = point - v0;
-		glm::vec2 PB = point - v1;
-		glm::vec2 PC = point - v2;
+	int check_point_triangle(float2 v0, float2 v1, float2 v2, float2 point) {
+		float2 PA = point - v0;
+		float2 PB = point - v1;
+		float2 PC = point - v2;
 
 		float t1 = PA.x * PB.y - PA.y * PB.x;
 		if (std::fabs(t1) < float_error && PA.x * PB.x <= 0 && PA.y * PB.y <= 0)
@@ -254,60 +243,58 @@ namespace cpu_voxelizer {
 
 		// PREPASS
 		// Move all vertices to origin (can be done in parallel)
-		trimesh::vec3 move_min = glm_to_trimesh<trimesh::vec3>(info.bbox.min);
+		trimesh::vec3 move_min = float3_to_trimesh<trimesh::vec3>(info.bbox.min);
 #pragma omp parallel for
-		for (int64_t i = 0; i < themesh->vertices.size(); i++) {
+		for (int64_t i = 0; i < (int64_t) themesh->vertices.size(); i++) {
 			if (i == 0) { printf("[Info] Using %d threads \n", omp_get_num_threads()); }
 			themesh->vertices[i] = themesh->vertices[i] - move_min;
 		}
 
 #pragma omp parallel for
-		for (int64_t i = 0; i < info.n_triangles; i++) {
-			glm::vec3 v0 = trimesh_to_glm<trimesh::point>(themesh->vertices[themesh->faces[i][0]]);
-			glm::vec3 v1 = trimesh_to_glm<trimesh::point>(themesh->vertices[themesh->faces[i][1]]);
-			glm::vec3 v2 = trimesh_to_glm<trimesh::point>(themesh->vertices[themesh->faces[i][2]]);
-
+		for (int64_t i = 0; i < (int64_t) info.n_triangles; i++) {
+			// Triangle vertices
+			float3 v0 = trimesh_to_float3<trimesh::point>(themesh->vertices[themesh->faces[i][0]]);
+			float3 v1 = trimesh_to_float3<trimesh::point>(themesh->vertices[themesh->faces[i][1]]);
+			float3 v2 = trimesh_to_float3<trimesh::point>(themesh->vertices[themesh->faces[i][2]]);
 			// Edge vectors
-			glm::vec3 e0 = v1 - v0;
-			glm::vec3 e1 = v2 - v1;
-			glm::vec3 e2 = v0 - v2;
+			float3 e0 = v1 - v0;
+			float3 e1 = v2 - v1;
+			float3 e2 = v0 - v2;
 			// Normal vector pointing up from the triangle
-			glm::vec3 n = glm::normalize(glm::cross(e0, e1));
-			if (std::fabs(n.x) < float_error) {
-				continue;
-			}
+			float3 n = normalize(cross(e0, e1));
+			if (std::fabs(n.x) < float_error) {continue;}
 
-			//Calculate the projection of three point into yoz plane
-			glm::vec2 v0_yz = glm::vec2(v0.y, v0.z);
-			glm::vec2 v1_yz = glm::vec2(v1.y, v1.z);
-			glm::vec2 v2_yz = glm::vec2(v2.y, v2.z);
+			// Calculate the projection of three point into yoz plane
+			float2 v0_yz = make_float2(v0.y, v0.z);
+			float2 v1_yz = make_float2(v1.y, v1.z);
+			float2 v2_yz = make_float2(v2.y, v2.z);
 
-			//set the triangle counterclockwise
+			// Set the triangle counterclockwise
 			if (!checkCCW(v0_yz, v1_yz, v2_yz))
 			{
-				glm::vec2 v3 = v1_yz;
+				float2 v3 = v1_yz;
 				v1_yz = v2_yz;
 				v2_yz = v3;
 			}
 
 			// COMPUTE TRIANGLE BBOX IN GRID
 			// Triangle bounding box in world coordinates is min(v0,v1,v2) and max(v0,v1,v2)
-			glm::vec2 bbox_max = glm::max(v0_yz, glm::max(v1_yz, v2_yz));
-			glm::vec2 bbox_min = glm::min(v0_yz, glm::min(v1_yz, v2_yz));
+			float2 bbox_max = fmaxf(v0_yz, fmaxf(v1_yz, v2_yz));
+			float2 bbox_min = fminf(v0_yz, fminf(v1_yz, v2_yz));
 
-			glm::vec2 bbox_max_grid = glm::vec2(floor(bbox_max.x / info.unit.y - 0.5), floor(bbox_max.y / info.unit.z - 0.5));
-			glm::vec2 bbox_min_grid = glm::vec2(ceil(bbox_min.x / info.unit.y - 0.5), ceil(bbox_min.y / info.unit.z - 0.5));
+			float2 bbox_max_grid = make_float2(floor(bbox_max.x / info.unit.y - 0.5f), floor(bbox_max.y / info.unit.z - 0.5f));
+			float2 bbox_min_grid = make_float2(ceil(bbox_min.x / info.unit.y - 0.5f), ceil(bbox_min.y / info.unit.z - 0.5f));
 
-			for (int y = bbox_min_grid.x; y <= bbox_max_grid.x; y++)
+			for (int y = static_cast<int>(bbox_min_grid.x); y <= bbox_max_grid.x; y++)
 			{
-				for (int z = bbox_min_grid.y; z <= bbox_max_grid.y; z++)
+				for (int z = static_cast<int>(bbox_min_grid.y); z <= bbox_max_grid.y; z++)
 				{
-					glm::vec2 point = glm::vec2((y + 0.5) * info.unit.y, (z + 0.5) * info.unit.z);
+					float2 point = make_float2((y + 0.5f) * info.unit.y, (z + 0.5f) * info.unit.z);
 					int checknum = check_point_triangle(v0_yz, v1_yz, v2_yz, point);
 					if ((checknum == 1 && TopLeftEdge(v0_yz, v1_yz)) || (checknum == 2 && TopLeftEdge(v1_yz, v2_yz)) || (checknum == 3 && TopLeftEdge(v2_yz, v0_yz)) || (checknum == 0))
 					{
 						unsigned int xmax = int(get_x_coordinate(n, v0, point) / info.unit.x - 0.5);
-						for (int x = 0; x <= xmax; x++)
+						for (unsigned int x = 0; x <= xmax; x++)
 						{
 							if (morton_order) {
 								size_t location = mortonEncode_LUT(x, y, z);
@@ -322,7 +309,6 @@ namespace cpu_voxelizer {
 					}
 				}
 			}
-
 		}
 		cpu_voxelization_timer.stop(); fprintf(stdout, "[Perf] CPU voxelization time: %.1f ms \n", cpu_voxelization_timer.elapsed_time_milliseconds);
 	}

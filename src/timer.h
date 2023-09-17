@@ -16,7 +16,8 @@ using namespace std;
 struct Timer { // High performance Win64 timer using QPC events
 	double pc_frequency = 0.0;
 	double elapsed_time_milliseconds = 0.0;
-	LARGE_INTEGER start_time, end_time = { 0 };
+	LARGE_INTEGER start_time = { 0 };
+	LARGE_INTEGER end_time = { 0 };
 
 	inline Timer() {
 		LARGE_INTEGER li;

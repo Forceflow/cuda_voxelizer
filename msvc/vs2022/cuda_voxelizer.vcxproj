@@ -31,7 +31,7 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
-    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 11.8.props" />
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 12.2.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -72,7 +72,7 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(BINARY_OUTPUT_DIR)"
 copy /y "$(SolutionDir)$(Platform)\$(Configuration)\$(TargetName).exe" "$(BINARY_OUTPUT_DIR)$(TargetName).exe"</Command>
     </PostBuildEvent>
     <CudaCompile>
-      <PtxAsOptionV>true</PtxAsOptionV>
+      <PtxAsOptionV>false</PtxAsOptionV>
       <AdditionalOptions>--source-in-ptx %(AdditionalOptions)</AdditionalOptions>
       <CodeGeneration>compute_52,sm_52;compute_60,sm_60;compute_61,sm_61;compute_70,sm_70;compute_75,sm_75;compute_80,sm_80</CodeGeneration>
     </CudaCompile>
@@ -109,7 +109,6 @@ copy /y "$(SolutionDir)$(Platform)\$(Configuration)\$(TargetName).exe" "$(BINARY
   </ItemDefinitionGroup>
   <ItemGroup>
     <CudaCompile Include="..\..\src/voxelize.cu" />
-    <CudaCompile Include="..\..\src\thrust_operations.cu" />
     <CudaCompile Include="..\..\src\voxelize_solid.cu" />
   </ItemGroup>
   <ItemGroup>
@@ -122,13 +121,13 @@ copy /y "$(SolutionDir)$(Platform)\$(Configuration)\$(TargetName).exe" "$(BINARY
   <ItemGroup>
     <ClInclude Include="..\..\src\cpu_voxelizer.h" />
     <ClInclude Include="..\..\src\libs\cuda\helper_cuda.h" />
+    <ClInclude Include="..\..\src\libs\cuda\helper_math.h" />
     <ClInclude Include="..\..\src\libs\cuda\helper_string.h" />
     <ClInclude Include="..\..\src\libs\magicavoxel_file_writer\VoxWriter.h" />
     <ClInclude Include="..\..\src\util_io.h" />
     <ClInclude Include="..\..\src\util.h" />
     <ClInclude Include="..\..\src\util_cuda.h" />
     <ClInclude Include="..\..\src\morton_LUTs.h" />
-    <ClInclude Include="..\..\src\thrust_operations.cuh" />
     <ClInclude Include="..\..\src\timer.h" />
     <ClInclude Include="..\..\src\voxelize.cuh" />
   </ItemGroup>
@@ -137,6 +136,6 @@ copy /y "$(SolutionDir)$(Platform)\$(Configuration)\$(TargetName).exe" "$(BINARY
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
-    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 11.8.targets" />
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 12.2.targets" />
   </ImportGroup>
 </Project>
