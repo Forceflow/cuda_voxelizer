@@ -1,4 +1,4 @@
-![Build Status](https://github.com/Forceflow/cuda_voxelizer/actions/workflows/autobuild.yml/badge.svg) ![license](https://img.shields.io/github/license/Forceflow/cuda_voxelizer.svg)<br>
+![license](https://img.shields.io/github/license/Forceflow/cuda_voxelizer.svg)<br>
 
 # cuda_voxelizer v0.6
 
