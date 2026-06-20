@@ -1,0 +1,7 @@
+version: '3'
+services:
+  cuda_voxelizer:
+    image: forceflow/cuda_voxelizer 
+    build: .
+    volumes:
+      - ./test_models/:/app/test_models/
