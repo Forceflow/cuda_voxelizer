@@ -37,8 +37,11 @@
 #define cudaDevAttrIntegrated hipDeviceAttributeIntegrated
 #define cudaDevAttrMultiProcessorCount hipDeviceAttributeMultiprocessorCount
 
+#define cudaMalloc hipMalloc
 #define cudaMallocManaged hipMallocManaged
+#define cudaFree hipFree
 #define cudaMemset hipMemset
+#define cudaMemcpy hipMemcpy
 #define cudaMemcpyDeviceToHost hipMemcpyDeviceToHost
 #define cudaMemcpyToSymbol hipMemcpyToSymbol
 #define cudaMemcpyFromSymbol hipMemcpyFromSymbol
