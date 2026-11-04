@@ -36,7 +36,7 @@ You can build using CMake or using the provided Visual Studio project. Since 202
 
 ### Dependencies
 The project has the following build dependencies:
- * [Nvidia Cuda 8.0 Toolkit (or higher)](https://developer.nvidia.com/cuda-toolkit) for CUDA
+ * [Nvidia Cuda 8.0 Toolkit (or higher)](https://developer.nvidia.com/cuda-toolkit) for CUDA, or [ROCm](https://rocm.docs.amd.com/) for AMD GPUs
  * [Trimesh2](https://github.com/Forceflow/trimesh2) for model importing. Latest version recommended.
  * [OpenMP](https://www.openmp.org/) for multi-threading.
 
@@ -59,6 +59,20 @@ Finally, run
 ```
 cmake --build . --parallel number_of_cores
 ```
+
+### Build for AMD GPUs using CMake (ROCm)
+cuda_voxelizer can also be built for AMD GPUs with [ROCm](https://rocm.docs.amd.com/) and CMake 3.21 or higher, by enabling `USE_HIP`. After installing ROCm and the other dependencies, do `mkdir build` and `cd build`, followed by:
+
+For Linux:
+```bash
+cmake -DUSE_HIP=ON -DCMAKE_HIP_ARCHITECTURES="your_amd_gpu_target" -DCMAKE_PREFIX_PATH=/opt/rocm -DTrimesh2_INCLUDE_DIR:PATH="path_to_trimesh2_include" -DTrimesh2_LINK_DIR:PATH="path_to_trimesh2_library_dir" ..
+```
+
+For Windows, use the `clang-cl` compiler that ships with ROCm for all languages, and build Trimesh2 with the same compiler:
+```powershell
+cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DUSE_HIP=ON -DCMAKE_HIP_ARCHITECTURES="your_amd_gpu_target" -DCMAKE_PREFIX_PATH="path_to_rocm" -DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl -DCMAKE_HIP_COMPILER=clang-cl -DTrimesh2_INCLUDE_DIR:PATH="path_to_trimesh2_include" -DTrimesh2_LINK_DIR:PATH="path_to_trimesh2_library_dir" ..
+```
+Where `your_amd_gpu_target` is the LLVM target of your GPU, as reported by `rocminfo` or `amdgpu-arch` (for example `gfx90a`, `gfx1100` or `gfx1151`). If it is left out, CMake builds for the GPUs it detects. Then build with `cmake --build . --parallel number_of_cores` as above.
 
 ### Build using Visual Studio project (Windows)
 A project solution for Visual Studio 2022 is provided in the `msvc` folder. It is configured for CUDA 12.1, but you can edit the project file to make it work with other CUDA versions. You can edit the `custom_includes.props` file to configure the library locations, and specify a place where the resulting binaries should be placed.
