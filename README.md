@@ -74,6 +74,8 @@ cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DUSE_HIP=ON -DCMAKE_HIP_ARCHITECTURES
 ```
 Where `your_amd_gpu_target` is the LLVM target of your GPU, as reported by `rocminfo` or `amdgpu-arch` (for example `gfx90a`, `gfx1100` or `gfx1151`). If it is left out, CMake builds for the GPUs it detects. Then build with `cmake --build . --parallel number_of_cores` as above.
 
+On Windows, the executable needs the ROCm runtime DLLs from ROCm's `bin` directory and `libomp140.x86_64.dll` (Visual Studio's LLVM OpenMP runtime, which `clang-cl` links against, found in `VC\Redist\MSVC\<version>\debug_nonredist\x64\Microsoft.VC143.OpenMP.LLVM`) on `PATH` or next to `cuda_voxelizer.exe`.
+
 ### Build using Visual Studio project (Windows)
 A project solution for Visual Studio 2022 is provided in the `msvc` folder. It is configured for CUDA 12.1, but you can edit the project file to make it work with other CUDA versions. You can edit the `custom_includes.props` file to configure the library locations, and specify a place where the resulting binaries should be placed.
 
