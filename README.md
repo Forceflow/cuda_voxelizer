@@ -65,7 +65,7 @@ cuda_voxelizer can also be built for AMD GPUs with [ROCm](https://rocm.docs.amd.
 
 For Linux:
 ```bash
-cmake -DUSE_HIP=ON -DCMAKE_HIP_ARCHITECTURES="your_amd_gpu_target" -DCMAKE_PREFIX_PATH=/opt/rocm -DTrimesh2_INCLUDE_DIR:PATH="path_to_trimesh2_include" -DTrimesh2_LINK_DIR:PATH="path_to_trimesh2_library_dir" ..
+cmake -DCMAKE_BUILD_TYPE=Release -DUSE_HIP=ON -DCMAKE_HIP_ARCHITECTURES="your_amd_gpu_target" -DCMAKE_PREFIX_PATH=/opt/rocm -DTrimesh2_INCLUDE_DIR:PATH="path_to_trimesh2_include" -DTrimesh2_LINK_DIR:PATH="path_to_trimesh2_library_dir" ..
 ```
 
 For Windows, use the `clang-cl` compiler that ships with ROCm for all languages, and build Trimesh2 with the same compiler:
