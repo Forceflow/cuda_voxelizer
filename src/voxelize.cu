@@ -213,7 +213,7 @@ void voxelize(const voxinfo& v, float* triangle_data, unsigned int* vtable, bool
 	gridSize = static_cast<int>((v.n_triangles + blockSize - 1) / blockSize);
 
 	checkCudaErrors(cudaEventRecord(start_vox, 0));
-	voxelize_triangle << <gridSize, blockSize >> > (v, triangle_data, vtable, morton_code);
+	voxelize_triangle<<<gridSize, blockSize>>>(v, triangle_data, vtable, morton_code);
 
 	cudaDeviceSynchronize();
 	checkCudaErrors(cudaEventRecord(stop_vox, 0));
