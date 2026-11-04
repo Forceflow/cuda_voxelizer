@@ -212,6 +212,7 @@ int main(int argc, char* argv[]) {
 		// Allocate memory for voxel grid
 		fprintf(stdout, "[Voxel Grid] Allocating %s of CUDA-managed UNIFIED memory for Voxel Grid\n", readableSize(vtable_size).c_str());
 		checkCudaErrors(cudaMallocManaged((void**)&vtable, vtable_size));
+		checkCudaErrors(cudaMemset(vtable, 0, vtable_size));
 		
 		fprintf(stdout, "\n## GPU VOXELISATION \n");
 		if (solidVoxelization){
