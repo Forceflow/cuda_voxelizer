@@ -63,7 +63,7 @@ jobs:
 
     - name: Cache Trimesh2
       id: trimesh2-cache
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: ${{ runner.workspace }}\trimesh2-build
         key: ${{ runner.os }}-build-trimesh2-${{ env.TRIMESH_VERSION }}-vs143
