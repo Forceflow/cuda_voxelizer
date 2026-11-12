@@ -1,6 +1,6 @@
 name: build
 
-on: 
+on:
   workflow_dispatch:
   push:
     branches:
@@ -12,81 +12,67 @@ on:
       - dev
 jobs:
   linux-build:
-    runs-on: ubuntu-20.04
-    container: nvidia/cuda:12.2.0-devel-ubuntu20.04
-    
-    env: 
+    runs-on: ubuntu-24.04
+    container: nvidia/cuda:12.9.1-devel-ubuntu24.04
+
+    env:
       CUDAARCHS: '60'
       TRIMESH_VERSION: '2022.03.04'
-      CMAKE_VERSION: '3.20.4'
+      DEBIAN_FRONTEND: noninteractive
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v2 
+      uses: actions/checkout@v5
 
-    - name: Install OpenMP and other libraries
-      run: | 
-        apt update
-        apt install -y --no-install-recommends apt-utils
-        apt install -y libgomp1 git mesa-common-dev libglu1-mesa-dev libxi-dev wget ninja-build
-    
-    - name: Install CMake
+    - name: Install OpenMP, CMake and other libraries
       run: |
-        wget -q -O ./cmake-install.sh https://github.com/Kitware/CMake/releases/download/v${{ env.CMAKE_VERSION }}/cmake-${{ env.CMAKE_VERSION }}-Linux-x86_64.sh 
-        chmod u+x ./cmake-install.sh
-        mkdir "$HOME"/cmake
-        ./cmake-install.sh --skip-license --prefix="$HOME"/cmake
-        rm ./cmake-install.sh
-    
+        apt-get update
+        apt-get install -y --no-install-recommends libgomp1 git ca-certificates cmake ninja-build mesa-common-dev libglu1-mesa-dev
+
+    # Only the library is needed; the bundled freeglut/utilities don't build cleanly with modern GCC
     - name: Build Trimesh2
       run: |
         git clone --single-branch --depth 1 -b ${{ env.TRIMESH_VERSION }} https://github.com/Forceflow/trimesh2.git ../trimesh2
         cd ../trimesh2
-        make all -j $(nproc)
-        make clean
+        make -C libsrc -j $(nproc)
+        make -C libsrc clean
 
     - name: Configure cuda_voxelizer
       run: |
-        PATH=$PATH:"$HOME"/cmake/bin
         cmake -GNinja \
         -DTrimesh2_INCLUDE_DIR="../trimesh2/include" \
         -DTrimesh2_LINK_DIR="../trimesh2/lib.Linux64" \
         -S . -B ./build
 
     - name: Build cuda_voxelizer
-      run: |
-        PATH=$PATH:"$HOME"/cmake/bin
-        cmake --build ./build --parallel $(nproc)
+      run: cmake --build ./build --parallel $(nproc)
 
     - name: Test
       run: ./build/cuda_voxelizer -f ./test_models/bunny.OBJ -s 64 -cpu
-  
+
   windows-build:
-    runs-on: windows-2019
+    runs-on: windows-2022
     env:
-      CUDA_MAJOR_VERSION: '12.2'
-      CUDA_PATCH_VERSION: '0'
+      CUDA_VERSION: '12.9.1'
       TRIMESH_VERSION: '2022.03.04'
       CUDAARCHS: '60'
-    
+
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v5
 
     - name: Cache Trimesh2
       id: trimesh2-cache
-      uses: actions/cache@v2
+      uses: actions/cache@v5
       with:
         path: ${{ runner.workspace }}\trimesh2-build
-        key: ${{ runner.os }}-build-trimesh2-cache-1
+        key: ${{ runner.os }}-build-trimesh2-${{ env.TRIMESH_VERSION }}-vs143
 
-    
-    # Older version then 11.4.0 of CUDA Toolkit does not have thrust option for installation in silent mode 
-    - uses: Jimver/cuda-toolkit@v0.2.11
+    - uses: Jimver/cuda-toolkit@v0.2.36
       id: cuda-toolkit
       with:
         method: 'network'
-        cuda: '${{ env.CUDA_MAJOR_VERSION }}.${{ env.CUDA_PATCH_VERSION }}'
+        cuda: '${{ env.CUDA_VERSION }}'
         sub-packages: '["nvcc", "cudart", "visual_studio_integration"]'
 
     - name: Build Trimesh2
@@ -95,10 +81,10 @@ jobs:
         Install-Module VSSetup -Scope CurrentUser -Force
         git clone -b ${{ env.TRIMESH_VERSION }} --single-branch --depth 1 https://github.com/Forceflow/trimesh2.git ..\trimesh2
         cd ..\trimesh2
-        & (Join-Path (Get-VSSetupInstance).InstallationPath -ChildPath MSBuild\Current\Bin\msbuild.exe) .\msvc\vs2019\trimesh2.sln -nologo -m:2 /t:libsrc /p:Configuration=Release /p:Platform=x64
+        & (Join-Path (Get-VSSetupInstance).InstallationPath -ChildPath MSBuild\Current\Bin\msbuild.exe) .\msvc\vs2022\trimesh2.sln -nologo -m:2 /t:libsrc /p:Configuration=Release /p:Platform=x64
         mkdir ..\trimesh2-build
         Move-Item .\include ..\trimesh2-build
-        Move-Item .\lib.Win64.vs142 ..\trimesh2-build
+        Move-Item .\lib.Win64.vs143 ..\trimesh2-build
         cd -
         rm -Recurse -Force ..\trimesh2
 
@@ -108,12 +94,12 @@ jobs:
         cmake -A x64 `
         -DCMAKE_TOOLCHAIN_FILE:FILEPATH="C:\vcpkg\scripts\buildsystems\vcpkg.cmake" `
         -DTrimesh2_INCLUDE_DIR:PATH="$trimeshDir\include" `
-        -DTrimesh2_LINK_DIR:PATH="$trimeshDir\lib.Win64.vs142" `
+        -DTrimesh2_LINK_DIR:PATH="$trimeshDir\lib.Win64.vs143" `
         -DCMAKE_BUILD_TYPE=Release `
         -S . -B .\build
-    
+
     - name: Build cuda_voxelizer
       run: cmake --build .\build --parallel 2 --target ALL_BUILD --config Release
-    
+
     - name: Test cuda_voxelizer
       run: .\build\Release\cuda_voxelizer.exe -f .\test_models\bunny.OBJ -s 64 -cpu
