@@ -27,14 +27,15 @@ jobs:
     - name: Install OpenMP, CMake and other libraries
       run: |
         apt-get update
-        apt-get install -y --no-install-recommends libgomp1 git ca-certificates cmake ninja-build mesa-common-dev libglu1-mesa-dev libxi-dev
+        apt-get install -y --no-install-recommends libgomp1 git ca-certificates cmake ninja-build mesa-common-dev libglu1-mesa-dev
 
+    # Only the library is needed; the bundled freeglut/utilities don't build cleanly with modern GCC
     - name: Build Trimesh2
       run: |
         git clone --single-branch --depth 1 -b ${{ env.TRIMESH_VERSION }} https://github.com/Forceflow/trimesh2.git ../trimesh2
         cd ../trimesh2
-        make all -j $(nproc)
-        make clean
+        make -C libsrc -j $(nproc)
+        make -C libsrc clean
 
     - name: Configure cuda_voxelizer
       run: |
@@ -67,7 +68,7 @@ jobs:
         path: ${{ runner.workspace }}\trimesh2-build
         key: ${{ runner.os }}-build-trimesh2-${{ env.TRIMESH_VERSION }}-vs143
 
-    - uses: Jimver/cuda-toolkit@v0.2.30
+    - uses: Jimver/cuda-toolkit@v0.2.36
       id: cuda-toolkit
       with:
         method: 'network'
