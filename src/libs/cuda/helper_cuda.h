@@ -1,12 +1,28 @@
-/**
- * Copyright 1993-2017 NVIDIA Corporation.  All rights reserved.
+/* Copyright (c) 2022, NVIDIA CORPORATION. All rights reserved.
  *
- * Please refer to the NVIDIA end user license agreement (EULA) associated
- * with this source code for terms and conditions that govern your use of
- * this software. Any use, reproduction, disclosure, or distribution of
- * this software and related documentation outside the terms of the EULA
- * is strictly prohibited.
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *  * Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ *  * Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *  * Neither the name of NVIDIA CORPORATION nor the names of its
+ *    contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
  *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ``AS IS'' AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+ * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+ * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -650,6 +666,8 @@ inline int _ConvertSMVer2Cores(int major, int minor) {
       {0x80,  64},
       {0x86, 128},
       {0x87, 128},
+      {0x89, 128},
+      {0x90, 128},
       {-1, -1}};
 
   int index = 0;
@@ -697,6 +715,8 @@ inline const char* _ConvertSMVer2ArchName(int major, int minor) {
       {0x80, "Ampere"},
       {0x86, "Ampere"},
       {0x87, "Ampere"},
+      {0x89, "Ada"},
+      {0x90, "Hopper"},
       {-1, "Graphics Device"}};
 
   int index = 0;
@@ -866,10 +886,10 @@ inline int findCudaDevice(int argc, const char **argv) {
     // Otherwise pick the device with highest Gflops/s
     devID = gpuGetMaxGflopsDeviceId();
     checkCudaErrors(cudaSetDevice(devID));
-    int major = 0, minor = 0; 
+    int major = 0, minor = 0;
     checkCudaErrors(cudaDeviceGetAttribute(&major, cudaDevAttrComputeCapabilityMajor, devID));
     checkCudaErrors(cudaDeviceGetAttribute(&minor, cudaDevAttrComputeCapabilityMinor, devID));
-    printf("GPU Device %d: \"%s\" with compute capability %d.%d\n",
+    printf("GPU Device %d: \"%s\" with compute capability %d.%d\n\n",
            devID, _ConvertSMVer2ArchName(major, minor), major, minor);
 
   }
@@ -899,7 +919,7 @@ inline int findIntegratedGPU() {
     if (integrated && (computeMode != cudaComputeModeProhibited)) {
       checkCudaErrors(cudaSetDevice(current_device));
 
-      int major = 0, minor = 0; 
+      int major = 0, minor = 0;
       checkCudaErrors(cudaDeviceGetAttribute(&major, cudaDevAttrComputeCapabilityMajor, current_device));
       checkCudaErrors(cudaDeviceGetAttribute(&minor, cudaDevAttrComputeCapabilityMinor, current_device));
       printf("GPU Device %d: \"%s\" with compute capability %d.%d\n\n",

@@ -168,7 +168,7 @@ void voxelize_solid(const voxinfo& v, float* triangle_data, unsigned int* vtable
 	gridSize = static_cast<int>((v.n_triangles + blockSize - 1) / blockSize);
 
 	checkCudaErrors(cudaEventRecord(start_vox, 0));
-	voxelize_triangle_solid << <gridSize, blockSize >> > (v, triangle_data, vtable, morton_code);
+	voxelize_triangle_solid<<<gridSize, blockSize>>>(v, triangle_data, vtable, morton_code);
 
 	cudaDeviceSynchronize();
 	checkCudaErrors(cudaEventRecord(stop_vox, 0));

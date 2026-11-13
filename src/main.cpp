@@ -209,9 +209,16 @@ int main(int argc, char* argv[]) {
 		// Transfer triangle data to GPU
 		device_triangles = meshToGPU_managed(themesh);
 
+#if defined(__HIP_PLATFORM_AMD__)
+		// Allocate memory for voxel grid in device memory: the kernels use bitwise atomics on it
+		fprintf(stdout, "[Voxel Grid] Allocating %s of CUDA device memory for Voxel Grid\n", readableSize(vtable_size).c_str());
+		checkCudaErrors(cudaMalloc((void**)&vtable, vtable_size));
+		checkCudaErrors(cudaMemset(vtable, 0, vtable_size));
+#else
 		// Allocate memory for voxel grid
 		fprintf(stdout, "[Voxel Grid] Allocating %s of CUDA-managed UNIFIED memory for Voxel Grid\n", readableSize(vtable_size).c_str());
 		checkCudaErrors(cudaMallocManaged((void**)&vtable, vtable_size));
+#endif
 		
 		fprintf(stdout, "\n## GPU VOXELISATION \n");
 		if (solidVoxelization){
@@ -220,6 +227,14 @@ int main(int argc, char* argv[]) {
 		else{
 			voxelize(voxelization_info, device_triangles, vtable, (outputformat == OutputFormat::output_morton));
 		}
+#if defined(__HIP_PLATFORM_AMD__)
+
+		// Copy voxel grid back to host memory for file output
+		unsigned int* device_vtable = vtable;
+		vtable = (unsigned int*) malloc(vtable_size);
+		checkCudaErrors(cudaMemcpy(vtable, device_vtable, vtable_size, cudaMemcpyDeviceToHost));
+		checkCudaErrors(cudaFree(device_vtable));
+#endif
 	} else { 
 		// CPU VOXELIZATION FALLBACK
 		fprintf(stdout, "\n## CPU VOXELISATION \n");
